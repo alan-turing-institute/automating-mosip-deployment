@@ -1,0 +1,323 @@
+# Required variables
+installation_name = "mosip"
+installation_domain = "mosip.hackmepls.co.uk"  # Change this to your actual domain
+mosip_version = "1.2.0"           # Change this to your desired MOSIP version
+kubeconfig_path = "/home/ubuntu/rancher/mosip/kube_config_cluster.yml"  #IMPORTANT: Use the full path to the kubeconfig file, e.g. /home/ubuntu/ and not ~/
+
+# Enable modules
+###### KEEP DOCKER OFF FOR NOW #####
+# Orginal location before conf_secrets
+docker_secrets_enabled = false   # Docker registry secrets
+###### END KEEP DOCKER OFF FOR NOW #####
+
+## External Services
+longhorn_enable = true            # Storage solution
+enable_istio = true              # Service mesh and gateway
+iam_enable = true                # Identity and Access Management (Keycloak)
+postgres_enable = true           # Database
+httpbin_enable = true           # Debug tool
+enable_softhsm = true           # Hardware Security Module
+enable_minio = true             # Object storage
+enable_activemq = true          # Message broker
+enable_kafka = true             # Event streaming platform
+enable_clamav = true            # Antivirus
+msg_gateway_enabled = true      # Messaging gateway
+conf_secrets_enabled = true     # Configuration secrets
+enable_landing_page = true      # Landing page
+enable_captcha = true          # CAPTCHA service
+
+## MOSIP Services
+config_server_enabled = true    # Configuration server
+artifactory_enable = true      # Artifact repository
+enable_keymanager = true       # Key management
+websub_enabled = true          # WebSub/Webhook
+mock_smtp_enabled = true       # Mock SMTP server
+kernel_enabled = true          # Core services
+masterdata_loader_enabled = true # Master data initialization
+biosdk_enabled = true          # Biometric SDK
+packetmanager_enabled = true   # Packet management
+datashare_enabled = true       # Data sharing service
+prereg_enabled = true          # Pre-registration
+idrepo_enabled = true          # ID Repository
+pms_enabled = true            # Partner Management
+mock_abis_enabled = true      # Mock ABIS
+mock_mv_enabled = true        # Mock Manual Verification
+regproc_enabled = true        # Registration Processor
+admin_enabled = true          # Admin services
+ida_enabled = true           # ID Authentication
+print_enabled = true         # Print services
+resident_enabled = true      # Resident services
+partner_onboarder_enabled = true # Partner onboarding
+regclient_enabled = true  # Regclient services 
+mosip_file_server_enabled = true # MOSIP FILE SERVER service
+
+# Optional variables with defaults
+is_glowroot_env = "absent"
+
+# Component toggles and versions
+# Longhorn Storage
+longhorn_version = "1.5.1"         # Version of Longhorn to deploy
+longhorn_namespace = "longhorn-system"  # Namespace for Longhorn deployment
+longhorn_replica_count = 1        # Number of replicas for volumes
+longhorn_guaranteed_engine_cpu = "5"    # Guaranteed CPU for engine manager
+longhorn_guaranteed_replica_cpu = "5"    # Guaranteed CPU for replica manager
+longhorn_storage_minimal_available_percentage = "25"    # Minimal available percentage for storage
+longhorn_storage_over_provisioning_percentage = "200"   # Storage over-provisioning percentage
+longhorn_storage_reserved_percentage = "25"            # Reserved storage percentage
+longhorn_auto_salvage = "true"                        # Enable auto salvage
+longhorn_auto_delete_pod_when_volume_detached_unexpectedly = "true"  # Auto delete pod when volume detached
+longhorn_disable_scheduling_on_cordoned_node = "true"   # Disable scheduling on cordoned nodes
+longhorn_replica_zone_soft_anti_affinity = "true"      # Enable replica zone soft anti-affinity
+longhorn_storage_class_name = "longhorn"              # Name of the storage class to be used as default
+#longhorn_filesystem_size = "10Gi"                     # Size for filesystem PV
+
+# Istio Service Mesh and Gateway Configuration
+istio_version = "1.15.0"           # Specific version required for MOSIP compatibility
+proxy_protocol_enabled = false     # Set to true to enable proxy protocol for ingress gateway
+
+# IAM (Keycloak)
+iam_version = "7.1.18"            # Version of Keycloak Helm chart
+iam_init_version = "12.0.1"       # Version of Keycloak Init Helm chart
+iam_namespace = "keycloak"        # Namespace for IAM deployment
+iam_admin_password = "asDkLhkl-1234"      # Initial admin password for Keycloak (change this in production)
+iam_image_repository = "mosipid/mosip-artemis-keycloak"
+iam_image_tag = "1.2.0.1"
+iam_image_pull_policy = "Always"
+
+# IAM SMTP Configuration
+iam_smtp_host = ""          # To be provided during deployment
+iam_smtp_port = ""          # To be provided during deployment
+iam_smtp_from = ""          # To be provided during deployment
+iam_smtp_starttls = false
+iam_smtp_auth = true
+iam_smtp_ssl = true
+iam_smtp_username = ""      # Optional, only if smtp_auth is true
+iam_smtp_password = ""      # Optional, only if smtp_auth is true
+
+# Postgres Database
+postgres_version = "12.11.1"       # Version of Postgres Helm chart to deploy
+postgres_namespace = "postgres"     # Namespace for Postgres deployment
+postgres_init_version = "12.0.1"   # Version of Postgres Init Helm chart
+
+# Httpbin Debug Tool
+httpbin_namespace = "httpbin"      # Namespace for httpbin deployment
+
+# SoftHSM
+softhsm_chart_version = "12.0.1"  # Version of SoftHSM Helm chart to deploy
+softhsm_namespace = "softhsm"     # Namespace for SoftHSM deployment
+
+# MinIO Object Store
+minio_chart_version = "10.1.6"   # Version of MinIO Helm chart to deploy
+minio_namespace = "minio"        # Namespace for MinIO deployment
+
+# S3 Credentials Configuration
+create_s3_namespace = true      # Set to true to create S3 namespace with credentials
+use_existing_minio = true       # Use credentials from existing MinIO installation
+s3_pretext_value = "mosip"     # Pretext value for object storage buckets (used in MOSIP components)
+# s3_user_key = ""             # Only needed if use_existing_minio = false
+# s3_user_secret = ""          # Only needed if use_existing_minio = false
+# s3_region = ""               # Only needed if use_existing_minio = false
+
+# ActiveMQ
+
+# Kafka Configuration
+kafka_replica_count = 5
+kafka_storage_size = "8Gi"
+kafka_zookeeper_storage_size = "2Gi"
+kafka_zookeeper_replica_count = 5
+
+# ClamAV Configuration
+clamav_helm_chart_version = "2.4.1"
+clamav_replica_count = 1
+clamav_image_repository = "clamav/clamav"
+clamav_image_tag = "latest"
+clamav_image_pull_policy = "Always"
+
+# MSG Gateway Configuration
+smtp_host          = "mock-smtp.mock-smtp"
+sms_host           = "mock-smtp.mock-smtp"
+smtp_port          = "8025"
+sms_port           = "8080"
+smtp_username      = ""
+sms_username       = ""
+smtp_secret        = "''"
+sms_secret         = "''"
+sms_authkey        = "authkey"
+
+# Docker Secrets Configuration
+docker_registry_url = "https://index.docker.io/v1/"
+docker_username = ""
+docker_password = ""
+docker_email = ""
+
+# Conf Secrets
+conf_secrets_namespace = "conf-secrets"
+conf_secrets_chart_version = "12.0.1"
+
+# Config Server Configuration
+config_server_namespace = "config-server"
+config_server_chart_version = "12.0.1"
+config_server_git_repo_uri = "https://github.com/mosip/mosip-config"
+config_server_git_repo_version = "v1.2.0.1"
+config_server_git_search_folders = ""
+config_server_git_private = false
+config_server_git_username = ""
+config_server_git_token = ""
+
+# Landing Page Configuration
+landing_page_chart_version = "12.0.1"  # Version of Landing Page Helm chart
+landing_version = "1.2.0.2"           # Version of Landing Page to deploy
+healthservices_host = "healthservices.mosip.net"  # Health Services host URL
+
+# Captcha Configuration
+captcha_namespace = "captcha"
+# IMPORTANT: Replace these default values with your actual Google reCAPTCHA v2 keys
+prereg_captcha_site_key = "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"     # Default test key - REPLACE for production
+prereg_captcha_secret_key = "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe"   # Default test key - REPLACE for production
+resident_captcha_site_key = "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"   # Default test key - REPLACE for production
+resident_captcha_secret_key = "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe" # Default test key - REPLACE for production
+
+# Artifactory Configuration
+artifactory_namespace = "artifactory"
+artifactory_chart_version = "12.0.2"
+artifactory_startup_probe_timeout = 180
+artifactory_startup_probe_initial_delay = 120
+
+# Keymanager configuration
+keymanager_chart_version = "12.0.1"
+keymanager_keygen_chart_version = "12.0.1"
+keymanager_spring_config_name_env = "kernel"
+keymanager_softhsm_cm = "softhsm-kernel-share"
+keymanager_startup_probe_timeout = 90
+keymanager_startup_probe_initial_delay = 90
+
+# Websub Configuration
+websub_helm_chart_version = "12.0.1"
+websub_startup_probe_timeout = 120
+websub_startup_probe_initial_delay = 90
+
+# Mock SMTP Configuration
+mock_smtp_host             = "smtp.mosip.net"
+mock_smtp_helm_version = "1.0.0"
+
+# Kernel Configuration
+kernel_namespace               = "kernel"
+kernel_helm_chart_version      = "12.0.1"
+kernel_enable_insecure         = false
+kernel_startup_probe_timeout   = 180
+kernel_startup_probe_initial_delay = 90
+kernel_helm_timeout_seconds    = 1200
+
+# Masterdata Loader
+masterdata_loader_helm_chart_version = "12.0.1"
+masterdata_loader_mosip_data_github_branch = "v1.2.0.1"
+masterdata_loader_startup_probe_timeout = 180
+masterdata_loader_startup_probe_initial_delay = 90
+
+# BioSDK settings
+biosdk_namespace = "biosdk"
+biosdk_helm_chart_version = "12.0.1"
+biosdk_startup_probe_timeout = 180
+biosdk_startup_probe_initial_delay = 90
+
+# Packetmanager settings
+packetmanager_namespace = "packetmanager"
+packetmanager_helm_chart_version = "12.0.1"
+packetmanager_startup_probe_timeout = 180
+packetmanager_startup_probe_initial_delay = 90
+
+# Datashare settings
+datashare_namespace = "datashare"
+datashare_helm_chart_version = "12.0.1"
+datashare_startup_probe_timeout = 180
+datashare_startup_probe_initial_delay = 90
+
+# Prereg configuration
+prereg_chart_version = "12.0.1"
+prereg_istio_injection_label = "disabled"
+prereg_startup_probe_timeout = 180
+prereg_startup_probe_initial_delay = 90
+prereg_helm_timeout_seconds = 1200
+prereg_rate_limit_max_tokens = 100
+prereg_rate_limit_tokens_per_fill = 100
+prereg_rate_limit_fill_interval = "50ms"
+
+# IDREPO settings
+idrepo_namespace = "idrepo"
+idrepo_helm_chart_version = "12.0.1"
+idrepo_istio_injection_label = "enabled"
+idrepo_startup_probe_initial_delay = 90
+idrepo_startup_probe_timeout = 180
+idrepo_helm_timeout_seconds = 1200
+
+# PMS settings
+pms_namespace = "pms"
+pms_helm_chart_version = "12.0.1"
+pmp_ui_chart_version = "12.0.1"
+pms_istio_injection_label = "enabled"
+pms_startup_probe_initial_delay = 90
+pms_startup_probe_timeout = 180
+pms_helm_timeout_seconds = 1200
+
+# Mock ABIS settings
+mock_abis_namespace = "abis"
+mock_abis_helm_chart_version = "12.0.2"
+mock_abis_istio_injection_label = "enabled"
+mock_abis_startup_probe_initial_delay = 90
+mock_abis_startup_probe_timeout = 180
+mock_abis_helm_timeout_seconds = 1200
+
+# Mock MV settings
+mock_mv_helm_chart_version = "12.0.2"
+mock_mv_istio_injection_label = "enabled"
+mock_mv_startup_probe_initial_delay = 90
+mock_mv_startup_probe_timeout = 180
+mock_mv_helm_timeout_seconds = 1200
+
+# Regproc Configuration
+regproc_namespace         = "regproc"
+regproc_helm_chart_version = "12.0.1" 
+regproc_helm_timeout      = 1200
+
+# Admin Configuration
+admin_namespace         = "admin"
+admin_helm_chart_version = "12.0.1"
+admin_helm_timeout      = 1200
+
+# IDA Configuration
+ida_namespace         = "ida"
+ida_helm_chart_version = "12.0.1"
+ida_enable_insecure   = false
+ida_helm_timeout      = 1200
+
+# Print Configuration
+print_namespace         = "print"
+print_helm_chart_version = "12.0.1"
+print_helm_timeout      = 1200
+
+# Resident Configuration
+resident_namespace = "resident"
+resident_helm_chart_version = "12.0.1"
+resident_ui_chart_version = "0.0.1"
+resident_enable_insecure = false
+
+# Regclient Configuration
+regclient_namespace = "regclient"
+regclient_helm_chart_version = "12.0.2"
+regclient_startup_probe_timeout = 180
+regclient_startup_probe_initial_delay = 900
+
+# Partner Onboarder Configuration
+partner_onboarder_namespace         = "onboarder"
+partner_onboarder_helm_chart_version = "12.0.1"
+partner_onboarder_helm_timeout      = 1200
+partner_onboarder_s3_bucket_name    = "onboarder"
+
+# mosip-file-server Configuration
+mosip_file_server_namespace          = "mosip-file-server"
+mosip_file_server_helm_chart_version = "12.0.1"
+mosip_file_server_helm_timeout       = 1200
+
+# Additional variables
+# ... (keep the existing variables)
+# ... (add any new variables if needed) 

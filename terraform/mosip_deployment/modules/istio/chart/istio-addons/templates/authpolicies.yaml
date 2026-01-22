@@ -1,0 +1,26 @@
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-all
+  namespace: istio-system
+spec:
+  rules:
+    - {}
+  selector:
+    matchLabels:
+      app: istio-ingressgateway
+
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: deny-swagger
+spec:
+  selector:
+    matchLabels:
+      istio: ingressgateway
+  action: DENY
+  rules:
+  - to:
+    - operation:
+        paths: ["*/swagger-ui.html", "*/swagger-ui/index.html"] 

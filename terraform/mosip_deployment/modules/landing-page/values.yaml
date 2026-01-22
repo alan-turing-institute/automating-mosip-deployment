@@ -1,0 +1,4 @@
+# Landing Page Helm chart values
+# These values are based on the default configuration from the shell script installation
+
+# No specific values needed as we're using defaults from the mosip/landing-page chart 

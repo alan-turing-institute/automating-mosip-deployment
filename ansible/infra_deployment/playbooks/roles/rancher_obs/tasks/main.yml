@@ -1,0 +1,244 @@
+---
+# Check for existing Kubernetes configurations
+- name: Check for existing Kubernetes configurations
+  block:
+    - name: Expand rancher_obs_base_dir if it contains ~
+      set_fact:
+        rancher_base_dir: "{{ rancher_obs_base_dir | default(ansible_env.HOME + '/rancher_obs') | replace('~', ansible_env.HOME) }}"
+
+    - name: Display OBS cluster directory path
+      debug:
+        msg: "Checking for existing OBS cluster at: {{ rancher_base_dir }}"
+
+    - name: Check for cluster state file
+      stat:
+        path: "{{ rancher_base_dir }}/cluster.rkestate"
+      register: cluster_state_check
+
+    - name: Check for kubeconfig file
+      stat:
+        path: "{{ rancher_base_dir }}/kube_config_cluster.yml"
+      register: kubeconfig_check
+
+    - name: Fail if OBS Kubernetes configurations exist
+      fail:
+        msg: |
+          Existing OBS Kubernetes configurations found. Please remove the following directory before proceeding:
+          - {{ rancher_base_dir }}
+          
+          This directory contains cluster configuration files that conflict with a new deployment.
+      when: 
+        - check_existing_config | default(true)
+        - (cluster_state_check.stat.exists | default(false)) or (kubeconfig_check.stat.exists | default(false))
+  when: check_existing_config | default(true)
+
+# Verify SSH key exists
+- name: Check if SSH private key exists
+  stat:
+    path: "{{ ssh_key_path }}"
+  register: ssh_key_file
+
+- name: Fail if SSH key doesn't exist
+  fail:
+    msg: "SSH private key not found at {{ ssh_key_path }}"
+  when: not ssh_key_file.stat.exists
+
+# Verify OBS node is defined
+- name: Verify OBS node is defined
+  fail:
+    msg: "mosip_obs group must contain at least one node"
+  when: groups['mosip_obs'] | length == 0
+
+# Check if cluster already exists
+- name: Expand rancher_obs_base_dir if not already set
+  set_fact:
+    rancher_base_dir: "{{ rancher_obs_base_dir | default(ansible_env.HOME + '/rancher_obs') | replace('~', ansible_env.HOME) }}"
+  when: rancher_base_dir is not defined
+
+- name: Check if cluster state file exists
+  stat:
+    path: "{{ rancher_base_dir }}/cluster.rkestate"
+  register: cluster_state
+
+- name: Check if kubeconfig exists
+  stat:
+    path: "{{ rancher_base_dir }}/kube_config_cluster.yml"
+  register: kube_config
+  when: cluster_state.stat.exists
+
+- name: Test cluster connectivity using existing kubeconfig
+  command: kubectl --kubeconfig={{ rancher_base_dir }}/kube_config_cluster.yml get nodes
+  register: kubectl_test
+  changed_when: false
+  failed_when: false
+  when: kube_config.stat is defined and kube_config.stat.exists
+
+- name: Check cluster state using rke
+  command: rke cluster list
+  register: rke_cluster_list
+  changed_when: false
+  failed_when: false
+  when: cluster_state.stat.exists
+
+- name: Set cluster status fact
+  set_fact:
+    cluster_exists: >-
+      {{ 
+        (cluster_state.stat.exists and 
+         kube_config.stat is defined and 
+         kube_config.stat.exists and 
+         kubectl_test.rc == 0) or
+        (cluster_state.stat.exists and 
+         rke_cluster_list.stdout is defined and 
+         cluster_name in rke_cluster_list.stdout)
+      }}
+
+- name: Display cluster status
+  debug:
+    msg: "Rancher OBS cluster '{{ cluster_name }}' is already running and accessible"
+  when: cluster_exists
+
+# Install RKE if cluster doesn't exist
+- name: Download RKE binary
+  get_url:
+    url: "https://github.com/rancher/rke/releases/download/{{ rke_version }}/rke_linux-amd64"
+    dest: /usr/local/bin/rke
+    mode: '0755'
+  become: true
+  when: not cluster_exists
+
+# Create cluster configuration
+- name: Create rancher OBS base directory
+  file:
+    path: "{{ rancher_base_dir }}"
+    state: directory
+    mode: '0750'
+  when: not cluster_exists
+
+- name: Generate cluster.yml
+  template:
+    src: cluster.yml.j2
+    dest: "{{ rancher_base_dir }}/cluster.yml"
+    mode: '0644'
+  when: not cluster_exists
+
+# Deploy cluster
+- name: Deploy Rancher OBS cluster
+  command: rke up --config {{ rancher_base_dir }}/cluster.yml
+  args:
+    chdir: "{{ rancher_base_dir }}"
+  when: not cluster_exists
+
+# Save kube config
+- name: Create .kube directory
+  file:
+    path: "{{ ansible_env.HOME }}/.kube"
+    state: directory
+  when: not cluster_exists
+
+- name: Copy kube config
+  copy:
+    src: "{{ rancher_base_dir }}/kube_config_cluster.yml"
+    dest: "{{ ansible_env.HOME }}/.kube/config"
+    mode: '0600'
+    remote_src: yes
+  when: not cluster_exists
+
+# Verify cluster is running
+- name: Wait for cluster nodes to be ready
+  command: kubectl --kubeconfig={{ rancher_base_dir }}/kube_config_cluster.yml get nodes
+  register: node_status
+  until: node_status.rc == 0 and 'NotReady' not in node_status.stdout
+  retries: 30
+  delay: 10
+  when: not cluster_exists
+
+- name: Verify core components are running
+  command: kubectl --kubeconfig={{ rancher_base_dir }}/kube_config_cluster.yml get pods -A
+  register: pods_status
+  until: pods_status.rc == 0 and 'Pending' not in pods_status.stdout and 'ContainerCreating' not in pods_status.stdout
+  retries: 30
+  delay: 10
+  when: not cluster_exists
+
+- name: Display cluster verification status
+  debug:
+    msg: "Rancher OBS cluster '{{ cluster_name }}' is verified and fully operational"
+  when: not cluster_exists
+
+# Update Canal ConfigMap MTU
+- name: Update Canal ConfigMap MTU
+  shell: |
+    kubectl --kubeconfig={{ rancher_base_dir }}/kube_config_cluster.yml get configmap canal-config -n kube-system -o yaml | \
+    sed 's/veth_mtu:.*/veth_mtu: "{{ network_mtu }}"/' | \
+    kubectl --kubeconfig={{ rancher_base_dir }}/kube_config_cluster.yml apply -f -
+  register: canal_config_update
+  changed_when: canal_config_update.rc == 0
+
+# Update CNI configuration on OBS node
+- name: Update CNI configuration MTU
+  lineinfile:
+    path: /etc/cni/net.d/10-canal.conflist
+    regexp: '      "mtu": \d+'
+    line: '      "mtu": {{ network_mtu }},'
+    backrefs: yes
+  delegate_to: "{{ groups['mosip_obs'][0] }}"
+  become: true
+
+- name: Verify Canal ConfigMap update
+  command: kubectl --kubeconfig={{ rancher_base_dir }}/kube_config_cluster.yml get configmap canal-config -n kube-system -o yaml
+  register: canal_config_verify
+  changed_when: false
+  failed_when: '"veth_mtu: \"{{ network_mtu }}\"" not in canal_config_verify.stdout'
+
+- name: Display MTU update status
+  debug:
+    msg: "MTU settings have been updated successfully in both Canal ConfigMap and CNI configuration"
+
+# Restart Canal pods to apply new MTU settings
+- name: Delete Canal DaemonSet pods to force restart
+  shell: |
+    kubectl --kubeconfig={{ rancher_base_dir }}/kube_config_cluster.yml -n kube-system delete pods -l k8s-app=canal
+  register: canal_pods_restart
+  changed_when: canal_pods_restart.rc == 0
+
+# Restart CNI on OBS node
+- name: Restart containerd service
+  systemd:
+    name: containerd
+    state: restarted
+  delegate_to: "{{ groups['mosip_obs'][0] }}"
+  become: true
+
+- name: Wait for Canal pods to be ready
+  shell: |
+    kubectl --kubeconfig={{ rancher_base_dir }}/kube_config_cluster.yml -n kube-system get pods -l k8s-app=canal -o jsonpath='{.items[*].status.phase}' | tr ' ' '\n' | sort -u
+  register: canal_pods_status
+  until: canal_pods_status.stdout == "Running"
+  retries: 30
+  delay: 10
+
+# Import cluster to Rancher if URL is provided
+- name: Import cluster to Rancher
+  block:
+    - name: Apply Rancher import manifest
+      command: kubectl --kubeconfig={{ rancher_base_dir }}/kube_config_cluster.yml apply -f {{ rancher_import_url }} --validate=false
+      register: rancher_import
+      failed_when: rancher_import.rc != 0
+      changed_when: rancher_import.rc == 0
+
+    - name: Wait for Rancher agent deployment
+      shell: |
+        kubectl --kubeconfig={{ rancher_base_dir }}/kube_config_cluster.yml get deployment -n cattle-system cattle-cluster-agent -o json | jq -e '.status.readyReplicas == .status.replicas'
+      register: agent_status
+      until: agent_status.rc == 0
+      retries: "{{ (rancher_import_timeout | int / 10) | int }}"
+      delay: 10
+      changed_when: false
+
+    - name: Display Rancher import status
+      debug:
+        msg: "OBS cluster has been successfully imported to Rancher"
+  when: rancher_import_url | length > 0
+  ignore_errors: true  # Don't fail the entire playbook if Rancher import fails
+

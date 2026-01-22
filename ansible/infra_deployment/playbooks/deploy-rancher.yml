@@ -1,0 +1,15 @@
+---
+# Prepare Rancher Nodes
+- name: Prepare Rancher Nodes
+  hosts: physical_vms
+  gather_facts: true
+  serial: 1  # Process one VM at a time to avoid apt locks
+  roles:
+    - rancher_prepare
+
+# Deploy Rancher from Deployment Node
+- name: Deploy Rancher from Deployment Node
+  hosts: deployment
+  gather_facts: true
+  roles:
+    - rancher_deploy 

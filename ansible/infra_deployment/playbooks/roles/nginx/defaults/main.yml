@@ -1,0 +1,41 @@
+# Nginx configuration
+nginx_listen_ip: "{{ ansible_default_ipv4.address }}"
+
+# NodePorts for different services
+nginx_public_ingress_nodeport: 30080    # NodePort for public Istio ingress
+nginx_internal_ingress_nodeport: 31080   # NodePort for internal Istio ingress
+nginx_minio_ingress_nodeport: 30900      # NodePort for MinIO service
+nginx_postgres_nodeport: 31432           # NodePort for PostgreSQL service
+nginx_activemq_nodeport: 31616           # NodePort for ActiveMQ service
+
+# SSL Configuration
+nginx_ssl_dir: "/etc/nginx/ssl"
+nginx_cert_path: "{{ nginx_ssl_dir }}/fullchain.pem"
+nginx_key_path: "{{ nginx_ssl_dir }}/privkey.pem"
+
+# Domain Configuration
+# Base domain for MOSIP installation (e.g., "warwick-1.turing-mosip.net")
+# This should be set in group_vars/all.yml or passed as an extra variable: -e "mosip_domain=your-domain.com"
+# Default value is provided for backward compatibility
+mosip_domain_default: "warwick-1.turing-mosip.net"
+mosip_domain: "{{ mosip_domain | default(mosip_domain_default) }}"
+
+# Public domain names - dynamically generated from base domain
+# Generates: api.{domain} prereg.{domain} resident.{domain}
+nginx_public_domain_names: "api.{{ mosip_domain }} prereg.{{ mosip_domain }} resident.{{ mosip_domain }}"
+
+# Rancher cluster configuration
+rancher_cluster_nodes: "{{ groups['worker_nodes'] }}"
+rancher_node_ips: "{{ rancher_cluster_nodes | map('extract', hostvars, ['node_ip']) | join(',') }}"
+
+# Firewall configuration
+enable_firewall_rules: false
+firewall_config:
+  allowed_ip_ranges:
+    - src_range: "10.13.13.2-10.13.13.51"
+    - dst_range: "10.13.13.2-10.13.13.51"
+  allowed_ips: "{{ groups['worker_nodes'] | map('extract', hostvars, ['ansible_host']) | list }}"
+  nat_interface: "eth0"
+
+# Network interface for NAT
+nat_interface: "eth0" 

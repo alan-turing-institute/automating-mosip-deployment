@@ -1,0 +1,65 @@
+[deployment]
+deployment-node ansible_connection=local
+
+[physical_vms]
+# Physical VMs where nodes are running
+vm1 ansible_host=172.16.50.
+vm2 ansible_host=172.16.50.
+vm3 ansible_host=172.16.50.
+vm4 ansible_host=172.16.50.
+vm5 ansible_host=172.16.50.
+vm6 ansible_host=172.16.50.
+
+[control_plane_nodes]
+# Control plane nodes - responsible for managing the cluster
+control-1 physical_vm=vm1 node_ip=172.16.50.
+control-2 physical_vm=vm2 node_ip=172.16.50.
+control-3 physical_vm=vm3 node_ip=172.16.50.
+
+[etcd_nodes]
+# etcd nodes - responsible for storing cluster state
+etcd-1 physical_vm=vm1 node_ip=172.16.50.
+etcd-2 physical_vm=vm2 node_ip=172.16.50.
+etcd-3 physical_vm=vm3 node_ip=172.16.50.
+
+[worker_nodes]
+# Worker nodes - where applications run
+worker-1 physical_vm=vm4 node_ip=172.16.50.
+worker-2 physical_vm=vm5 node_ip=172.16.50.
+worker-3 physical_vm=vm6 node_ip=172.16.50.
+
+[rancher_nodes:children]
+control_plane_nodes
+etcd_nodes
+worker_nodes
+
+[mosip_obs]
+# Single node Rancher OBS cluster
+obs-node-1 ansible_host=172.16.50.
+
+[nginx]
+# Add your nginx nodes here
+nginx-node-1 ansible_host=172.16.50.
+
+[nginx_obs]
+# Add your OBS nginx nodes here
+nginx-obs-node-1 ansible_host=172.16.50.
+
+[all:vars]
+ansible_user=ubuntu
+ansible_ssh_private_key_file=~/.ssh/id_ed25519
+ansible_python_interpreter=/usr/bin/python3
+ansible_host_key_checking=False
+
+# Node role labels
+[control_plane_nodes:vars]
+node_role=control
+
+[etcd_nodes:vars]
+node_role=etcd
+
+[worker_nodes:vars]
+node_role=worker
+
+[mosip_obs:vars]
+node_role=obs

@@ -1,0 +1,49 @@
+---
+- name: Create Wireguard config directory
+  file:
+    path: "{{ wireguard_config_dir | expanduser }}"
+    state: directory
+    mode: '0755'
+
+- name: Pull Wireguard Docker image
+  docker_image:
+    name: "{{ wireguard_image }}"
+    source: pull
+    force_source: yes
+
+- name: Create systemd service for Wireguard container
+  template:
+    src: wireguard-container.service.j2
+    dest: /etc/systemd/system/wireguard-container.service
+    mode: '0644'
+  become: true
+  notify: reload systemd
+
+- name: Run Wireguard container
+  docker_container:
+    name: "{{ wireguard_container_name }}"
+    image: "{{ wireguard_image }}"
+    state: started
+    restart_policy: unless-stopped
+    capabilities:
+      - NET_ADMIN
+      - SYS_MODULE
+    env:
+      PUID: "{{ puid | string }}"
+      PGID: "{{ pgid | string }}"
+      TZ: "{{ timezone }}"
+      PEERS: "{{ wireguard_peers | string }}"
+    ports:
+      - "{{ wireguard_port }}:51820/udp"
+    volumes:
+      - "{{ wireguard_config_dir | expanduser }}:/config"
+      - "/lib/modules:/lib/modules"
+    sysctls:
+      net.ipv4.conf.all.src_valid_mark: 1
+
+- name: Enable Wireguard container service
+  systemd:
+    name: wireguard-container
+    state: started
+    enabled: yes
+  become: true 

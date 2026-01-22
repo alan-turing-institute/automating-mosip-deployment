@@ -1,0 +1,6 @@
+---
+- name: Deploy Wireguard Server
+  hosts: wireguard
+  gather_facts: true
+  roles:
+    - wireguard 

@@ -1,0 +1,22 @@
+---
+# Verify SSL certificates exist in role files
+- name: Check SSL files exist in nginx_obs role
+  stat:
+    path: "{{ role_path }}/files/{{ item }}"
+  register: nginx_obs_ssl_check
+  loop:
+    - fullchain.pem
+    - privkey.pem
+  delegate_to: localhost
+  run_once: true
+
+- name: Verify SSL files exist
+  assert:
+    that:
+      - "nginx_obs_ssl_check.results[0].stat.exists"
+      - "nginx_obs_ssl_check.results[1].stat.exists"
+    fail_msg: "Required SSL files (fullchain.pem and privkey.pem) not found in {{ role_path }}/files/"
+    success_msg: "SSL files found and ready for nginx_obs deployment"
+  delegate_to: localhost
+  run_once: true
+

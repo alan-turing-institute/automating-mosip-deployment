@@ -1,0 +1,7 @@
+---
+- name: Deploy Nginx for OBS cluster
+  hosts: nginx_obs
+  gather_facts: true
+  roles:
+    - nginx_obs
+

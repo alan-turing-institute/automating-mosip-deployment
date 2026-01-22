@@ -1,0 +1,9 @@
+---
+# Apt upgrade playbook
+# Upgrades packages on physical_vms, mosip_obs, nginx, and nginx_obs hosts only
+- name: Upgrade packages on infrastructure hosts
+  hosts: physical_vms:mosip_obs:nginx:nginx_obs
+  gather_facts: true
+  roles:
+    - apt_upgrade
+

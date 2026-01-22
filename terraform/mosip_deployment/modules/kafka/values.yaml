@@ -1,0 +1,36 @@
+clusterDomain: cluster.local
+logRetentionBytes: _1073741824
+defaultReplicationFactor: 3
+offsetsTopicReplicationFactor: 3
+transactionStateLogReplicationFactor: 3
+numPartitions: 20
+replicaCount: ${replica_count}
+sidecars: {}
+autoCreateTopicsEnable: true
+deleteTopicEnable: true
+
+persistence:
+  enabled: true
+  accessModes:
+    - ReadWriteOnce
+  size: ${storage_size}
+
+zookeeper:
+  replicaCount: ${zookeeper_replica_count}
+  persistence:
+    enabled: true
+    size: ${zookeeper_storage_size}
+
+resources:
+  limits: {}
+  requests: 
+    cpu: 200m
+    memory: 2000Mi
+
+startupProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 1
+  failureThreshold: 30
+  successThreshold: 1 

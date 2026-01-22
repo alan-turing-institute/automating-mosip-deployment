@@ -1,0 +1,113 @@
+# Cluster Configuration
+cluster_name: "mosip"  # Name of the Kubernetes cluster
+# IMPORTANT: Do not use ~ in the path, use the full path instead, e.g. "/home/ubuntu/rancher". --kubeconfig does not support ~.
+rancher_base_dir: "/home/ubuntu/rancher"  # Base directory for main rancher cluster
+check_existing_config: true   # Whether to check for existing configurations before deployment
+kubelet_max_pods: 300      # Maximum number of pods per node
+service_cluster_ip_range: "10.43.0.0/16"  # Kubernetes service IP range
+cluster_cidr: "10.42.0.0/16"             # Pod network CIDR
+cluster_domain: "cluster.local"           # Kubernetes cluster domain
+cluster_dns_server: "10.43.0.10"         # Kubernetes DNS service IP
+network_plugin: "canal"                   # Network plugin (canal, calico, flannel)
+network_mtu: 1400                        # Network MTU for CNI
+auth_strategy: "x509"                     # Authentication strategy
+ingress_provider: "nginx"                # Ingress controller
+
+# Rancher Import Configuration
+rancher_import_url: ""                   # URL for the Rancher import manifest (e.g., https://rancher.example.com/v3/import/cluster-token.yaml)
+rancher_import_timeout: 1200             # Timeout in seconds for Rancher agent deployment (default: 20 minutes)
+
+# Rancher OBS Configuration
+rancher_obs_cluster_name: "mosip_obs"    # Name of the OBS single-node cluster
+# IMPORTANT: Do not use ~ in the path, use the full path instead, e.g. "/home/ubuntu/rancher/obs"
+rancher_obs_base_dir: "/home/ubuntu/rancher/obs"  # Base directory for OBS cluster (under main rancher directory) - will be expanded to full path
+rancher_obs_check_existing_config: true  # Whether to check for existing OBS configurations before deployment
+rancher_obs_kubernetes_version: ""       # Kubernetes version for OBS cluster (empty for default)
+rancher_obs_service_cluster_ip_range: "10.43.0.0/16"  # Service IP range for OBS cluster
+rancher_obs_cluster_cidr: "10.42.0.0/16" # Pod network CIDR for OBS cluster
+rancher_obs_network_plugin: "canal"      # Network plugin for OBS cluster
+rancher_obs_ingress_provider: "none"     # Ingress provider for OBS cluster
+
+# MOSIP Domain Configuration
+# Base domain for MOSIP installation (e.g., "warwick-1.turing-mosip.net")
+# This is used to generate public domain names: api.{domain}, prereg.{domain}, resident.{domain}
+# If not set, defaults to "warwick-1.turing-mosip.net" (for backward compatibility)
+mosip_domain: "warwick-1.turing-mosip.net"  # Change this to your actual domain
+
+# Nginx OBS Configuration
+nginx_obs_public_domain_names: "obs-api.mosip.example.com"
+nginx_obs_enable_firewall_rules: false
+
+# System Configuration
+disable_swap: true                       # Whether to disable swap
+
+# Docker Configuration
+docker_install_from_apt: false           # Whether to install Docker from default apt repos
+#docker_version: "5:20.10.24~3-0~ubuntu-focal"  # Docker version to install IF USING 20.04
+docker_version: "5:20.10.24~3-0~ubuntu-jammy"  # Docker version to install IF USING 22.04
+docker_apt_gpg_key: "https://download.docker.com/linux/ubuntu/gpg"
+docker_apt_repository: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+docker_user: "{{ ansible_user }}"        # User to add to docker group
+
+# Required Packages
+required_packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - software-properties-common
+  - python3-pip
+  - virtualenv
+  - python3-setuptools
+  - nfs-common
+
+# System Limits
+system_limits:
+  nofile_soft: 1048576
+  nofile_hard: 1048576
+  nproc_soft: 1048576
+  nproc_hard: 1048576
+  memlock_soft: unlimited
+  memlock_hard: unlimited
+
+# Sysctl Parameters
+sysctl_params:
+  kernel.pid_max: 4194304
+  net.ipv4.ip_local_port_range: "1024 65535"
+  fs.file-max: 52706963
+  net.core.somaxconn: 65535
+  vm.max_map_count: 262144
+  net.ipv4.conf.all.rp_filter: 1
+  net.ipv4.tcp_max_syn_backlog: 65535
+  net.core.netdev_max_backlog: 65535
+  net.ipv4.tcp_max_tw_buckets: 1440000
+  net.ipv4.tcp_fin_timeout: 15
+  net.ipv4.tcp_keepalive_intvl: 30
+  net.ipv4.tcp_keepalive_probes: 5
+  net.ipv4.tcp_keepalive_time: 1800
+  net.ipv4.neigh.default.gc_thresh1: 4096
+  net.ipv4.neigh.default.gc_thresh2: 8192
+  net.ipv4.neigh.default.gc_thresh3: 16384
+  fs.inotify.max_user_instances: 8192
+  fs.inotify.max_user_watches: 1048576
+  net.ipv4.tcp_tw_reuse: 1
+
+# Docker Daemon Configuration
+docker_daemon_config:
+  max_concurrent_downloads: 20
+  max_concurrent_uploads: 20
+  log_max_size: "100m"
+  log_max_file: 3
+  ulimit_nofile: 1048576
+  ulimit_nproc: 1048576
+
+# Istio Configuration
+istio_version: "1.15.0"                  # Version of Istio to install
+istio_namespace: "istio-system"          # Namespace for Istio components
+istio_operator_wait_timeout: 300         # Timeout for operator readiness check
+
+# Apt Upgrade Configuration
+apt_upgrade_additional_packages: []       # Additional packages to install during upgrade (e.g., ['vim', 'htop'])
+apt_upgrade_all: true                     # Upgrade all packages (true) or security updates only (false)
+apt_upgrade_dist: false                  # Perform dist-upgrade (handles changing dependencies)
+apt_autoremove: true                     # Remove unused packages after upgrade
+apt_autoclean: true                      # Clean apt cache after upgrade 

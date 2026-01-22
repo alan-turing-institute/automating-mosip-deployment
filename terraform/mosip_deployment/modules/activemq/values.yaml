@@ -1,0 +1,7 @@
+istio:
+  enabled: ${istio_enabled}
+  hosts:
+    - ${activemq_host}
+  ingressController:
+    name: ${ingress_controller}
+  prefix: ${istio_prefix} 

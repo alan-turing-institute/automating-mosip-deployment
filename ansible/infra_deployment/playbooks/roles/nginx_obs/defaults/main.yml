@@ -1,0 +1,31 @@
+---
+# Nginx OBS configuration
+nginx_obs_listen_ip: "{{ ansible_default_ipv4.address }}"
+
+# NodePorts for OBS services
+nginx_obs_public_ingress_nodeport: 30080
+nginx_obs_internal_ingress_nodeport: 31080
+nginx_obs_minio_ingress_nodeport: 30900
+nginx_obs_postgres_nodeport: 31432
+nginx_obs_activemq_nodeport: 31616
+
+# SSL configuration
+nginx_obs_ssl_dir: "/etc/nginx/ssl"
+nginx_obs_cert_path: "{{ nginx_obs_ssl_dir }}/fullchain.pem"
+nginx_obs_key_path: "{{ nginx_obs_ssl_dir }}/privkey.pem"
+
+# Domain configuration
+nginx_obs_public_domain_names: "obs-api.mosip.example.com"
+
+# Rancher OBS cluster configuration
+nginx_obs_cluster_nodes: "{{ groups['mosip_obs'] | default([]) }}"
+
+# Firewall configuration
+nginx_obs_enable_firewall_rules: false
+nginx_obs_firewall_config:
+  allowed_ip_ranges:
+    - src_range: "10.13.13.2-10.13.13.51"
+    - dst_range: "10.13.13.2-10.13.13.51"
+  allowed_ips: "{{ groups['mosip_obs'] | default([]) | map('extract', hostvars, ['ansible_host']) | list }}"
+  nat_interface: "eth0"
+

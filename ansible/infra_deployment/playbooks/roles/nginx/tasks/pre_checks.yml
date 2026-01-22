@@ -1,0 +1,21 @@
+---
+# Verify SSL certificates exist in role files
+- name: Check SSL files exist in role
+  stat:
+    path: "{{ role_path }}/files/{{ item }}"
+  register: ssl_check
+  with_items:
+    - fullchain.pem
+    - privkey.pem
+  delegate_to: localhost
+  run_once: true
+
+- name: Verify SSL files exist
+  assert:
+    that:
+      - "ssl_check.results[0].stat.exists"
+      - "ssl_check.results[1].stat.exists"
+    fail_msg: "Required SSL files (fullchain.pem and privkey.pem) not found in {{ role_path }}/files/"
+    success_msg: "SSL files found and ready for deployment"
+  delegate_to: localhost
+  run_once: true 

@@ -1,0 +1,12 @@
+[Unit]
+Description=Wireguard Container
+Requires=docker.service
+After=docker.service
+
+[Service]
+Restart=always
+ExecStart=/usr/bin/docker start -a {{ wireguard_container_name }}
+ExecStop=/usr/bin/docker stop {{ wireguard_container_name }}
+
+[Install]
+WantedBy=multi-user.target 

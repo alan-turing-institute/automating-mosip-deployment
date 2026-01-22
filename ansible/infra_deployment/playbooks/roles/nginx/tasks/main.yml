@@ -1,0 +1,81 @@
+---
+# Run pre-deployment checks
+- name: Run pre-deployment checks
+  include_tasks: pre_checks.yml
+
+# Install nginx
+- name: Install nginx
+  apt:
+    name: nginx
+    state: present
+    update_cache: yes
+  become: true
+
+# Create SSL directory
+- name: Create SSL directory
+  file:
+    path: "{{ nginx_ssl_dir }}"
+    state: directory
+    mode: '0750'
+    owner: root
+    group: www-data
+  become: true
+
+# Copy SSL certificates from role files
+- name: Copy SSL certificate
+  copy:
+    src: "fullchain.pem"
+    dest: "{{ nginx_cert_path }}"
+    mode: '0640'
+    owner: root
+    group: www-data
+  become: true
+  notify: Restart nginx
+
+- name: Copy SSL private key
+  copy:
+    src: "privkey.pem"
+    dest: "{{ nginx_key_path }}"
+    mode: '0600'
+    owner: root
+    group: root
+  become: true
+  notify: Restart nginx
+
+# Backup original nginx config
+- name: Backup original nginx config
+  copy:
+    src: /etc/nginx/nginx.conf
+    dest: /etc/nginx/nginx.conf.orig
+    remote_src: yes
+    force: no
+  become: true
+
+# Configure nginx
+- name: Configure nginx
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+    mode: '0640'
+    owner: root
+    group: www-data
+  become: true
+  notify: Restart nginx
+
+# Configure firewall if enabled
+- name: Configure firewall
+  include_tasks: firewall.yml
+  when: enable_firewall_rules | bool
+
+# Display firewall status
+- name: Display firewall status
+  debug:
+    msg: "Firewall configuration is {{ 'enabled' if enable_firewall_rules | bool else 'disabled' }}"
+
+# Start and enable nginx
+- name: Start and enable nginx
+  service:
+    name: nginx
+    state: started
+    enabled: yes
+  become: true 

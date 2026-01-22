@@ -1,0 +1,26 @@
+apiVersion: v2
+name: istio-addons
+description: MOSIP Specific Istio addons
+
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
+annotations:
+  artifacthub.io/changes: |
+    - Gateway Creation
+    - Virtual Service Creation
+    - AuthorizationPolicy Creation
+
+  artifacthub.io/containsSecurityUpdates: "false"
+  artifacthub.io/prerelease: "false"
+
+  artifacthub.io/license: Apache-2.0
+  artifacthub.io/maintainers: |
+    - name: MOSIP
+      email: info@mosip.io
+
+keywords:
+  - mosip
+  - istio
+  - security 

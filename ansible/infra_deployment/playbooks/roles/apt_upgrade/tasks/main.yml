@@ -1,0 +1,54 @@
+---
+# Update apt cache
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+  become: true
+
+# Upgrade all packages
+- name: Upgrade all packages
+  apt:
+    upgrade: dist
+    update_cache: no
+  become: true
+  when: apt_upgrade_dist | bool
+
+- name: Upgrade packages (standard)
+  apt:
+    upgrade: yes
+    update_cache: no
+  become: true
+  when: not apt_upgrade_dist | bool and apt_upgrade_all | bool
+
+- name: Upgrade packages (security only)
+  apt:
+    upgrade: safe
+    update_cache: no
+  become: true
+  when: not apt_upgrade_dist | bool and not apt_upgrade_all | bool
+
+# Install additional packages if specified
+- name: Install additional packages
+  apt:
+    name: "{{ apt_upgrade_additional_packages }}"
+    state: present
+    update_cache: no
+  become: true
+  when: apt_upgrade_additional_packages | length > 0
+
+# Remove unused packages
+- name: Remove unused packages
+  apt:
+    autoremove: yes
+    purge: yes
+  become: true
+  when: apt_autoremove | bool
+
+# Clean apt cache
+- name: Clean apt cache
+  apt:
+    autoclean: yes
+  become: true
+  when: apt_autoclean | bool
+

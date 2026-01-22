@@ -1,0 +1,5 @@
+---
+- name: Install Istio Operator and Base Components
+  hosts: deployment-node
+  roles:
+    - istio 

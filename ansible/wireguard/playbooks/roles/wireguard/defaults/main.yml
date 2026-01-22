@@ -1,0 +1,18 @@
+---
+# Wireguard configuration
+wireguard_network: "172.16.50.0/24"
+wireguard_endpoint: "137.205.168.161"
+wireguard_port: 6000
+wireguard_mtu: 1400
+wireguard_peers: 5
+
+# Docker configuration
+docker_user: "{{ ansible_user }}"
+wireguard_config_dir: "~/wireguard/config"
+wireguard_container_name: "wireguard"
+wireguard_image: "ghcr.io/linuxserver/wireguard"
+
+# System configuration
+timezone: "Europe/London"
+puid: 1000
+pgid: 1000 

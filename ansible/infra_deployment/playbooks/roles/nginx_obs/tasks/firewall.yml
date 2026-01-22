@@ -1,0 +1,41 @@
+---
+# Configure firewall rules for OBS
+- name: Configure inbound traffic rules
+  iptables:
+    chain: FORWARD
+    source: "{{ item.src_range }}"
+    destination: "{{ nginx_obs_firewall_config.allowed_ips | join(',') }}"
+    jump: ACCEPT
+  loop: "{{ nginx_obs_firewall_config.allowed_ip_ranges }}"
+  become: true
+
+- name: Configure outbound traffic rules
+  iptables:
+    chain: FORWARD
+    source: "{{ nginx_obs_firewall_config.allowed_ips | join(',') }}"
+    destination: "{{ item.dst_range }}"
+    jump: ACCEPT
+  loop: "{{ nginx_obs_firewall_config.allowed_ip_ranges }}"
+  become: true
+
+- name: Drop all other forward traffic
+  iptables:
+    chain: FORWARD
+    jump: DROP
+  become: true
+
+- name: Configure NAT for outbound traffic
+  iptables:
+    table: nat
+    chain: POSTROUTING
+    out_interface: "{{ nginx_obs_firewall_config.nat_interface }}"
+    jump: MASQUERADE
+  become: true
+
+- name: Display firewall configuration message
+  debug:
+    msg:
+      - "OBS firewall rules configured:"
+      - "- Forward rules for IP ranges: {{ nginx_obs_firewall_config.allowed_ip_ranges | map(attribute='src_range') | list }}"
+      - "- NAT configured on interface: {{ nginx_obs_firewall_config.nat_interface }}"
+

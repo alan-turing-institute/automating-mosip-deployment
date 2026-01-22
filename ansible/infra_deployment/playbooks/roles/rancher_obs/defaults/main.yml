@@ -1,0 +1,36 @@
+# RKE version
+rke_version: "v1.3.10"
+
+# Cluster configuration
+cluster_name: "{{ rancher_obs_cluster_name | default('mosip_obs') }}"
+# Use separate base directory for OBS to keep it independent from main rancher cluster
+# All OBS cluster files go directly in rancher_base_dir (no subdirectory like rancher_deploy)
+# rancher_obs_base_dir should be set in group_vars (e.g., "~/rancher_obs" or "/home/ubuntu/rancher_obs")
+# It will be expanded in tasks using ansible_env.HOME if needed
+rancher_base_dir: "{{ rancher_obs_base_dir | default(ansible_env.HOME + '/rancher_obs') }}"
+kubernetes_provider: "none"
+check_existing_config: "{{ rancher_obs_check_existing_config | default(true) }}"
+ssh_key_path: "~/.ssh/id_ed25519"
+ssh_user: "{{ ansible_user | default('ubuntu') }}"
+
+# Network configuration
+service_cluster_ip_range: "{{ rancher_obs_service_cluster_ip_range | default('10.43.0.0/16') }}"
+cluster_cidr: "{{ rancher_obs_cluster_cidr | default('10.42.0.0/16') }}"
+cluster_domain: "{{ cluster_domain | default('cluster.local') }}"
+cluster_dns_server: "{{ cluster_dns_server | default('10.43.0.10') }}"
+
+# Node configuration
+node_docker_socket: "/var/run/docker.sock"
+
+# Ingress configuration
+ingress_provider: "{{ rancher_obs_ingress_provider | default('none') }}"
+
+# Network plugin
+network_plugin: "{{ rancher_obs_network_plugin | default('canal') }}"
+
+# Authentication
+auth_strategy: "{{ auth_strategy | default('x509') }}"
+
+# Kubernetes version
+kubernetes_version: "{{ rancher_obs_kubernetes_version | default('') }}"
+

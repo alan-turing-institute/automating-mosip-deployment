@@ -1,0 +1,29 @@
+# RKE version
+rke_version: "v1.3.10"
+
+# Cluster configuration
+cluster_name: "{{ cluster_name | default('mosip') }}"
+# Use configurable base directory (defaults to ~/rancher, separate from OBS)
+rancher_base_dir: "{{ rancher_base_dir | default(ansible_env.HOME + '/rancher') }}"
+cluster_dir: "{{ rancher_base_dir }}/{{ cluster_name }}"
+kubernetes_provider: "none"
+ssh_key_path: "~/.ssh/id_ed25519"
+ssh_user: "ubuntu"
+
+# Network configuration
+service_cluster_ip_range: "10.43.0.0/16"
+cluster_cidr: "10.42.0.0/16"
+cluster_domain: "cluster.local"
+cluster_dns_server: "10.43.0.10"
+
+# Node configuration
+node_docker_socket: "/var/run/docker.sock"
+
+# Ingress configuration
+ingress_provider: "none"
+
+# Network plugin
+network_plugin: "canal"
+
+# Authentication
+auth_strategy: "x509" 

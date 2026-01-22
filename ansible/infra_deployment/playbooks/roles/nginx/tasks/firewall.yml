@@ -1,0 +1,40 @@
+---
+# Configure firewall rules
+- name: Configure inbound traffic rules
+  iptables:
+    chain: FORWARD
+    source: "{{ item.src_range }}"
+    destination: "{{ firewall_config.allowed_ips | join(',') }}"
+    jump: ACCEPT
+  with_items: "{{ firewall_config.allowed_ip_ranges }}"
+  become: true
+
+- name: Configure outbound traffic rules
+  iptables:
+    chain: FORWARD
+    source: "{{ firewall_config.allowed_ips | join(',') }}"
+    destination: "{{ item.dst_range }}"
+    jump: ACCEPT
+  with_items: "{{ firewall_config.allowed_ip_ranges }}"
+  become: true
+
+- name: Drop all other forward traffic
+  iptables:
+    chain: FORWARD
+    jump: DROP
+  become: true
+
+- name: Configure NAT for outbound traffic
+  iptables:
+    table: nat
+    chain: POSTROUTING
+    out_interface: "{{ firewall_config.nat_interface }}"
+    jump: MASQUERADE
+  become: true
+
+- name: Display firewall configuration message
+  debug:
+    msg: 
+      - "Firewall rules have been configured:"
+      - "- Forward rules for IP ranges: {{ firewall_config.allowed_ip_ranges | map(attribute='src_range') | list }}"
+      - "- NAT configured on interface: {{ firewall_config.nat_interface }}" 

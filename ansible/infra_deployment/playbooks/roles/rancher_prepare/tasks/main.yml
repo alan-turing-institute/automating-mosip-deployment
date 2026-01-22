@@ -1,0 +1,195 @@
+---
+# Check connectivity to all physical VMs
+- name: Check connectivity to physical VM
+  wait_for_connection:
+    timeout: 60
+    sleep: 5
+  register: connection_check
+
+- name: Verify physical VM is reachable
+  assert:
+    that:
+      - connection_check is success
+    fail_msg: "Unable to establish connection to physical VM. Please check network connectivity and SSH access."
+    success_msg: "Physical VM is reachable."
+
+# Install required packages
+- name: Install required packages
+  apt:
+    name: "{{ required_packages }}"
+    state: present
+    update_cache: yes
+  become: true
+
+# Load required kernel modules
+- name: Load kernel modules
+  become: true
+  modprobe:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - br_netfilter
+    - overlay
+  ignore_errors: no
+
+- name: Add kernel modules to /etc/modules
+  become: true
+  lineinfile:
+    path: /etc/modules
+    line: "{{ item }}"
+    state: present
+  with_items:
+    - br_netfilter
+    - overlay
+
+# Configure system limits
+- name: Configure system limits
+  become: true
+  blockinfile:
+    path: /etc/security/limits.conf
+    block: |
+      *    soft    nofile    {{ system_limits.nofile_soft }}
+      *    hard    nofile    {{ system_limits.nofile_hard }}
+      *    soft    nproc     {{ system_limits.nproc_soft }}
+      *    hard    nproc     {{ system_limits.nproc_hard }}
+      *    soft    memlock   {{ system_limits.memlock_soft }}
+      *    hard    memlock   {{ system_limits.memlock_hard }}
+      root soft    nofile    {{ system_limits.nofile_soft }}
+      root hard    nofile    {{ system_limits.nofile_hard }}
+      root soft    nproc     {{ system_limits.nproc_soft }}
+      root hard    nproc     {{ system_limits.nproc_hard }}
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - SYSTEM LIMITS"
+
+# Configure sysctl parameters
+- name: Configure main sysctl parameters
+  become: true
+  sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    state: present
+    sysctl_file: /etc/sysctl.d/99-kubernetes.conf
+    reload: yes
+  with_dict: "{{ sysctl_params }}"
+
+- name: Configure bridge-netfilter parameters
+  become: true
+  sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    state: present
+    sysctl_file: /etc/sysctl.d/99-kubernetes.conf
+    reload: yes
+  with_items:
+    - { key: "net.bridge.bridge-nf-call-iptables", value: "1" }
+    - { key: "net.bridge.bridge-nf-call-ip6tables", value: "1" }
+  when: ansible_virtualization_type != "openvz"
+
+# Disable swap
+- name: Remove swapfile from /etc/fstab
+  mount:
+    name: "{{ item }}"
+    fstype: swap
+    state: absent
+  with_items:
+    - swap
+    - none
+  become: true
+  when: disable_swap
+
+- name: Disable swap
+  command: swapoff -a
+  become: true
+  when: disable_swap
+
+# Install Docker
+- name: Add Docker GPG apt Key
+  apt_key:
+    url: "{{ docker_apt_gpg_key }}"
+    state: present
+  become: true
+  when: not docker_install_from_apt
+
+- name: Add Docker Repository
+  apt_repository:
+    repo: "{{ docker_apt_repository }}"
+    state: present
+  become: true
+  when: not docker_install_from_apt
+
+- name: Install Docker CE
+  apt:
+    name: "docker-ce={{ docker_version }}"
+    state: present
+    update_cache: yes
+  become: true
+  when: not docker_install_from_apt
+
+- name: Install Docker.io
+  apt:
+    name: docker.io
+    state: present
+    update_cache: yes
+  become: true
+  when: docker_install_from_apt
+
+- name: Start Docker service
+  service:
+    name: docker
+    state: started
+    enabled: yes
+  become: true
+
+# Configure Docker user
+- name: Create docker group
+  group:
+    name: docker
+    state: present
+  become: true
+
+- name: Add user to docker group
+  user:
+    name: "{{ docker_user }}"
+    groups: docker
+    append: yes
+  become: true
+
+# Ensure group membership is available without logout
+- name: Reset SSH connection to allow user changes to affect ansible user
+  meta: reset_connection
+
+# Configure Docker daemon
+- name: Create Docker daemon directory
+  file:
+    path: /etc/docker
+    state: directory
+    mode: '0755'
+  become: true
+
+- name: Configure Docker daemon
+  become: true
+  copy:
+    dest: /etc/docker/daemon.json
+    content: |
+      {
+        "max-concurrent-downloads": {{ docker_daemon_config.max_concurrent_downloads }},
+        "max-concurrent-uploads": {{ docker_daemon_config.max_concurrent_uploads }},
+        "log-driver": "json-file",
+        "log-opts": {
+          "max-size": "{{ docker_daemon_config.log_max_size }}",
+          "max-file": "{{ docker_daemon_config.log_max_file }}"
+        },
+        "default-ulimits": {
+          "nofile": {
+            "Name": "nofile",
+            "Hard": {{ docker_daemon_config.ulimit_nofile }},
+            "Soft": {{ docker_daemon_config.ulimit_nofile }}
+          },
+          "nproc": {
+            "Name": "nproc",
+            "Hard": {{ docker_daemon_config.ulimit_nproc }},
+            "Soft": {{ docker_daemon_config.ulimit_nproc }}
+          }
+        },
+        "storage-driver": "overlay2",
+        "storage-opts": ["overlay2.override_kernel_check=true"]
+      } 

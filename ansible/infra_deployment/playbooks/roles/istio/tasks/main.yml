@@ -1,0 +1,67 @@
+---
+- name: Check istioctl installation
+  ansible.builtin.command:
+    cmd: which istioctl
+  register: istioctl_check
+  ignore_errors: true
+  changed_when: false
+
+- name: Verify istioctl version
+  ansible.builtin.command:
+    cmd: istioctl version
+  register: istioctl_version
+  failed_when: istioctl_version.rc != 0 or istio_version not in istioctl_version.stdout
+  changed_when: false
+  when: istioctl_check.rc == 0
+
+- name: Fail if istioctl is not installed or wrong version
+  ansible.builtin.fail:
+    msg: "istioctl version {{ istio_version }} is required but not found. Please install it manually."
+  when: istioctl_check.rc != 0 or istioctl_version.rc != 0
+
+- name: Initialize Istio operator
+  ansible.builtin.command:
+    cmd: istioctl operator init
+  register: operator_init
+  changed_when: operator_init.rc == 0
+
+- name: Wait for Istio CRDs to be established
+  ansible.builtin.command:
+    cmd: kubectl wait --for condition=established --timeout=60s crd/istiooperators.install.istio.io
+  register: crd_check
+  retries: 10
+  delay: 10
+  until: crd_check.rc == 0
+  changed_when: false
+
+- name: Create temporary directory
+  ansible.builtin.tempfile:
+    state: directory
+    suffix: istio
+  register: temp_dir
+
+- name: Copy IstioOperator configuration
+  ansible.builtin.template:
+    src: iop.yaml.j2
+    dest: "{{ temp_dir.path }}/iop.yaml"
+    mode: '0644'
+
+- name: Apply IstioOperator configuration
+  ansible.builtin.command:
+    cmd: kubectl apply -f {{ temp_dir.path }}/iop.yaml
+  register: iop_apply
+  changed_when: iop_apply.rc == 0
+
+- name: Wait for Istiod deployment
+  ansible.builtin.command:
+    cmd: kubectl -n {{ istio_namespace }} rollout status deploy istiod
+  register: istiod_status
+  retries: 30
+  delay: 10
+  until: istiod_status.rc == 0
+  changed_when: istiod_status.rc == 0
+
+- name: Cleanup temporary directory
+  ansible.builtin.file:
+    path: "{{ temp_dir.path }}"
+    state: absent 

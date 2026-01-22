@@ -1,0 +1,16 @@
+# Additional packages to install during upgrade
+# Can be empty list or specify packages like: ['package1', 'package2']
+apt_upgrade_additional_packages: []
+
+# Whether to upgrade all packages (apt upgrade) or just security updates (apt upgrade --only-upgrade)
+apt_upgrade_all: true
+
+# Whether to perform dist-upgrade (upgrades packages and handles changing dependencies)
+apt_upgrade_dist: false
+
+# Whether to remove unused packages after upgrade
+apt_autoremove: true
+
+# Whether to clean apt cache after upgrade
+apt_autoclean: true
+

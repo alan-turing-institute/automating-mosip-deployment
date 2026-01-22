@@ -1,0 +1,102 @@
+---
+# Run pre-deployment checks
+- name: Run pre-deployment checks
+  include_tasks: pre_checks.yml
+
+# Install nginx
+- name: Install nginx
+  apt:
+    name: nginx
+    state: present
+    update_cache: yes
+  become: true
+
+# Create SSL directory
+- name: Create SSL directory
+  file:
+    path: "{{ nginx_obs_ssl_dir }}"
+    state: directory
+    mode: '0750'
+    owner: root
+    group: www-data
+  become: true
+
+# Copy SSL certificates from role files
+- name: Copy SSL certificate
+  copy:
+    src: "fullchain.pem"
+    dest: "{{ nginx_obs_cert_path }}"
+    mode: '0640'
+    owner: root
+    group: www-data
+  become: true
+  notify: Restart nginx
+
+- name: Copy SSL private key
+  copy:
+    src: "privkey.pem"
+    dest: "{{ nginx_obs_key_path }}"
+    mode: '0600'
+    owner: root
+    group: root
+  become: true
+  notify: Restart nginx
+
+# Backup original nginx config
+- name: Backup original nginx config
+  copy:
+    src: /etc/nginx/nginx.conf
+    dest: /etc/nginx/nginx.conf.orig
+    remote_src: yes
+    force: no
+  become: true
+
+# Ensure OBS cluster nodes are defined
+- name: Validate mosip_obs cluster nodes
+  fail:
+    msg: "mosip_obs group must contain at least one node for nginx_obs deployment"
+  when: nginx_obs_cluster_nodes | length == 0
+
+# Collect OBS cluster node IPs
+- name: Reset OBS cluster node IPs list
+  set_fact:
+    nginx_obs_rancher_node_ips_list: []
+
+- name: Collect OBS cluster node IPs
+  set_fact:
+    nginx_obs_rancher_node_ips_list: "{{ nginx_obs_rancher_node_ips_list + [hostvars[item].node_ip | default(hostvars[item].ansible_host)] }}"
+  loop: "{{ nginx_obs_cluster_nodes }}"
+
+- name: Join OBS cluster node IPs
+  set_fact:
+    nginx_obs_rancher_node_ips: "{{ nginx_obs_rancher_node_ips_list | join(',') }}"
+
+# Configure nginx
+- name: Configure nginx for OBS cluster
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+    mode: '0640'
+    owner: root
+    group: www-data
+  become: true
+  notify: Restart nginx
+
+# Configure firewall if enabled
+- name: Configure firewall
+  include_tasks: firewall.yml
+  when: nginx_obs_enable_firewall_rules | bool
+
+# Display firewall status
+- name: Display firewall status
+  debug:
+    msg: "Firewall configuration is {{ 'enabled' if nginx_obs_enable_firewall_rules | bool else 'disabled' }}"
+
+# Start and enable nginx
+- name: Start and enable nginx
+  service:
+    name: nginx
+    state: started
+    enabled: yes
+  become: true
+

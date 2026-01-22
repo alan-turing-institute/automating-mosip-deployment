@@ -1,0 +1,61 @@
+---
+- name: Install required packages
+  apt:
+    name: 
+      - docker.io
+      - python3-docker
+    state: present
+    update_cache: yes
+  become: true
+  when: ansible_os_family == "Debian"
+
+- name: Ensure docker group exists
+  group:
+    name: docker
+    state: present
+  become: true
+
+- name: Add deployment user to docker group
+  user:
+    name: "{{ docker_user }}"
+    groups: docker
+    append: yes
+  become: true
+
+- name: Configure Docker daemon with custom MTU
+  template:
+    src: daemon.json.j2
+    dest: /etc/docker/daemon.json
+    mode: '0644'
+  become: true
+  notify: restart docker
+
+- name: Create systemd directory for docker
+  file:
+    path: /etc/systemd/system/docker.service.d
+    state: directory
+    mode: '0755'
+  become: true
+
+- name: Configure Docker daemon service
+  copy:
+    dest: /etc/systemd/system/docker.service.d/override.conf
+    content: |
+      [Service]
+      ExecStart=
+      ExecStart=/usr/bin/dockerd --containerd=/run/containerd/containerd.sock
+    mode: '0644'
+  become: true
+  notify: reload docker systemd
+
+- name: Reload systemd
+  systemd:
+    daemon_reload: yes
+  become: true
+
+- name: Enable and start Docker service
+  systemd:
+    name: docker
+    state: started
+    enabled: yes
+  become: true 

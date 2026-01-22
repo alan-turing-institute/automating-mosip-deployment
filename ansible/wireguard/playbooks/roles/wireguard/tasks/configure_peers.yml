@@ -1,0 +1,66 @@
+---
+- name: Wait for Wireguard configs to be generated
+  wait_for:
+    path: "{{ wireguard_config_dir | expanduser }}/peer1/peer1.conf"
+    state: present
+    timeout: 30
+
+- name: Get list of peer directories
+  find:
+    paths: "{{ wireguard_config_dir | expanduser }}"
+    file_type: directory
+    patterns: "peer*"
+  register: peer_dirs
+
+- name: Remove DNS line from peer config
+  lineinfile:
+    path: "{{ item.path }}/{{ item.path | basename }}.conf"
+    regexp: '^DNS.*$'
+    state: absent
+  loop: "{{ peer_dirs.files }}"
+  loop_control:
+    label: "{{ item.path | basename }}"
+
+- name: Add AllowedIPs to peer config
+  lineinfile:
+    path: "{{ item.path }}/{{ item.path | basename }}.conf"
+    regexp: '^AllowedIPs.*$'
+    line: 'AllowedIPs = {{ wireguard_network }}'
+    insertafter: '^\[Peer\]'
+  loop: "{{ peer_dirs.files }}"
+  loop_control:
+    label: "{{ item.path | basename }}"
+
+- name: Add Endpoint to peer config
+  lineinfile:
+    path: "{{ item.path }}/{{ item.path | basename }}.conf"
+    regexp: '^Endpoint.*$'
+    line: 'Endpoint = {{ wireguard_endpoint }}:{{ wireguard_port }}'
+    insertafter: '^\[Peer\]'
+  loop: "{{ peer_dirs.files }}"
+  loop_control:
+    label: "{{ item.path | basename }}"
+
+- name: Get all configuration files
+  find:
+    paths: "{{ wireguard_config_dir | expanduser }}"
+    recurse: yes
+    patterns: "*.conf"
+  register: config_files
+
+- name: Display all Wireguard configurations
+  command: "cat {{ item.path }}"
+  register: configs
+  changed_when: false
+  loop: "{{ config_files.files }}"
+  loop_control:
+    label: "{{ item.path | basename }}"
+
+- name: Show configurations
+  debug:
+    msg: |
+      === {{ item.item.path | basename }} ===
+      {{ item.stdout }}
+  loop: "{{ configs.results }}"
+  loop_control:
+    label: "{{ item.item.path | basename }}" 

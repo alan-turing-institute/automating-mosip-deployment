@@ -1,0 +1,165 @@
+user www-data;
+worker_processes auto;
+pid /run/nginx.pid;
+#include /etc/nginx/modules-enabled/*.conf;
+load_module modules/ngx_stream_module.so;
+
+events {
+    worker_connections 768;
+    multi_accept on;
+}
+
+http {
+    ##
+    # Basic Settings
+    ##
+    proxy_buffer_size  128k;
+    proxy_buffers  4 256k;
+    proxy_busy_buffers_size 256k;
+    client_max_body_size 30m; # Biometrics may there in the request.
+
+    sendfile on;
+    tcp_nopush on;
+    tcp_nodelay on;
+    keepalive_timeout 65;
+    types_hash_max_size 2048;
+    server_tokens off;
+
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+
+    ##
+    # SSL Settings
+    ##
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers on;
+    ssl_certificate {{ nginx_cert_path }};
+    ssl_certificate_key {{ nginx_key_path }};
+
+    ##
+    # Logging Settings
+    ##
+    access_log /var/log/nginx/access.log;
+    error_log /var/log/nginx/error.log;
+
+    ##
+    # Gzip Settings
+    ##
+    gzip on;
+
+    # Upstream definitions
+    upstream myPublicIngressUpstream {
+        {% for ip in rancher_node_ips.split(',') %}
+        server {{ ip }}:{{ nginx_public_ingress_nodeport }};
+        {% endfor %}
+    }
+
+    upstream myInternalIngressUpstream {
+        {% for ip in rancher_node_ips.split(',') %}
+        server {{ ip }}:{{ nginx_internal_ingress_nodeport }};
+        {% endfor %}
+    }
+
+    upstream myMinioIngressUpstream {
+        {% for ip in rancher_node_ips.split(',') %}
+        server {{ ip }}:{{ nginx_minio_ingress_nodeport }};
+        {% endfor %}
+    }
+
+    # MinIO Server
+    server {
+        listen {{ nginx_listen_ip }}:9000 ssl;
+
+        location / {
+            proxy_pass                      http://myMinioIngressUpstream;
+            proxy_http_version              1.1;
+            proxy_set_header                Upgrade $http_upgrade;
+            proxy_set_header                Connection "upgrade";
+            proxy_set_header                Host $host;
+            proxy_set_header                Referer $http_referer;
+            proxy_set_header                X-Real-IP $remote_addr;
+            proxy_set_header                X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header                X-Forwarded-Proto $scheme;
+            proxy_pass_request_headers      on;
+        }
+    }
+    # Public API Server
+    server {
+        listen {{ nginx_listen_ip }}:443 ssl;
+        server_name {{ nginx_public_domain_names }};
+
+        location / {
+            proxy_pass                      http://myPublicIngressUpstream;
+            proxy_http_version              1.1;
+            proxy_set_header                Upgrade $http_upgrade;
+            proxy_set_header                Connection "upgrade";
+            proxy_set_header                Host $host;
+            proxy_set_header                Referer $http_referer;
+            proxy_set_header                X-Real-IP $remote_addr;
+            proxy_set_header                X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header                X-Forwarded-Proto $scheme;
+            proxy_pass_request_headers      on;
+        }
+    }
+
+    # Internal API Server
+    server {
+        listen {{ nginx_listen_ip }}:443 ssl default;
+
+        location /v1/packetcreator/ {
+            proxy_pass                      http://myInternalIngressUpstream;
+            proxy_http_version              1.1;
+            proxy_set_header                Upgrade $http_upgrade;
+            proxy_set_header                Connection "upgrade";
+            proxy_set_header                Host $host;
+            proxy_set_header                Referer $http_referer;
+            proxy_set_header                X-Real-IP $remote_addr;
+            proxy_set_header                X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header                X-Forwarded-Proto $scheme;
+            proxy_pass_request_headers      on;
+            proxy_connect_timeout           600;
+            proxy_send_timeout              600;
+            proxy_read_timeout              600;
+            send_timeout                    600;
+        }
+
+        location / {
+            proxy_pass                      http://myInternalIngressUpstream;
+            proxy_http_version              1.1;
+            proxy_set_header                Upgrade $http_upgrade;
+            proxy_set_header                Connection "upgrade";
+            proxy_set_header                Host $host;
+            proxy_set_header                Referer $http_referer;
+            proxy_set_header                X-Real-IP $remote_addr;
+            proxy_set_header                X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header                X-Forwarded-Proto $scheme;
+            proxy_pass_request_headers      on;
+        }
+    }
+
+}
+
+stream {
+    # TCP proxy settings for services
+    upstream myPostgresIngressUpstream {
+        {% for ip in rancher_node_ips.split(',') %}
+        server {{ ip }}:{{ nginx_postgres_nodeport }};
+        {% endfor %}
+    }
+
+    upstream myActivemqIngressUpstream {
+        {% for ip in rancher_node_ips.split(',') %}
+        server {{ ip }}:{{ nginx_activemq_nodeport }};
+        {% endfor %}
+    }
+
+    server {
+        listen {{ nginx_listen_ip }}:5432;
+        proxy_pass myPostgresIngressUpstream;
+    }
+
+    server {
+        listen {{ nginx_listen_ip }}:61616;
+        proxy_pass myActivemqIngressUpstream;
+    }
+} 

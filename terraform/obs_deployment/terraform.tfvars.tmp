@@ -1,0 +1,3 @@
+# Required variables
+rancher_hostname = "mosip.hackmepls.co.uk"  # Change this to your actual domain
+kubeconfig_path = "/home/ubuntu/rancher/mosip/kube_config_cluster.yml"  #IMPORTANT: Use the full path to the kubeconfig file, e.g. /home/ubuntu/ and not ~/

@@ -1,0 +1,6 @@
+---
+- name: Deploy Nginx Load Balancer
+  hosts: nginx
+  gather_facts: true
+  roles:
+    - nginx 

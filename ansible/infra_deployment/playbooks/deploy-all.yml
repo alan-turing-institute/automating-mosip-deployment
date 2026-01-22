@@ -1,0 +1,95 @@
+---
+# Pre-flight checks
+- name: Verify deployment prerequisites
+  hosts: deployment
+  gather_facts: false
+  tasks:
+    - name: Check if SSH key exists
+      stat:
+        path: "{{ ssh_key_path | default('~/.ssh/id_ed25519') }}"
+      register: ssh_key_file
+
+    - name: Fail if SSH key doesn't exist
+      fail:
+        msg: "SSH private key not found at {{ ssh_key_path | default('~/.ssh/id_ed25519') }}"
+      when: not ssh_key_file.stat.exists
+
+    - name: Check SSL certificates exist
+      stat:
+        path: "{{ item }}"
+      loop:
+        - "{{ playbook_dir }}/roles/nginx/files/fullchain.pem"
+        - "{{ playbook_dir }}/roles/nginx/files/privkey.pem"
+      register: ssl_files
+      when: groups['nginx'] | length > 0
+
+    - name: Fail if SSL certificates don't exist
+      fail:
+        msg: "SSL certificates not found in {{ playbook_dir }}/roles/nginx/files/. Please copy your fullchain.pem and privkey.pem files."
+      when: 
+        - groups['nginx'] | length > 0
+        - ssl_files.results | selectattr('stat.exists', 'equalto', false) | list | length > 0
+
+# Prepare physical VMs for Rancher
+- name: Prepare physical VMs for Rancher
+  hosts: physical_vms
+  gather_facts: true
+  roles:
+    - rancher_prepare
+
+# Deploy Rancher cluster
+- name: Deploy Rancher from deployment node
+  hosts: deployment
+  gather_facts: true
+  roles:
+    - rancher_deploy
+
+# Deploy Nginx if configured
+- name: Deploy Nginx Load Balancer
+  hosts: nginx
+  gather_facts: true
+  roles:
+    - role: nginx
+      when: groups['nginx'] | length > 0
+
+# Deploy Istio
+- name: Install Istio Operator and Base Components
+  hosts: deployment
+  gather_facts: false
+  roles:
+    - istio
+
+# Verify full deployment
+- name: Verify deployment
+  hosts: deployment
+  gather_facts: false
+  vars:
+    # Explicitly set main cluster variables to override any facts set by rancher_obs role
+    # These values come from group_vars/all.yml
+    main_rancher_base_dir: "/home/ubuntu/rancher"
+    main_cluster_name: "mosip"
+  tasks:
+    - name: Set main cluster directory
+      set_fact:
+        main_cluster_dir: "{{ main_rancher_base_dir }}/{{ main_cluster_name }}"
+    
+    - name: Verify Rancher cluster status
+      command: kubectl --kubeconfig={{ main_cluster_dir }}/kube_config_cluster.yml get nodes
+      register: cluster_status
+      until: cluster_status.rc == 0 and 'NotReady' not in cluster_status.stdout
+      retries: 30
+      delay: 10
+
+    - name: Display cluster nodes
+      debug:
+        msg: "{{ cluster_status.stdout_lines }}"
+
+    - name: Display deployment summary
+      debug:
+        msg:
+          - "Deployment Summary:"
+          - "----------------"
+          - "Rancher Cluster: READY"
+          - "Rancher Nodes: {{ groups['rancher_nodes'] | length }}"
+          - "Nginx Load Balancer: {{ 'Deployed on ' + groups['nginx'] | join(', ') if groups['nginx'] | length > 0 else 'Not Configured' }}"
+          - "Istio: INSTALLED" 

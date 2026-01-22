@@ -1,0 +1,68 @@
+nodes:
+- address: {{ hostvars[groups['mosip_obs'][0]]['ansible_host'] }}
+  port: "22"
+  internal_address: ""
+  role:
+    - controlplane
+    - worker
+    - etcd
+  hostname_override: ""
+  user: {{ ssh_user }}
+  docker_socket: {{ node_docker_socket }}
+  ssh_key_path: {{ ssh_key_path }}
+
+services:
+  etcd:
+    image: ""
+    extra_args: {}
+    extra_binds: []
+    extra_env: []
+
+  kube-api:
+    image: ""
+    extra_args: {}
+    extra_binds: []
+    extra_env: []
+    service_cluster_ip_range: {{ service_cluster_ip_range }}
+
+  kube-controller:
+    image: ""
+    extra_args: {}
+    extra_binds: []
+    extra_env: []
+    cluster_cidr: {{ cluster_cidr }}
+    service_cluster_ip_range: {{ service_cluster_ip_range }}
+
+  scheduler:
+    image: ""
+    extra_args: {}
+    extra_binds: []
+    extra_env: []
+
+  kubelet:
+    image: ""
+    extra_args: {}
+    extra_binds: []
+    extra_env: []
+    cluster_domain: {{ cluster_domain }}
+    cluster_dns_server: {{ cluster_dns_server }}
+    fail_swap_on: false
+
+  kubeproxy:
+    image: ""
+    extra_args: {}
+    extra_binds: []
+    extra_env: []
+
+network:
+  plugin: {{ network_plugin }}
+  options: {}
+
+authentication:
+  strategy: {{ auth_strategy }}
+  sans: []
+
+ingress:
+  provider: none
+
+cluster_name: {{ cluster_name }}

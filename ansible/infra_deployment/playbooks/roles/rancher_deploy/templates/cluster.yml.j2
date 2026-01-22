@@ -1,0 +1,137 @@
+nodes:
+{% for vm in groups['physical_vms'] %}
+{%- set ns = namespace(roles=[]) %}
+{% for host in groups['control_plane_nodes'] %}
+{%- if hostvars[host]['physical_vm'] == vm %}
+{%- set ns.roles = ns.roles + ['controlplane'] %}
+{%- endif %}
+{% endfor %}
+{% for host in groups['etcd_nodes'] %}
+{%- if hostvars[host]['physical_vm'] == vm %}
+{%- set ns.roles = ns.roles + ['etcd'] %}
+{%- endif %}
+{% endfor %}
+{% for host in groups['worker_nodes'] %}
+{%- if hostvars[host]['physical_vm'] == vm %}
+{%- set ns.roles = ns.roles + ['worker'] %}
+{%- endif %}
+{% endfor %}
+{%- if ns.roles|length > 0 %}
+
+- address: {{ hostvars[vm]['ansible_host'] }}
+  port: "22"
+  internal_address: ""
+  role: {{ ns.roles | unique | list }}
+  hostname_override: {{ vm }}
+  user: {{ ssh_user }}
+  docker_socket: {{ node_docker_socket }}
+  ssh_key_path: {{ ssh_key_path }}
+  labels:
+{% if 'controlplane' in ns.roles %}
+    node-role.kubernetes.io/control-plane: "true"
+{% endif %}
+{% if 'etcd' in ns.roles %}
+    node-role.kubernetes.io/etcd: "true"
+{% endif %}
+{% if 'worker' in ns.roles %}
+    node-role.kubernetes.io/worker: "true"
+{% endif %}
+{%- endif %}
+
+{% endfor %}
+
+services:
+  etcd:
+    image: ""
+    extra_args: {}
+    extra_binds: []
+    extra_env: []
+    backup_config:
+      enabled: true
+      interval_hours: 12
+      retention: 6
+      safe_timestamp: false
+
+  kube-api:
+    image: ""
+    extra_args:
+      feature-gates: "RemoveSelfLink=false"
+    extra_binds: []
+    extra_env: []
+    service_cluster_ip_range: {{ service_cluster_ip_range }}
+    admission_configuration: null
+
+  kube-controller:
+    image: ""
+    extra_args: {}
+    extra_binds: []
+    extra_env: []
+    cluster_cidr: {{ cluster_cidr }}
+    service_cluster_ip_range: {{ service_cluster_ip_range }}
+
+  scheduler:
+    image: ""
+    extra_args: {}
+    extra_binds: []
+    extra_env: []
+
+  kubelet:
+    image: ""
+    extra_args:
+      feature-gates: "RemoveSelfLink=false"
+    extra_binds: []
+    extra_env: []
+    cluster_domain: {{ cluster_domain }}
+    cluster_dns_server: {{ cluster_dns_server }}
+    fail_swap_on: false
+    generate_serving_certificate: true
+    max-pods: {{ kubelet_max_pods | default(300) }}
+
+  kubeproxy:
+    image: ""
+    extra_args: {}
+    extra_binds: []
+    extra_env: []
+
+network:
+  plugin: {{ network_plugin }}
+  options:
+    mtu: {{ network_mtu }}
+  pod_security_policy:
+    enabled: {{ pod_security_policy_enabled | default('true') }}
+
+authentication:
+  strategy: {{ auth_strategy }}
+  sans: []
+
+system_images:
+  kubernetes: {{ kubernetes_version | default('') }}
+
+ingress:
+  provider: {{ ingress_provider }}
+  options:
+    use-forwarded-headers: "true"
+
+cluster_name: {{ cluster_name }}
+kubernetes_version: {{ kubernetes_version | default('') }}
+
+# Advanced options
+dns:
+  provider: coredns
+  upstreamnameservers:
+    - 1.1.1.1
+    - 1.1.1.2
+
+monitoring:
+  provider: metrics-server
+
+upgrade_strategy:
+  max_unavailable_worker: "20%"
+  max_unavailable_controlplane: "1"
+  drain: true
+  node_drain_input:
+    force: false
+    delete_local_data: false
+    grace_period: 120
+    ignore_daemon_sets: true
+    timeout: 120 
