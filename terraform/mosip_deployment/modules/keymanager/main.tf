@@ -102,6 +102,8 @@ resource "kubernetes_config_map_v1" "softhsm_share" {
 
 # Create Istio EnvoyFilter
 resource "kubernetes_manifest" "idle_timeout_filter" {
+  computed_fields = ["metadata.managedFields"]
+  
   manifest = {
     apiVersion = "networking.istio.io/v1alpha3"
     kind       = "EnvoyFilter"
@@ -160,16 +162,81 @@ resource "helm_release" "kernel_keygen" {
   }
 
   set {
+    name  = "startupProbe.enabled"
+    value = tostring(var.startup_probe_enabled)
+  }
+
+  set {
     name  = "startupProbe.timeoutSeconds"
-    value = var.startup_probe_timeout
+    value = tostring(var.startup_probe_timeout_seconds)
   }
 
   set {
     name  = "startupProbe.initialDelaySeconds"
-    value = var.startup_probe_initial_delay
+    value = tostring(var.startup_probe_initial_delay_seconds)
   }
 
-  timeout        = 1200 # 20 minutes
+  set {
+    name  = "startupProbe.periodSeconds"
+    value = tostring(var.startup_probe_period_seconds)
+  }
+
+  set {
+    name  = "startupProbe.failureThreshold"
+    value = tostring(var.startup_probe_failure_threshold)
+  }
+
+  set {
+    name  = "readinessProbe.enabled"
+    value = tostring(var.readiness_probe_enabled)
+  }
+
+  set {
+    name  = "readinessProbe.timeoutSeconds"
+    value = tostring(var.readiness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.initialDelaySeconds"
+    value = tostring(var.readiness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.periodSeconds"
+    value = tostring(var.readiness_probe_period_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.failureThreshold"
+    value = tostring(var.readiness_probe_failure_threshold)
+  }
+
+  set {
+    name  = "livenessProbe.enabled"
+    value = tostring(var.liveness_probe_enabled)
+  }
+
+  set {
+    name  = "livenessProbe.timeoutSeconds"
+    value = tostring(var.liveness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.initialDelaySeconds"
+    value = tostring(var.liveness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.periodSeconds"
+    value = tostring(var.liveness_probe_period_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.failureThreshold"
+    value = tostring(var.liveness_probe_failure_threshold)
+  }
+
+  timeout        = var.helm_timeout_seconds
   wait           = true
   wait_for_jobs  = true
 
@@ -196,16 +263,81 @@ resource "helm_release" "keymanager" {
   namespace  = kubernetes_namespace_v1.keymanager.metadata[0].name
 
   set {
+    name  = "startupProbe.enabled"
+    value = tostring(var.startup_probe_enabled)
+  }
+
+  set {
     name  = "startupProbe.timeoutSeconds"
-    value = var.startup_probe_timeout
+    value = tostring(var.startup_probe_timeout_seconds)
   }
 
   set {
     name  = "startupProbe.initialDelaySeconds"
-    value = var.startup_probe_initial_delay
+    value = tostring(var.startup_probe_initial_delay_seconds)
   }
 
-  timeout = 1200 # 20 minutes
+  set {
+    name  = "startupProbe.periodSeconds"
+    value = tostring(var.startup_probe_period_seconds)
+  }
+
+  set {
+    name  = "startupProbe.failureThreshold"
+    value = tostring(var.startup_probe_failure_threshold)
+  }
+
+  set {
+    name  = "readinessProbe.enabled"
+    value = tostring(var.readiness_probe_enabled)
+  }
+
+  set {
+    name  = "readinessProbe.timeoutSeconds"
+    value = tostring(var.readiness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.initialDelaySeconds"
+    value = tostring(var.readiness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.periodSeconds"
+    value = tostring(var.readiness_probe_period_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.failureThreshold"
+    value = tostring(var.readiness_probe_failure_threshold)
+  }
+
+  set {
+    name  = "livenessProbe.enabled"
+    value = tostring(var.liveness_probe_enabled)
+  }
+
+  set {
+    name  = "livenessProbe.timeoutSeconds"
+    value = tostring(var.liveness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.initialDelaySeconds"
+    value = tostring(var.liveness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.periodSeconds"
+    value = tostring(var.liveness_probe_period_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.failureThreshold"
+    value = tostring(var.liveness_probe_failure_threshold)
+  }
+
+  timeout = var.helm_timeout_seconds
   wait    = true
 
   depends_on = [

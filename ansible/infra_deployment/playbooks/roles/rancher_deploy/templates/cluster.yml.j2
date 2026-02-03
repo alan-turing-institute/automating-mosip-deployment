@@ -43,7 +43,15 @@ nodes:
 services:
   etcd:
     image: ""
-    extra_args: {}
+    extra_args:
+      heartbeat-interval: "{{ etcd_heartbeat_interval }}"
+      election-timeout: "{{ etcd_election_timeout }}"
+      snapshot-count: "{{ etcd_snapshot_count }}"
+      max-request-bytes: "{{ etcd_max_request_bytes }}"
+      quota-backend-bytes: "{{ etcd_quota_backend_bytes }}"
+{% if etcd_enable_dev_mode %}
+      force-new-cluster: "false"
+{% endif %}
     extra_binds: []
     extra_env: []
     backup_config:
@@ -130,8 +138,8 @@ upgrade_strategy:
   max_unavailable_controlplane: "1"
   drain: true
   node_drain_input:
-    force: false
-    delete_local_data: false
+    force: true
+    delete_local_data: true
     grace_period: 120
     ignore_daemon_sets: true
     timeout: 120 

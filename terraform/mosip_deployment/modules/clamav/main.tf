@@ -29,7 +29,7 @@ resource "helm_release" "clamav" {
   repository      = "https://wiremind.github.io/wiremind-helm-charts"
   namespace       = kubernetes_namespace.clamav[0].metadata[0].name
   version         = var.helm_chart_version
-  timeout         = 600
+  timeout         = var.helm_timeout_seconds
 
   values = [
     templatefile("${path.module}/values.yaml", {

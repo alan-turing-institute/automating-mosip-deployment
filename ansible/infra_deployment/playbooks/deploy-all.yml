@@ -63,15 +63,10 @@
 - name: Verify deployment
   hosts: deployment
   gather_facts: false
-  vars:
-    # Explicitly set main cluster variables to override any facts set by rancher_obs role
-    # These values come from group_vars/all.yml
-    main_rancher_base_dir: "/home/ubuntu/rancher"
-    main_cluster_name: "mosip"
   tasks:
     - name: Set main cluster directory
       set_fact:
-        main_cluster_dir: "{{ main_rancher_base_dir }}/{{ main_cluster_name }}"
+        main_cluster_dir: "{{ rancher_base_dir }}/{{ cluster_name }}"
     
     - name: Verify Rancher cluster status
       command: kubectl --kubeconfig={{ main_cluster_dir }}/kube_config_cluster.yml get nodes

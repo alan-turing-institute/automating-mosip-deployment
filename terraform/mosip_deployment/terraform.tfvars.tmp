@@ -54,6 +54,319 @@ mosip_file_server_enabled = true # MOSIP FILE SERVER service
 # Optional variables with defaults
 is_glowroot_env = "absent"
 
+# Global Timeout Configuration
+global_helm_timeout_seconds = 1800        # Global default timeout for Helm operations (seconds) - 30 minutes
+module_wait_seconds = 60                   # Wait time between sequential module deployments (seconds) - 0 to disable
+
+# Probe Configuration for All Modules
+# Default values: initialDelaySeconds=180, timeoutSeconds=10, periodSeconds=60, failureThreshold=10
+
+# ActiveMQ Probe Configuration
+activemq_startup_probe_enabled = true
+activemq_startup_probe_timeout_seconds = 10
+activemq_startup_probe_initial_delay_seconds = 180
+activemq_startup_probe_period_seconds = 60
+activemq_startup_probe_failure_threshold = 10
+activemq_readiness_probe_enabled = true
+activemq_readiness_probe_timeout_seconds = 10
+activemq_readiness_probe_initial_delay_seconds = 0
+activemq_readiness_probe_period_seconds = 60
+activemq_readiness_probe_failure_threshold = 10
+activemq_liveness_probe_enabled = true
+activemq_liveness_probe_timeout_seconds = 10
+activemq_liveness_probe_initial_delay_seconds = 0
+activemq_liveness_probe_period_seconds = 60
+activemq_liveness_probe_failure_threshold = 10
+
+# Kafka Probe Configuration
+kafka_startup_probe_enabled = true
+kafka_startup_probe_timeout_seconds = 10
+kafka_startup_probe_initial_delay_seconds = 180
+kafka_startup_probe_period_seconds = 60
+kafka_startup_probe_failure_threshold = 10
+kafka_readiness_probe_enabled = true
+kafka_readiness_probe_timeout_seconds = 10
+kafka_readiness_probe_initial_delay_seconds = 0
+kafka_readiness_probe_period_seconds = 60
+kafka_readiness_probe_failure_threshold = 10
+kafka_liveness_probe_enabled = true
+kafka_liveness_probe_timeout_seconds = 10
+kafka_liveness_probe_initial_delay_seconds = 0
+kafka_liveness_probe_period_seconds = 60
+kafka_liveness_probe_failure_threshold = 10
+
+# Admin Probe Configuration (for admin-hotlist and admin-ui)
+admin_startup_probe_enabled = true
+admin_startup_probe_timeout_seconds = 10
+admin_startup_probe_initial_delay_seconds = 1200
+admin_startup_probe_period_seconds = 60
+admin_startup_probe_failure_threshold = 10
+admin_readiness_probe_enabled = true
+admin_readiness_probe_timeout_seconds = 10
+admin_readiness_probe_initial_delay_seconds = 0
+admin_readiness_probe_period_seconds = 60
+admin_readiness_probe_failure_threshold = 10
+admin_liveness_probe_enabled = true
+admin_liveness_probe_timeout_seconds = 10
+admin_liveness_probe_initial_delay_seconds = 0
+admin_liveness_probe_period_seconds = 60
+admin_liveness_probe_failure_threshold = 10
+
+# Admin-Service Probe Configuration (separate control - all probes disabled by default)
+admin_service_startup_probe_enabled = false
+admin_service_startup_probe_timeout_seconds = 10
+admin_service_startup_probe_initial_delay_seconds = 180
+admin_service_startup_probe_period_seconds = 60
+admin_service_startup_probe_failure_threshold = 10
+admin_service_readiness_probe_enabled = false
+admin_service_readiness_probe_timeout_seconds = 10
+admin_service_readiness_probe_initial_delay_seconds = 0
+admin_service_readiness_probe_period_seconds = 60
+admin_service_readiness_probe_failure_threshold = 10
+admin_service_liveness_probe_enabled = false
+admin_service_liveness_probe_timeout_seconds = 10
+admin_service_liveness_probe_initial_delay_seconds = 0
+admin_service_liveness_probe_period_seconds = 60
+admin_service_liveness_probe_failure_threshold = 10
+
+# IDA Probe Configuration
+ida_startup_probe_enabled = true
+ida_startup_probe_timeout_seconds = 10
+ida_startup_probe_initial_delay_seconds = 1200
+ida_startup_probe_period_seconds = 60
+ida_startup_probe_failure_threshold = 10
+ida_readiness_probe_enabled = true
+ida_readiness_probe_timeout_seconds = 10
+ida_readiness_probe_initial_delay_seconds = 0
+ida_readiness_probe_period_seconds = 60
+ida_readiness_probe_failure_threshold = 10
+ida_liveness_probe_enabled = true
+ida_liveness_probe_timeout_seconds = 10
+ida_liveness_probe_initial_delay_seconds = 0
+ida_liveness_probe_period_seconds = 60
+ida_liveness_probe_failure_threshold = 10
+
+# IDRepo Probe Configuration
+idrepo_startup_probe_enabled = true
+idrepo_startup_probe_timeout_seconds = 10
+idrepo_startup_probe_initial_delay_seconds = 90
+idrepo_startup_probe_period_seconds = 60
+idrepo_startup_probe_failure_threshold = 10
+idrepo_readiness_probe_enabled = true
+idrepo_readiness_probe_timeout_seconds = 10
+idrepo_readiness_probe_initial_delay_seconds = 0
+idrepo_readiness_probe_period_seconds = 60
+idrepo_readiness_probe_failure_threshold = 10
+idrepo_liveness_probe_enabled = true
+idrepo_liveness_probe_timeout_seconds = 10
+idrepo_liveness_probe_initial_delay_seconds = 0
+idrepo_liveness_probe_period_seconds = 60
+idrepo_liveness_probe_failure_threshold = 10
+
+# Keymanager Probe Configuration
+keymanager_startup_probe_enabled = true
+keymanager_startup_probe_timeout_seconds = 10
+keymanager_startup_probe_initial_delay_seconds = 90
+keymanager_startup_probe_period_seconds = 60
+keymanager_startup_probe_failure_threshold = 10
+keymanager_readiness_probe_enabled = true
+keymanager_readiness_probe_timeout_seconds = 10
+keymanager_readiness_probe_initial_delay_seconds = 0
+keymanager_readiness_probe_period_seconds = 60
+keymanager_readiness_probe_failure_threshold = 10
+keymanager_liveness_probe_enabled = true
+keymanager_liveness_probe_timeout_seconds = 10
+keymanager_liveness_probe_initial_delay_seconds = 0
+keymanager_liveness_probe_period_seconds = 60
+keymanager_liveness_probe_failure_threshold = 10
+
+# Masterdata-Loader Probe Configuration
+masterdata_loader_startup_probe_enabled = true
+masterdata_loader_startup_probe_timeout_seconds = 10
+masterdata_loader_startup_probe_initial_delay_seconds = 90
+masterdata_loader_startup_probe_period_seconds = 60
+masterdata_loader_startup_probe_failure_threshold = 10
+masterdata_loader_readiness_probe_enabled = true
+masterdata_loader_readiness_probe_timeout_seconds = 10
+masterdata_loader_readiness_probe_initial_delay_seconds = 0
+masterdata_loader_readiness_probe_period_seconds = 60
+masterdata_loader_readiness_probe_failure_threshold = 10
+masterdata_loader_liveness_probe_enabled = true
+masterdata_loader_liveness_probe_timeout_seconds = 10
+masterdata_loader_liveness_probe_initial_delay_seconds = 0
+masterdata_loader_liveness_probe_period_seconds = 60
+masterdata_loader_liveness_probe_failure_threshold = 10
+
+# Mock-ABIS Probe Configuration
+mock_abis_startup_probe_enabled = true
+mock_abis_startup_probe_timeout_seconds = 10
+mock_abis_startup_probe_initial_delay_seconds = 90
+mock_abis_startup_probe_period_seconds = 60
+mock_abis_startup_probe_failure_threshold = 10
+mock_abis_readiness_probe_enabled = true
+mock_abis_readiness_probe_timeout_seconds = 10
+mock_abis_readiness_probe_initial_delay_seconds = 0
+mock_abis_readiness_probe_period_seconds = 60
+mock_abis_readiness_probe_failure_threshold = 10
+mock_abis_liveness_probe_enabled = true
+mock_abis_liveness_probe_timeout_seconds = 10
+mock_abis_liveness_probe_initial_delay_seconds = 0
+mock_abis_liveness_probe_period_seconds = 60
+mock_abis_liveness_probe_failure_threshold = 10
+
+# Mock-SMTP Probe Configuration
+mock_smtp_startup_probe_enabled = true
+mock_smtp_startup_probe_timeout_seconds = 10
+mock_smtp_startup_probe_initial_delay_seconds = 180
+mock_smtp_startup_probe_period_seconds = 60
+mock_smtp_startup_probe_failure_threshold = 10
+mock_smtp_readiness_probe_enabled = true
+mock_smtp_readiness_probe_timeout_seconds = 10
+mock_smtp_readiness_probe_initial_delay_seconds = 0
+mock_smtp_readiness_probe_period_seconds = 60
+mock_smtp_readiness_probe_failure_threshold = 10
+mock_smtp_liveness_probe_enabled = true
+mock_smtp_liveness_probe_timeout_seconds = 10
+mock_smtp_liveness_probe_initial_delay_seconds = 0
+mock_smtp_liveness_probe_period_seconds = 60
+mock_smtp_liveness_probe_failure_threshold = 10
+
+# Packetmanager Probe Configuration
+packetmanager_startup_probe_enabled = true
+packetmanager_startup_probe_timeout_seconds = 10
+packetmanager_startup_probe_initial_delay_seconds = 90
+packetmanager_startup_probe_period_seconds = 60
+packetmanager_startup_probe_failure_threshold = 10
+packetmanager_readiness_probe_enabled = true
+packetmanager_readiness_probe_timeout_seconds = 10
+packetmanager_readiness_probe_initial_delay_seconds = 0
+packetmanager_readiness_probe_period_seconds = 60
+packetmanager_readiness_probe_failure_threshold = 10
+packetmanager_liveness_probe_enabled = true
+packetmanager_liveness_probe_timeout_seconds = 10
+packetmanager_liveness_probe_initial_delay_seconds = 0
+packetmanager_liveness_probe_period_seconds = 60
+packetmanager_liveness_probe_failure_threshold = 10
+
+# Partner-Onboarder Probe Configuration
+partner_onboarder_startup_probe_enabled = true
+partner_onboarder_startup_probe_timeout_seconds = 10
+partner_onboarder_startup_probe_initial_delay_seconds = 1200
+partner_onboarder_startup_probe_period_seconds = 60
+partner_onboarder_startup_probe_failure_threshold = 10
+partner_onboarder_readiness_probe_enabled = true
+partner_onboarder_readiness_probe_timeout_seconds = 10
+partner_onboarder_readiness_probe_initial_delay_seconds = 0
+partner_onboarder_readiness_probe_period_seconds = 60
+partner_onboarder_readiness_probe_failure_threshold = 10
+partner_onboarder_liveness_probe_enabled = true
+partner_onboarder_liveness_probe_timeout_seconds = 10
+partner_onboarder_liveness_probe_initial_delay_seconds = 0
+partner_onboarder_liveness_probe_period_seconds = 60
+partner_onboarder_liveness_probe_failure_threshold = 10
+
+# PMS Probe Configuration
+pms_startup_probe_enabled = true
+pms_startup_probe_timeout_seconds = 10
+pms_startup_probe_initial_delay_seconds = 90
+pms_startup_probe_period_seconds = 60
+pms_startup_probe_failure_threshold = 10
+pms_readiness_probe_enabled = true
+pms_readiness_probe_timeout_seconds = 10
+pms_readiness_probe_initial_delay_seconds = 0
+pms_readiness_probe_period_seconds = 60
+pms_readiness_probe_failure_threshold = 10
+pms_liveness_probe_enabled = true
+pms_liveness_probe_timeout_seconds = 10
+pms_liveness_probe_initial_delay_seconds = 0
+pms_liveness_probe_period_seconds = 60
+pms_liveness_probe_failure_threshold = 10
+
+# Prereg Probe Configuration
+prereg_startup_probe_enabled = true
+prereg_startup_probe_timeout_seconds = 10
+prereg_startup_probe_initial_delay_seconds = 90
+prereg_startup_probe_period_seconds = 60
+prereg_startup_probe_failure_threshold = 10
+prereg_readiness_probe_enabled = true
+prereg_readiness_probe_timeout_seconds = 10
+prereg_readiness_probe_initial_delay_seconds = 0
+prereg_readiness_probe_period_seconds = 60
+prereg_readiness_probe_failure_threshold = 10
+prereg_liveness_probe_enabled = true
+prereg_liveness_probe_timeout_seconds = 10
+prereg_liveness_probe_initial_delay_seconds = 0
+prereg_liveness_probe_period_seconds = 60
+prereg_liveness_probe_failure_threshold = 10
+
+# Print Probe Configuration
+print_startup_probe_enabled = true
+print_startup_probe_timeout_seconds = 10
+print_startup_probe_initial_delay_seconds = 1200
+print_startup_probe_period_seconds = 60
+print_startup_probe_failure_threshold = 10
+print_readiness_probe_enabled = true
+print_readiness_probe_timeout_seconds = 10
+print_readiness_probe_initial_delay_seconds = 0
+print_readiness_probe_period_seconds = 60
+print_readiness_probe_failure_threshold = 10
+print_liveness_probe_enabled = true
+print_liveness_probe_timeout_seconds = 10
+print_liveness_probe_initial_delay_seconds = 0
+print_liveness_probe_period_seconds = 60
+print_liveness_probe_failure_threshold = 10
+
+# Regclient Probe Configuration
+regclient_startup_probe_enabled = true
+regclient_startup_probe_timeout_seconds = 10
+regclient_startup_probe_initial_delay_seconds = 900
+regclient_startup_probe_period_seconds = 60
+regclient_startup_probe_failure_threshold = 10
+regclient_readiness_probe_enabled = true
+regclient_readiness_probe_timeout_seconds = 10
+regclient_readiness_probe_initial_delay_seconds = 0
+regclient_readiness_probe_period_seconds = 60
+regclient_readiness_probe_failure_threshold = 10
+regclient_liveness_probe_enabled = true
+regclient_liveness_probe_timeout_seconds = 10
+regclient_liveness_probe_initial_delay_seconds = 0
+regclient_liveness_probe_period_seconds = 60
+regclient_liveness_probe_failure_threshold = 10
+
+# Resident Probe Configuration
+resident_startup_probe_enabled = true
+resident_startup_probe_timeout_seconds = 10
+resident_startup_probe_initial_delay_seconds = 1200
+resident_startup_probe_period_seconds = 60
+resident_startup_probe_failure_threshold = 10
+resident_readiness_probe_enabled = true
+resident_readiness_probe_timeout_seconds = 10
+resident_readiness_probe_initial_delay_seconds = 0
+resident_readiness_probe_period_seconds = 60
+resident_readiness_probe_failure_threshold = 10
+resident_liveness_probe_enabled = true
+resident_liveness_probe_timeout_seconds = 10
+resident_liveness_probe_initial_delay_seconds = 0
+resident_liveness_probe_period_seconds = 60
+resident_liveness_probe_failure_threshold = 10
+
+# Websub Probe Configuration
+websub_startup_probe_enabled = true
+websub_startup_probe_timeout_seconds = 10
+websub_startup_probe_initial_delay_seconds = 90
+websub_startup_probe_period_seconds = 60
+websub_startup_probe_failure_threshold = 10
+websub_readiness_probe_enabled = true
+websub_readiness_probe_timeout_seconds = 10
+websub_readiness_probe_initial_delay_seconds = 0
+websub_readiness_probe_period_seconds = 60
+websub_readiness_probe_failure_threshold = 10
+websub_liveness_probe_enabled = true
+websub_liveness_probe_timeout_seconds = 10
+websub_liveness_probe_initial_delay_seconds = 0
+websub_liveness_probe_period_seconds = 60
+websub_liveness_probe_failure_threshold = 10
+
 # Component toggles and versions
 # Longhorn Storage
 longhorn_version = "1.5.1"         # Version of Longhorn to deploy
@@ -79,7 +392,7 @@ proxy_protocol_enabled = false     # Set to true to enable proxy protocol for in
 iam_version = "7.1.18"            # Version of Keycloak Helm chart
 iam_init_version = "12.0.1"       # Version of Keycloak Init Helm chart
 iam_namespace = "keycloak"        # Namespace for IAM deployment
-iam_admin_password = "asDkLhkl-1234"      # Initial admin password for Keycloak (change this in production)
+iam_admin_password = "admin"      # Initial admin password for Keycloak (change this in production)
 iam_image_repository = "mosipid/mosip-artemis-keycloak"
 iam_image_tag = "1.2.0.1"
 iam_image_pull_policy = "Always"
@@ -164,6 +477,23 @@ config_server_git_private = false
 config_server_git_username = ""
 config_server_git_token = ""
 
+# Config Server Probe Configuration
+config_server_startup_probe_enabled = true
+config_server_startup_probe_timeout_seconds = 10
+config_server_startup_probe_initial_delay_seconds = 1200
+config_server_startup_probe_period_seconds = 60
+config_server_startup_probe_failure_threshold = 10
+config_server_readiness_probe_enabled = false
+config_server_readiness_probe_timeout_seconds = 10
+config_server_readiness_probe_initial_delay_seconds = 0
+config_server_readiness_probe_period_seconds = 60
+config_server_readiness_probe_failure_threshold = 10
+config_server_liveness_probe_enabled = false
+config_server_liveness_probe_timeout_seconds = 10
+config_server_liveness_probe_initial_delay_seconds = 0
+config_server_liveness_probe_period_seconds = 60
+config_server_liveness_probe_failure_threshold = 10
+
 # Landing Page Configuration
 landing_page_chart_version = "12.0.1"  # Version of Landing Page Helm chart
 landing_version = "1.2.0.2"           # Version of Landing Page to deploy
@@ -180,21 +510,32 @@ resident_captcha_secret_key = "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe" # Defau
 # Artifactory Configuration
 artifactory_namespace = "artifactory"
 artifactory_chart_version = "12.0.2"
-artifactory_startup_probe_timeout = 180
-artifactory_startup_probe_initial_delay = 120
+
+# Artifactory Probe Configuration
+artifactory_startup_probe_enabled = true
+artifactory_startup_probe_timeout_seconds = 10
+artifactory_startup_probe_initial_delay_seconds = 120
+artifactory_startup_probe_period_seconds = 60
+artifactory_startup_probe_failure_threshold = 10
+artifactory_readiness_probe_enabled = true
+artifactory_readiness_probe_timeout_seconds = 10
+artifactory_readiness_probe_initial_delay_seconds = 0
+artifactory_readiness_probe_period_seconds = 60
+artifactory_readiness_probe_failure_threshold = 10
+artifactory_liveness_probe_enabled = true
+artifactory_liveness_probe_timeout_seconds = 10
+artifactory_liveness_probe_initial_delay_seconds = 0
+artifactory_liveness_probe_period_seconds = 60
+artifactory_liveness_probe_failure_threshold = 10
 
 # Keymanager configuration
 keymanager_chart_version = "12.0.1"
 keymanager_keygen_chart_version = "12.0.1"
 keymanager_spring_config_name_env = "kernel"
 keymanager_softhsm_cm = "softhsm-kernel-share"
-keymanager_startup_probe_timeout = 90
-keymanager_startup_probe_initial_delay = 90
 
 # Websub Configuration
 websub_helm_chart_version = "12.0.1"
-websub_startup_probe_timeout = 120
-websub_startup_probe_initial_delay = 90
 
 # Mock SMTP Configuration
 mock_smtp_host             = "smtp.mosip.net"
@@ -204,39 +545,95 @@ mock_smtp_helm_version = "1.0.0"
 kernel_namespace               = "kernel"
 kernel_helm_chart_version      = "12.0.1"
 kernel_enable_insecure         = false
-kernel_startup_probe_timeout   = 180
-kernel_startup_probe_initial_delay = 90
 kernel_helm_timeout_seconds    = 1200
+
+# Kernel Probe Configuration (for all components except idgenerator)
+kernel_startup_probe_enabled = true
+kernel_startup_probe_timeout_seconds = 180
+kernel_startup_probe_initial_delay_seconds = 90
+kernel_startup_probe_period_seconds = 60
+kernel_startup_probe_failure_threshold = 10
+kernel_readiness_probe_enabled = true
+kernel_readiness_probe_timeout_seconds = 10
+kernel_readiness_probe_initial_delay_seconds = 0
+kernel_readiness_probe_period_seconds = 60
+kernel_readiness_probe_failure_threshold = 10
+kernel_liveness_probe_enabled = true
+kernel_liveness_probe_timeout_seconds = 10
+kernel_liveness_probe_initial_delay_seconds = 0
+kernel_liveness_probe_period_seconds = 60
+kernel_liveness_probe_failure_threshold = 10
+
+# Kernel IDGenerator Probe Configuration (separate control)
+kernel_idgenerator_startup_probe_enabled = false
+kernel_idgenerator_startup_probe_timeout_seconds = 10
+kernel_idgenerator_startup_probe_initial_delay_seconds = 180
+kernel_idgenerator_startup_probe_period_seconds = 60
+kernel_idgenerator_startup_probe_failure_threshold = 10
+kernel_idgenerator_readiness_probe_enabled = false
+kernel_idgenerator_readiness_probe_timeout_seconds = 10
+kernel_idgenerator_readiness_probe_initial_delay_seconds = 0
+kernel_idgenerator_readiness_probe_period_seconds = 60
+kernel_idgenerator_readiness_probe_failure_threshold = 10
+kernel_idgenerator_liveness_probe_enabled = false
+kernel_idgenerator_liveness_probe_timeout_seconds = 10
+kernel_idgenerator_liveness_probe_initial_delay_seconds = 0
+kernel_idgenerator_liveness_probe_period_seconds = 60
+kernel_idgenerator_liveness_probe_failure_threshold = 10
 
 # Masterdata Loader
 masterdata_loader_helm_chart_version = "12.0.1"
 masterdata_loader_mosip_data_github_branch = "v1.2.0.1"
-masterdata_loader_startup_probe_timeout = 180
-masterdata_loader_startup_probe_initial_delay = 90
 
 # BioSDK settings
 biosdk_namespace = "biosdk"
 biosdk_helm_chart_version = "12.0.1"
-biosdk_startup_probe_timeout = 180
-biosdk_startup_probe_initial_delay = 90
+
+# BioSDK Probe Configuration
+biosdk_startup_probe_enabled = true
+biosdk_startup_probe_timeout_seconds = 10
+biosdk_startup_probe_initial_delay_seconds = 90
+biosdk_startup_probe_period_seconds = 60
+biosdk_startup_probe_failure_threshold = 10
+biosdk_readiness_probe_enabled = true
+biosdk_readiness_probe_timeout_seconds = 10
+biosdk_readiness_probe_initial_delay_seconds = 0
+biosdk_readiness_probe_period_seconds = 60
+biosdk_readiness_probe_failure_threshold = 10
+biosdk_liveness_probe_enabled = true
+biosdk_liveness_probe_timeout_seconds = 10
+biosdk_liveness_probe_initial_delay_seconds = 0
+biosdk_liveness_probe_period_seconds = 60
+biosdk_liveness_probe_failure_threshold = 10
 
 # Packetmanager settings
 packetmanager_namespace = "packetmanager"
 packetmanager_helm_chart_version = "12.0.1"
-packetmanager_startup_probe_timeout = 180
-packetmanager_startup_probe_initial_delay = 90
 
 # Datashare settings
 datashare_namespace = "datashare"
 datashare_helm_chart_version = "12.0.1"
-datashare_startup_probe_timeout = 180
-datashare_startup_probe_initial_delay = 90
+
+# Datashare Probe Configuration
+datashare_startup_probe_enabled = true
+datashare_startup_probe_timeout_seconds = 10
+datashare_startup_probe_initial_delay_seconds = 90
+datashare_startup_probe_period_seconds = 60
+datashare_startup_probe_failure_threshold = 10
+datashare_readiness_probe_enabled = true
+datashare_readiness_probe_timeout_seconds = 10
+datashare_readiness_probe_initial_delay_seconds = 0
+datashare_readiness_probe_period_seconds = 60
+datashare_readiness_probe_failure_threshold = 10
+datashare_liveness_probe_enabled = true
+datashare_liveness_probe_timeout_seconds = 10
+datashare_liveness_probe_initial_delay_seconds = 0
+datashare_liveness_probe_period_seconds = 60
+datashare_liveness_probe_failure_threshold = 10
 
 # Prereg configuration
 prereg_chart_version = "12.0.1"
 prereg_istio_injection_label = "disabled"
-prereg_startup_probe_timeout = 180
-prereg_startup_probe_initial_delay = 90
 prereg_helm_timeout_seconds = 1200
 prereg_rate_limit_max_tokens = 100
 prereg_rate_limit_tokens_per_fill = 100
@@ -246,8 +643,6 @@ prereg_rate_limit_fill_interval = "50ms"
 idrepo_namespace = "idrepo"
 idrepo_helm_chart_version = "12.0.1"
 idrepo_istio_injection_label = "enabled"
-idrepo_startup_probe_initial_delay = 90
-idrepo_startup_probe_timeout = 180
 idrepo_helm_timeout_seconds = 1200
 
 # PMS settings
@@ -255,16 +650,12 @@ pms_namespace = "pms"
 pms_helm_chart_version = "12.0.1"
 pmp_ui_chart_version = "12.0.1"
 pms_istio_injection_label = "enabled"
-pms_startup_probe_initial_delay = 90
-pms_startup_probe_timeout = 180
 pms_helm_timeout_seconds = 1200
 
 # Mock ABIS settings
 mock_abis_namespace = "abis"
 mock_abis_helm_chart_version = "12.0.2"
 mock_abis_istio_injection_label = "enabled"
-mock_abis_startup_probe_initial_delay = 90
-mock_abis_startup_probe_timeout = 180
 mock_abis_helm_timeout_seconds = 1200
 
 # Mock MV settings
@@ -278,6 +669,57 @@ mock_mv_helm_timeout_seconds = 1200
 regproc_namespace         = "regproc"
 regproc_helm_chart_version = "12.0.1" 
 regproc_helm_timeout      = 1200
+
+# Regproc Probe Configuration (for all components except group2 and notifier)
+regproc_startup_probe_enabled = true
+regproc_startup_probe_timeout_seconds = 10
+regproc_startup_probe_initial_delay_seconds = 180
+regproc_startup_probe_period_seconds = 60
+regproc_startup_probe_failure_threshold = 10
+regproc_readiness_probe_enabled = true
+regproc_readiness_probe_timeout_seconds = 10
+regproc_readiness_probe_initial_delay_seconds = 0
+regproc_readiness_probe_period_seconds = 60
+regproc_readiness_probe_failure_threshold = 10
+regproc_liveness_probe_enabled = true
+regproc_liveness_probe_timeout_seconds = 10
+regproc_liveness_probe_initial_delay_seconds = 0
+regproc_liveness_probe_period_seconds = 60
+regproc_liveness_probe_failure_threshold = 10
+
+# Regproc Group2 Probe Configuration (separate control)
+regproc_group2_startup_probe_enabled = false
+regproc_group2_startup_probe_timeout_seconds = 10
+regproc_group2_startup_probe_initial_delay_seconds = 180
+regproc_group2_startup_probe_period_seconds = 60
+regproc_group2_startup_probe_failure_threshold = 10
+regproc_group2_readiness_probe_enabled = false
+regproc_group2_readiness_probe_timeout_seconds = 10
+regproc_group2_readiness_probe_initial_delay_seconds = 0
+regproc_group2_readiness_probe_period_seconds = 60
+regproc_group2_readiness_probe_failure_threshold = 10
+regproc_group2_liveness_probe_enabled = false
+regproc_group2_liveness_probe_timeout_seconds = 10
+regproc_group2_liveness_probe_initial_delay_seconds = 0
+regproc_group2_liveness_probe_period_seconds = 60
+regproc_group2_liveness_probe_failure_threshold = 10
+
+# Regproc Notifier Probe Configuration (separate control)
+regproc_notifier_startup_probe_enabled = false
+regproc_notifier_startup_probe_timeout_seconds = 10
+regproc_notifier_startup_probe_initial_delay_seconds = 180
+regproc_notifier_startup_probe_period_seconds = 60
+regproc_notifier_startup_probe_failure_threshold = 10
+regproc_notifier_readiness_probe_enabled = false
+regproc_notifier_readiness_probe_timeout_seconds = 10
+regproc_notifier_readiness_probe_initial_delay_seconds = 0
+regproc_notifier_readiness_probe_period_seconds = 60
+regproc_notifier_readiness_probe_failure_threshold = 10
+regproc_notifier_liveness_probe_enabled = false
+regproc_notifier_liveness_probe_timeout_seconds = 10
+regproc_notifier_liveness_probe_initial_delay_seconds = 0
+regproc_notifier_liveness_probe_period_seconds = 60
+regproc_notifier_liveness_probe_failure_threshold = 10
 
 # Admin Configuration
 admin_namespace         = "admin"
@@ -304,8 +746,6 @@ resident_enable_insecure = false
 # Regclient Configuration
 regclient_namespace = "regclient"
 regclient_helm_chart_version = "12.0.2"
-regclient_startup_probe_timeout = 180
-regclient_startup_probe_initial_delay = 900
 
 # Partner Onboarder Configuration
 partner_onboarder_namespace         = "onboarder"

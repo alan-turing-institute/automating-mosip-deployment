@@ -73,16 +73,83 @@ resource "helm_release" "idgenerator" {
   namespace  = local.common_helm_config.namespace
   timeout    = local.common_helm_config.timeout
 
-  # TODO: Disable startup and readiness probes as a workaround for the duplicate SQL constraint error
-  # "message":"ERROR: duplicate key value violates unique constraint \"pk_uin_id\"\n  Detail: Key (uin)=(2154714308) already exists.","logger_name":"org.hibernate.engine.jdbc.spi.SqlE xceptionHelper","thread_name":"vert.x-worker-thread-6","level":"ERROR"
+  # Configure probes to handle duplicate UIN constraint errors during pool population
+  # The idgenerator needs time to populate the UIN/VID pool, and duplicate key errors
+  # are expected and handled gracefully by the application
+  # IDGenerator uses its own probe configuration variables
   set {
     name  = "startupProbe.enabled"
-    value = false
+    value = tostring(var.idgenerator_startup_probe_enabled)
   }
 
   set {
     name  = "readinessProbe.enabled"
-    value = false
+    value = tostring(var.idgenerator_readiness_probe_enabled)
+  }
+
+  set {
+    name  = "livenessProbe.enabled"
+    value = tostring(var.idgenerator_liveness_probe_enabled)
+  }
+
+  set {
+    name  = "startupProbe.timeoutSeconds"
+    value = tostring(var.idgenerator_startup_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "startupProbe.initialDelaySeconds"
+    value = tostring(var.idgenerator_startup_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "startupProbe.periodSeconds"
+    value = tostring(var.idgenerator_startup_probe_period_seconds)
+  }
+
+  set {
+    name  = "startupProbe.failureThreshold"
+    value = tostring(var.idgenerator_startup_probe_failure_threshold)
+  }
+
+  set {
+    name  = "readinessProbe.timeoutSeconds"
+    value = tostring(var.idgenerator_readiness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.initialDelaySeconds"
+    value = tostring(var.idgenerator_readiness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.periodSeconds"
+    value = tostring(var.idgenerator_readiness_probe_period_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.failureThreshold"
+    value = tostring(var.idgenerator_readiness_probe_failure_threshold)
+  }
+
+  set {
+    name  = "livenessProbe.timeoutSeconds"
+    value = tostring(var.idgenerator_liveness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.initialDelaySeconds"
+    value = tostring(var.idgenerator_liveness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.periodSeconds"
+    value = tostring(var.idgenerator_liveness_probe_period_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.failureThreshold"
+    value = tostring(var.idgenerator_liveness_probe_failure_threshold)
   }
 }
 # Deploy kernel components using Helm
@@ -101,14 +168,82 @@ resource "helm_release" "authmanager" {
     value = var.enable_insecure
   }
 
+  # Startup Probe Configuration
+  set {
+    name  = "startupProbe.enabled"
+    value = tostring(var.startup_probe_enabled)
+  }
+
   set {
     name  = "startupProbe.timeoutSeconds"
-    value = var.startup_probe_timeout
+    value = tostring(var.startup_probe_timeout_seconds)
   }
 
   set {
     name  = "startupProbe.initialDelaySeconds"
-    value = var.startup_probe_initial_delay
+    value = tostring(var.startup_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "startupProbe.periodSeconds"
+    value = tostring(var.startup_probe_period_seconds)
+  }
+
+  set {
+    name  = "startupProbe.failureThreshold"
+    value = tostring(var.startup_probe_failure_threshold)
+  }
+
+  # Readiness Probe Configuration
+  set {
+    name  = "readinessProbe.enabled"
+    value = tostring(var.readiness_probe_enabled)
+  }
+
+  set {
+    name  = "readinessProbe.timeoutSeconds"
+    value = tostring(var.readiness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.initialDelaySeconds"
+    value = tostring(var.readiness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.periodSeconds"
+    value = tostring(var.readiness_probe_period_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.failureThreshold"
+    value = tostring(var.readiness_probe_failure_threshold)
+  }
+
+  # Liveness Probe Configuration
+  set {
+    name  = "livenessProbe.enabled"
+    value = tostring(var.liveness_probe_enabled)
+  }
+
+  set {
+    name  = "livenessProbe.timeoutSeconds"
+    value = tostring(var.liveness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.initialDelaySeconds"
+    value = tostring(var.liveness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.periodSeconds"
+    value = tostring(var.liveness_probe_period_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.failureThreshold"
+    value = tostring(var.liveness_probe_failure_threshold)
   }
 }
 
@@ -127,14 +262,82 @@ resource "helm_release" "auditmanager" {
     value = var.enable_insecure
   }
 
+  # Startup Probe Configuration
+  set {
+    name  = "startupProbe.enabled"
+    value = tostring(var.startup_probe_enabled)
+  }
+
   set {
     name  = "startupProbe.timeoutSeconds"
-    value = var.startup_probe_timeout
+    value = tostring(var.startup_probe_timeout_seconds)
   }
 
   set {
     name  = "startupProbe.initialDelaySeconds"
-    value = var.startup_probe_initial_delay
+    value = tostring(var.startup_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "startupProbe.periodSeconds"
+    value = tostring(var.startup_probe_period_seconds)
+  }
+
+  set {
+    name  = "startupProbe.failureThreshold"
+    value = tostring(var.startup_probe_failure_threshold)
+  }
+
+  # Readiness Probe Configuration
+  set {
+    name  = "readinessProbe.enabled"
+    value = tostring(var.readiness_probe_enabled)
+  }
+
+  set {
+    name  = "readinessProbe.timeoutSeconds"
+    value = tostring(var.readiness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.initialDelaySeconds"
+    value = tostring(var.readiness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.periodSeconds"
+    value = tostring(var.readiness_probe_period_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.failureThreshold"
+    value = tostring(var.readiness_probe_failure_threshold)
+  }
+
+  # Liveness Probe Configuration
+  set {
+    name  = "livenessProbe.enabled"
+    value = tostring(var.liveness_probe_enabled)
+  }
+
+  set {
+    name  = "livenessProbe.timeoutSeconds"
+    value = tostring(var.liveness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.initialDelaySeconds"
+    value = tostring(var.liveness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.periodSeconds"
+    value = tostring(var.liveness_probe_period_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.failureThreshold"
+    value = tostring(var.liveness_probe_failure_threshold)
   }
 }
 
@@ -155,14 +358,82 @@ resource "helm_release" "masterdata" {
     value = "https://${data.kubernetes_config_map.source_configmaps["global"].data["mosip-admin-host"]}"
   }
 
+  # Startup Probe Configuration
+  set {
+    name  = "startupProbe.enabled"
+    value = tostring(var.startup_probe_enabled)
+  }
+
   set {
     name  = "startupProbe.timeoutSeconds"
-    value = var.startup_probe_timeout
+    value = tostring(var.startup_probe_timeout_seconds)
   }
 
   set {
     name  = "startupProbe.initialDelaySeconds"
-    value = var.startup_probe_initial_delay
+    value = tostring(var.startup_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "startupProbe.periodSeconds"
+    value = tostring(var.startup_probe_period_seconds)
+  }
+
+  set {
+    name  = "startupProbe.failureThreshold"
+    value = tostring(var.startup_probe_failure_threshold)
+  }
+
+  # Readiness Probe Configuration
+  set {
+    name  = "readinessProbe.enabled"
+    value = tostring(var.readiness_probe_enabled)
+  }
+
+  set {
+    name  = "readinessProbe.timeoutSeconds"
+    value = tostring(var.readiness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.initialDelaySeconds"
+    value = tostring(var.readiness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.periodSeconds"
+    value = tostring(var.readiness_probe_period_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.failureThreshold"
+    value = tostring(var.readiness_probe_failure_threshold)
+  }
+
+  # Liveness Probe Configuration
+  set {
+    name  = "livenessProbe.enabled"
+    value = tostring(var.liveness_probe_enabled)
+  }
+
+  set {
+    name  = "livenessProbe.timeoutSeconds"
+    value = tostring(var.liveness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.initialDelaySeconds"
+    value = tostring(var.liveness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.periodSeconds"
+    value = tostring(var.liveness_probe_period_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.failureThreshold"
+    value = tostring(var.liveness_probe_failure_threshold)
   }
 }
 
@@ -176,14 +447,82 @@ resource "helm_release" "otpmanager" {
   namespace  = local.common_helm_config.namespace
   timeout    = local.common_helm_config.timeout
 
+  # Startup Probe Configuration
+  set {
+    name  = "startupProbe.enabled"
+    value = tostring(var.startup_probe_enabled)
+  }
+
   set {
     name  = "startupProbe.timeoutSeconds"
-    value = var.startup_probe_timeout
+    value = tostring(var.startup_probe_timeout_seconds)
   }
 
   set {
     name  = "startupProbe.initialDelaySeconds"
-    value = var.startup_probe_initial_delay
+    value = tostring(var.startup_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "startupProbe.periodSeconds"
+    value = tostring(var.startup_probe_period_seconds)
+  }
+
+  set {
+    name  = "startupProbe.failureThreshold"
+    value = tostring(var.startup_probe_failure_threshold)
+  }
+
+  # Readiness Probe Configuration
+  set {
+    name  = "readinessProbe.enabled"
+    value = tostring(var.readiness_probe_enabled)
+  }
+
+  set {
+    name  = "readinessProbe.timeoutSeconds"
+    value = tostring(var.readiness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.initialDelaySeconds"
+    value = tostring(var.readiness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.periodSeconds"
+    value = tostring(var.readiness_probe_period_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.failureThreshold"
+    value = tostring(var.readiness_probe_failure_threshold)
+  }
+
+  # Liveness Probe Configuration
+  set {
+    name  = "livenessProbe.enabled"
+    value = tostring(var.liveness_probe_enabled)
+  }
+
+  set {
+    name  = "livenessProbe.timeoutSeconds"
+    value = tostring(var.liveness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.initialDelaySeconds"
+    value = tostring(var.liveness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.periodSeconds"
+    value = tostring(var.liveness_probe_period_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.failureThreshold"
+    value = tostring(var.liveness_probe_failure_threshold)
   }
 }
 
@@ -197,14 +536,82 @@ resource "helm_release" "pridgenerator" {
   namespace  = local.common_helm_config.namespace
   timeout    = local.common_helm_config.timeout
 
+  # Startup Probe Configuration
+  set {
+    name  = "startupProbe.enabled"
+    value = tostring(var.startup_probe_enabled)
+  }
+
   set {
     name  = "startupProbe.timeoutSeconds"
-    value = var.startup_probe_timeout
+    value = tostring(var.startup_probe_timeout_seconds)
   }
 
   set {
     name  = "startupProbe.initialDelaySeconds"
-    value = var.startup_probe_initial_delay
+    value = tostring(var.startup_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "startupProbe.periodSeconds"
+    value = tostring(var.startup_probe_period_seconds)
+  }
+
+  set {
+    name  = "startupProbe.failureThreshold"
+    value = tostring(var.startup_probe_failure_threshold)
+  }
+
+  # Readiness Probe Configuration
+  set {
+    name  = "readinessProbe.enabled"
+    value = tostring(var.readiness_probe_enabled)
+  }
+
+  set {
+    name  = "readinessProbe.timeoutSeconds"
+    value = tostring(var.readiness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.initialDelaySeconds"
+    value = tostring(var.readiness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.periodSeconds"
+    value = tostring(var.readiness_probe_period_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.failureThreshold"
+    value = tostring(var.readiness_probe_failure_threshold)
+  }
+
+  # Liveness Probe Configuration
+  set {
+    name  = "livenessProbe.enabled"
+    value = tostring(var.liveness_probe_enabled)
+  }
+
+  set {
+    name  = "livenessProbe.timeoutSeconds"
+    value = tostring(var.liveness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.initialDelaySeconds"
+    value = tostring(var.liveness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.periodSeconds"
+    value = tostring(var.liveness_probe_period_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.failureThreshold"
+    value = tostring(var.liveness_probe_failure_threshold)
   }
 }
 
@@ -218,14 +625,82 @@ resource "helm_release" "ridgenerator" {
   namespace  = local.common_helm_config.namespace
   timeout    = local.common_helm_config.timeout
 
+  # Startup Probe Configuration
+  set {
+    name  = "startupProbe.enabled"
+    value = tostring(var.startup_probe_enabled)
+  }
+
   set {
     name  = "startupProbe.timeoutSeconds"
-    value = var.startup_probe_timeout
+    value = tostring(var.startup_probe_timeout_seconds)
   }
 
   set {
     name  = "startupProbe.initialDelaySeconds"
-    value = var.startup_probe_initial_delay
+    value = tostring(var.startup_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "startupProbe.periodSeconds"
+    value = tostring(var.startup_probe_period_seconds)
+  }
+
+  set {
+    name  = "startupProbe.failureThreshold"
+    value = tostring(var.startup_probe_failure_threshold)
+  }
+
+  # Readiness Probe Configuration
+  set {
+    name  = "readinessProbe.enabled"
+    value = tostring(var.readiness_probe_enabled)
+  }
+
+  set {
+    name  = "readinessProbe.timeoutSeconds"
+    value = tostring(var.readiness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.initialDelaySeconds"
+    value = tostring(var.readiness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.periodSeconds"
+    value = tostring(var.readiness_probe_period_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.failureThreshold"
+    value = tostring(var.readiness_probe_failure_threshold)
+  }
+
+  # Liveness Probe Configuration
+  set {
+    name  = "livenessProbe.enabled"
+    value = tostring(var.liveness_probe_enabled)
+  }
+
+  set {
+    name  = "livenessProbe.timeoutSeconds"
+    value = tostring(var.liveness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.initialDelaySeconds"
+    value = tostring(var.liveness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.periodSeconds"
+    value = tostring(var.liveness_probe_period_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.failureThreshold"
+    value = tostring(var.liveness_probe_failure_threshold)
   }
 }
 
@@ -239,14 +714,82 @@ resource "helm_release" "syncdata" {
   namespace  = local.common_helm_config.namespace
   timeout    = local.common_helm_config.timeout
 
+  # Startup Probe Configuration
+  set {
+    name  = "startupProbe.enabled"
+    value = tostring(var.startup_probe_enabled)
+  }
+
   set {
     name  = "startupProbe.timeoutSeconds"
-    value = var.startup_probe_timeout
+    value = tostring(var.startup_probe_timeout_seconds)
   }
 
   set {
     name  = "startupProbe.initialDelaySeconds"
-    value = var.startup_probe_initial_delay
+    value = tostring(var.startup_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "startupProbe.periodSeconds"
+    value = tostring(var.startup_probe_period_seconds)
+  }
+
+  set {
+    name  = "startupProbe.failureThreshold"
+    value = tostring(var.startup_probe_failure_threshold)
+  }
+
+  # Readiness Probe Configuration
+  set {
+    name  = "readinessProbe.enabled"
+    value = tostring(var.readiness_probe_enabled)
+  }
+
+  set {
+    name  = "readinessProbe.timeoutSeconds"
+    value = tostring(var.readiness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.initialDelaySeconds"
+    value = tostring(var.readiness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.periodSeconds"
+    value = tostring(var.readiness_probe_period_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.failureThreshold"
+    value = tostring(var.readiness_probe_failure_threshold)
+  }
+
+  # Liveness Probe Configuration
+  set {
+    name  = "livenessProbe.enabled"
+    value = tostring(var.liveness_probe_enabled)
+  }
+
+  set {
+    name  = "livenessProbe.timeoutSeconds"
+    value = tostring(var.liveness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.initialDelaySeconds"
+    value = tostring(var.liveness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.periodSeconds"
+    value = tostring(var.liveness_probe_period_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.failureThreshold"
+    value = tostring(var.liveness_probe_failure_threshold)
   }
 }
 
@@ -260,13 +803,81 @@ resource "helm_release" "notifier" {
   namespace  = local.common_helm_config.namespace
   timeout    = local.common_helm_config.timeout
 
+  # Startup Probe Configuration
+  set {
+    name  = "startupProbe.enabled"
+    value = tostring(var.startup_probe_enabled)
+  }
+
   set {
     name  = "startupProbe.timeoutSeconds"
-    value = var.startup_probe_timeout
+    value = tostring(var.startup_probe_timeout_seconds)
   }
 
   set {
     name  = "startupProbe.initialDelaySeconds"
-    value = var.startup_probe_initial_delay
+    value = tostring(var.startup_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "startupProbe.periodSeconds"
+    value = tostring(var.startup_probe_period_seconds)
+  }
+
+  set {
+    name  = "startupProbe.failureThreshold"
+    value = tostring(var.startup_probe_failure_threshold)
+  }
+
+  # Readiness Probe Configuration
+  set {
+    name  = "readinessProbe.enabled"
+    value = tostring(var.readiness_probe_enabled)
+  }
+
+  set {
+    name  = "readinessProbe.timeoutSeconds"
+    value = tostring(var.readiness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.initialDelaySeconds"
+    value = tostring(var.readiness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.periodSeconds"
+    value = tostring(var.readiness_probe_period_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.failureThreshold"
+    value = tostring(var.readiness_probe_failure_threshold)
+  }
+
+  # Liveness Probe Configuration
+  set {
+    name  = "livenessProbe.enabled"
+    value = tostring(var.liveness_probe_enabled)
+  }
+
+  set {
+    name  = "livenessProbe.timeoutSeconds"
+    value = tostring(var.liveness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.initialDelaySeconds"
+    value = tostring(var.liveness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.periodSeconds"
+    value = tostring(var.liveness_probe_period_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.failureThreshold"
+    value = tostring(var.liveness_probe_failure_threshold)
   }
 } 

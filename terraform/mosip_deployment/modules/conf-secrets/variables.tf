@@ -15,3 +15,9 @@ variable "chart_version" {
   type        = string
   default     = "12.0.1"  # From original install.sh
 }
+
+variable "helm_timeout_seconds" {
+  description = "Timeout for Helm operations in seconds"
+  type        = number
+  default     = 1800
+}

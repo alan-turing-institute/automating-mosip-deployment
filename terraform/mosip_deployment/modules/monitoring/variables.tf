@@ -14,4 +14,10 @@ variable "monitoring_version" {
   description = "Version of Rancher monitoring chart"
   type        = string
   default     = ""  # Empty means latest
+}
+
+variable "helm_timeout_seconds" {
+  description = "Timeout for Helm operations in seconds"
+  type        = number
+  default     = 1800
 } 

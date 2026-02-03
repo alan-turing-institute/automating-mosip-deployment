@@ -31,4 +31,10 @@ variable "bitnami_image_repository" {
   description = "Docker image repository prefix for Bitnami charts (e.g., 'bitnami', 'bitnamilegacy', or 'mosipid')"
   type        = string
   default     = "mosipid"
+}
+
+variable "helm_timeout_seconds" {
+  description = "Timeout for Helm operations in seconds"
+  type        = number
+  default     = 1800
 } 

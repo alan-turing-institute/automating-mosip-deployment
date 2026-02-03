@@ -270,6 +270,8 @@ In Ansible we have playbook to do `apt update && apt -y upgrade` on all hosts to
 ```
 cd ~/mosip/devops/ansible/infra_deployment
 ansible-playbook -f 12 -v -i inventory/rancher.ini playbooks/apt-upgrade.yml
+# To limit to only specific group of hosts
+ansible-playbook -f 12 -i inventory/rancher.ini --limit physical_vms playbooks/apt-upgrade.yml
 ```
 ## Wireguard deployment 
 - From `deployment-node`

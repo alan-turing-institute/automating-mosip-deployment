@@ -24,9 +24,12 @@ etcd-3 physical_vm=vm3 node_ip=172.16.50.
 
 [worker_nodes]
 # Worker nodes - where applications run
-worker-1 physical_vm=vm4 node_ip=172.16.50.
-worker-2 physical_vm=vm5 node_ip=172.16.50.
-worker-3 physical_vm=vm6 node_ip=172.16.50.
+worker-1 physical_vm=vm1 node_ip=172.16.50.
+worker-2 physical_vm=vm2 node_ip=172.16.50.
+worker-3 physical_vm=vm3 node_ip=172.16.50.
+worker-4 physical_vm=vm4 node_ip=172.16.50.
+worker-5 physical_vm=vm5 node_ip=172.16.50.
+worker-6 physical_vm=vm6 node_ip=172.16.50.
 
 [rancher_nodes:children]
 control_plane_nodes

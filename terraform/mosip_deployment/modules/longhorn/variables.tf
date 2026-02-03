@@ -78,4 +78,135 @@ variable "storage_class_name" {
 variable "kubeconfig_path" {
   description = "Path to kubeconfig file"
   type        = string
+}
+
+# CSI Component Configuration
+variable "csi_attacher_replica_count" {
+  description = "Number of replicas for CSI attacher (should be 1 to avoid leader election conflicts)"
+  type        = number
+  default     = 1
+}
+
+variable "csi_provisioner_replica_count" {
+  description = "Number of replicas for CSI provisioner (1 for dev, 2-3 for production)"
+  type        = number
+  default     = 1
+}
+
+variable "csi_resizer_replica_count" {
+  description = "Number of replicas for CSI resizer (1 for dev, 2 for production)"
+  type        = number
+  default     = 1
+}
+
+variable "csi_snapshotter_replica_count" {
+  description = "Number of replicas for CSI snapshotter (1 for dev, 2 for production)"
+  type        = number
+  default     = 1
+}
+
+# CSI Attacher Resources
+variable "csi_attacher_cpu_request" {
+  description = "CPU request for CSI attacher"
+  type        = string
+  default     = "10m"
+}
+
+variable "csi_attacher_memory_request" {
+  description = "Memory request for CSI attacher"
+  type        = string
+  default     = "32Mi"
+}
+
+variable "csi_attacher_cpu_limit" {
+  description = "CPU limit for CSI attacher"
+  type        = string
+  default     = "100m"
+}
+
+variable "csi_attacher_memory_limit" {
+  description = "Memory limit for CSI attacher"
+  type        = string
+  default     = "128Mi"
+}
+
+# CSI Provisioner Resources
+variable "csi_provisioner_cpu_request" {
+  description = "CPU request for CSI provisioner"
+  type        = string
+  default     = "10m"
+}
+
+variable "csi_provisioner_memory_request" {
+  description = "Memory request for CSI provisioner"
+  type        = string
+  default     = "32Mi"
+}
+
+variable "csi_provisioner_cpu_limit" {
+  description = "CPU limit for CSI provisioner"
+  type        = string
+  default     = "100m"
+}
+
+variable "csi_provisioner_memory_limit" {
+  description = "Memory limit for CSI provisioner"
+  type        = string
+  default     = "128Mi"
+}
+
+# CSI Resizer Resources
+variable "csi_resizer_cpu_request" {
+  description = "CPU request for CSI resizer"
+  type        = string
+  default     = "10m"
+}
+
+variable "csi_resizer_memory_request" {
+  description = "Memory request for CSI resizer"
+  type        = string
+  default     = "32Mi"
+}
+
+variable "csi_resizer_cpu_limit" {
+  description = "CPU limit for CSI resizer"
+  type        = string
+  default     = "100m"
+}
+
+variable "csi_resizer_memory_limit" {
+  description = "Memory limit for CSI resizer"
+  type        = string
+  default     = "128Mi"
+}
+
+# CSI Snapshotter Resources
+variable "csi_snapshotter_cpu_request" {
+  description = "CPU request for CSI snapshotter"
+  type        = string
+  default     = "10m"
+}
+
+variable "csi_snapshotter_memory_request" {
+  description = "Memory request for CSI snapshotter"
+  type        = string
+  default     = "32Mi"
+}
+
+variable "csi_snapshotter_cpu_limit" {
+  description = "CPU limit for CSI snapshotter"
+  type        = string
+  default     = "100m"
+}
+
+variable "csi_snapshotter_memory_limit" {
+  description = "Memory limit for CSI snapshotter"
+  type        = string
+  default     = "128Mi"
+}
+
+variable "helm_timeout_seconds" {
+  description = "Timeout for Helm operations in seconds"
+  type        = number
+  default     = 1800
 } 

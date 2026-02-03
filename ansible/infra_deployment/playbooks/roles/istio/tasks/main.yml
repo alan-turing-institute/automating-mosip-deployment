@@ -1,4 +1,8 @@
 ---
+- name: Set kubeconfig path
+  set_fact:
+    kubeconfig_path: "{{ rancher_base_dir }}/{{ cluster_name }}/kube_config_cluster.yml"
+
 - name: Check istioctl installation
   ansible.builtin.command:
     cmd: which istioctl
@@ -8,7 +12,7 @@
 
 - name: Verify istioctl version
   ansible.builtin.command:
-    cmd: istioctl version
+    cmd: istioctl --kubeconfig={{ kubeconfig_path }} version
   register: istioctl_version
   failed_when: istioctl_version.rc != 0 or istio_version not in istioctl_version.stdout
   changed_when: false
@@ -21,13 +25,13 @@
 
 - name: Initialize Istio operator
   ansible.builtin.command:
-    cmd: istioctl operator init
+    cmd: istioctl --kubeconfig={{ kubeconfig_path }} operator init
   register: operator_init
   changed_when: operator_init.rc == 0
 
 - name: Wait for Istio CRDs to be established
   ansible.builtin.command:
-    cmd: kubectl wait --for condition=established --timeout=60s crd/istiooperators.install.istio.io
+    cmd: kubectl --kubeconfig={{ kubeconfig_path }} wait --for condition=established --timeout=60s crd/istiooperators.install.istio.io
   register: crd_check
   retries: 10
   delay: 10
@@ -48,13 +52,13 @@
 
 - name: Apply IstioOperator configuration
   ansible.builtin.command:
-    cmd: kubectl apply -f {{ temp_dir.path }}/iop.yaml
+    cmd: kubectl --kubeconfig={{ kubeconfig_path }} apply -f {{ temp_dir.path }}/iop.yaml
   register: iop_apply
   changed_when: iop_apply.rc == 0
 
 - name: Wait for Istiod deployment
   ansible.builtin.command:
-    cmd: kubectl -n {{ istio_namespace }} rollout status deploy istiod
+    cmd: kubectl --kubeconfig={{ kubeconfig_path }} -n {{ istio_namespace }} rollout status deploy istiod
   register: istiod_status
   retries: 30
   delay: 10

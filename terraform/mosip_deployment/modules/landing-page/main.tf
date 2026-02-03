@@ -65,7 +65,7 @@ resource "helm_release" "landing_page" {
   repository = "mosip"
   chart      = "landing-page"
   version    = var.chart_version
-  timeout    = 600
+  timeout    = var.helm_timeout_seconds
 
   values = [
     file("${path.module}/values.yaml")

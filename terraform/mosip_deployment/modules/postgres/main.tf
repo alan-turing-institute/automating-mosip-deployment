@@ -34,7 +34,7 @@ resource "helm_release" "postgres" {
   repository = "https://charts.bitnami.com/bitnami"
   chart      = "postgresql"
   version    = var.chart_version
-  timeout    = 600
+  timeout    = var.helm_timeout_seconds
 
   values = [
     file("${path.module}/values.yaml")
@@ -56,7 +56,7 @@ resource "helm_release" "postgres_init" {
   repository = "https://mosip.github.io/mosip-helm"
   chart      = "postgres-init"
   version    = var.init_chart_version
-  timeout    = 600
+  timeout    = var.helm_timeout_seconds
 
   values = [
     file("${path.module}/init_values.yaml")
@@ -68,6 +68,8 @@ resource "helm_release" "postgres_init" {
 # Create Istio Gateway for Postgres
 resource "kubernetes_manifest" "postgres_gateway" {
   count = var.enable_istio ? 1 : 0
+  
+  computed_fields = ["metadata.managedFields"]
 
   manifest = {
     apiVersion = "networking.istio.io/v1alpha3"
@@ -99,6 +101,8 @@ resource "kubernetes_manifest" "postgres_gateway" {
 # Create Istio Virtual Service for Postgres
 resource "kubernetes_manifest" "postgres_virtualservice" {
   count = var.enable_istio ? 1 : 0
+  
+  computed_fields = ["metadata.managedFields"]
 
   manifest = {
     apiVersion = "networking.istio.io/v1alpha3"

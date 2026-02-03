@@ -32,4 +32,10 @@ variable "image_pull_policy" {
   type        = string
   description = "Image pull policy"
   default     = "Always"
+}
+
+variable "helm_timeout_seconds" {
+  description = "Timeout for Helm operations in seconds"
+  type        = number
+  default     = 1800
 } 

@@ -80,6 +80,8 @@ resource "kubernetes_service" "httpbin" {
 }
 
 resource "kubernetes_manifest" "httpbin_virtual_service" {
+  computed_fields = ["metadata.managedFields"]
+  
   manifest = {
     apiVersion = "networking.istio.io/v1beta1"
     kind       = "VirtualService"

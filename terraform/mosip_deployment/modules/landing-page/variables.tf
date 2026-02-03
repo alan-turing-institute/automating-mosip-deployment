@@ -22,4 +22,10 @@ variable "landing_version" {
 variable "healthservices_host" {
   description = "Health Services host URL"
   type        = string
+}
+
+variable "helm_timeout_seconds" {
+  description = "Timeout for Helm operations in seconds"
+  type        = number
+  default     = 1800
 } 

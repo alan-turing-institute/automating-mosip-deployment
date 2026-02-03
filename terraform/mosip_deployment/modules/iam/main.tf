@@ -54,7 +54,7 @@ resource "helm_release" "keycloak" {
   repository = "https://mosip.github.io/mosip-helm"
   chart      = "keycloak"
   version    = var.chart_version
-  timeout    = 600
+  timeout    = var.helm_timeout_seconds
 
   values = [
     file("${path.module}/values.yaml")
@@ -118,6 +118,8 @@ resource "helm_release" "keycloak" {
 # Create Istio Gateway
 resource "kubernetes_manifest" "keycloak_gateway" {
   count = var.enable_istio ? 1 : 0
+  
+  computed_fields = ["metadata.managedFields"]
 
   manifest = {
     apiVersion = "networking.istio.io/v1alpha3"
@@ -149,6 +151,8 @@ resource "kubernetes_manifest" "keycloak_gateway" {
 # Create Istio VirtualService
 resource "kubernetes_manifest" "keycloak_virtualservice" {
   count = var.enable_istio ? 1 : 0
+  
+  computed_fields = ["metadata.managedFields"]
 
   manifest = {
     apiVersion = "networking.istio.io/v1alpha3"

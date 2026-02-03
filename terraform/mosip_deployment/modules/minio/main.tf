@@ -59,6 +59,8 @@ resource "helm_release" "minio" {
 # Create Istio Gateway for MinIO
 resource "kubernetes_manifest" "minio_gateway" {
   count = var.enable_minio && var.enable_istio ? 1 : 0
+  
+  computed_fields = ["metadata.managedFields"]
 
   manifest = {
     apiVersion = "networking.istio.io/v1alpha3"
@@ -98,6 +100,8 @@ resource "kubernetes_manifest" "minio_gateway" {
 # Create Istio Virtual Service for MinIO
 resource "kubernetes_manifest" "minio_virtualservice" {
   count = var.enable_minio && var.enable_istio ? 1 : 0
+  
+  computed_fields = ["metadata.managedFields"]
 
   manifest = {
     apiVersion = "networking.istio.io/v1alpha3"

@@ -26,4 +26,15 @@ ingress_provider: "none"
 network_plugin: "canal"
 
 # Authentication
-auth_strategy: "x509" 
+auth_strategy: "x509"
+
+# etcd Configuration (Development-friendly settings)
+# These settings make etcd more tolerant of network latency and resource constraints
+# Suitable for development/test environments, not recommended for production
+etcd_heartbeat_interval: "500"  # Default: 100ms, Increased for dev (less aggressive)
+etcd_election_timeout: "5000"   # Default: 1000ms, Increased for dev (more time for leader election)
+etcd_request_timeout: "10000"   # Default: 3000ms, Increased for dev (more tolerant of slow requests)
+etcd_snapshot_count: "5000"     # Default: 10000, Reduced for dev (less frequent snapshots)
+etcd_max_request_bytes: "10485760"  # Default: 1.5MB, Increased to 10MB for dev
+etcd_quota_backend_bytes: "8589934592"  # 8GB, Default: 2GB, Increased for dev
+etcd_enable_dev_mode: false  # Set to true for single-node dev clusters (disables quorum requirements) 

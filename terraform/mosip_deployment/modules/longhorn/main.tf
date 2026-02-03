@@ -27,12 +27,66 @@ resource "helm_release" "longhorn" {
         createDefaultDiskLabeledStorage = true
         defaultDataPath = "/var/lib/longhorn/"
       }
+      csi = {
+        attacherReplicaCount = var.csi_attacher_replica_count
+        provisionerReplicaCount = var.csi_provisioner_replica_count
+        resizerReplicaCount = var.csi_resizer_replica_count
+        snapshotterReplicaCount = var.csi_snapshotter_replica_count
+        attacher = {
+          resources = {
+            requests = {
+              cpu    = var.csi_attacher_cpu_request
+              memory = var.csi_attacher_memory_request
+            }
+            limits = {
+              cpu    = var.csi_attacher_cpu_limit
+              memory = var.csi_attacher_memory_limit
+            }
+          }
+        }
+        provisioner = {
+          resources = {
+            requests = {
+              cpu    = var.csi_provisioner_cpu_request
+              memory = var.csi_provisioner_memory_request
+            }
+            limits = {
+              cpu    = var.csi_provisioner_cpu_limit
+              memory = var.csi_provisioner_memory_limit
+            }
+          }
+        }
+        resizer = {
+          resources = {
+            requests = {
+              cpu    = var.csi_resizer_cpu_request
+              memory = var.csi_resizer_memory_request
+            }
+            limits = {
+              cpu    = var.csi_resizer_cpu_limit
+              memory = var.csi_resizer_memory_limit
+            }
+          }
+        }
+        snapshotter = {
+          resources = {
+            requests = {
+              cpu    = var.csi_snapshotter_cpu_request
+              memory = var.csi_snapshotter_memory_request
+            }
+            limits = {
+              cpu    = var.csi_snapshotter_cpu_limit
+              memory = var.csi_snapshotter_memory_limit
+            }
+          }
+        }
+      }
     })
   ]
 
   wait          = true
   wait_for_jobs = true
-  timeout       = 600
+  timeout       = var.helm_timeout_seconds
 }
 
 # Wait for CSI deployments to be ready

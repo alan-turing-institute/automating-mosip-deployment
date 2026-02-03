@@ -84,13 +84,78 @@ resource "helm_release" "pms_partner" {
   }
 
   set {
+    name  = "startupProbe.enabled"
+    value = tostring(var.startup_probe_enabled)
+  }
+
+  set {
     name  = "startupProbe.timeoutSeconds"
-    value = var.startup_probe_timeout
+    value = tostring(var.startup_probe_timeout_seconds)
   }
 
   set {
     name  = "startupProbe.initialDelaySeconds"
-    value = var.startup_probe_initial_delay
+    value = tostring(var.startup_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "startupProbe.periodSeconds"
+    value = tostring(var.startup_probe_period_seconds)
+  }
+
+  set {
+    name  = "startupProbe.failureThreshold"
+    value = tostring(var.startup_probe_failure_threshold)
+  }
+
+  set {
+    name  = "readinessProbe.enabled"
+    value = tostring(var.readiness_probe_enabled)
+  }
+
+  set {
+    name  = "readinessProbe.timeoutSeconds"
+    value = tostring(var.readiness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.initialDelaySeconds"
+    value = tostring(var.readiness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.periodSeconds"
+    value = tostring(var.readiness_probe_period_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.failureThreshold"
+    value = tostring(var.readiness_probe_failure_threshold)
+  }
+
+  set {
+    name  = "livenessProbe.enabled"
+    value = tostring(var.liveness_probe_enabled)
+  }
+
+  set {
+    name  = "livenessProbe.timeoutSeconds"
+    value = tostring(var.liveness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.initialDelaySeconds"
+    value = tostring(var.liveness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.periodSeconds"
+    value = tostring(var.liveness_probe_period_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.failureThreshold"
+    value = tostring(var.liveness_probe_failure_threshold)
   }
 
   depends_on = [
@@ -114,13 +179,78 @@ resource "helm_release" "pms_policy" {
   }
 
   set {
+    name  = "startupProbe.enabled"
+    value = tostring(var.startup_probe_enabled)
+  }
+
+  set {
     name  = "startupProbe.timeoutSeconds"
-    value = var.startup_probe_timeout
+    value = tostring(var.startup_probe_timeout_seconds)
   }
 
   set {
     name  = "startupProbe.initialDelaySeconds"
-    value = var.startup_probe_initial_delay
+    value = tostring(var.startup_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "startupProbe.periodSeconds"
+    value = tostring(var.startup_probe_period_seconds)
+  }
+
+  set {
+    name  = "startupProbe.failureThreshold"
+    value = tostring(var.startup_probe_failure_threshold)
+  }
+
+  set {
+    name  = "readinessProbe.enabled"
+    value = tostring(var.readiness_probe_enabled)
+  }
+
+  set {
+    name  = "readinessProbe.timeoutSeconds"
+    value = tostring(var.readiness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.initialDelaySeconds"
+    value = tostring(var.readiness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.periodSeconds"
+    value = tostring(var.readiness_probe_period_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.failureThreshold"
+    value = tostring(var.readiness_probe_failure_threshold)
+  }
+
+  set {
+    name  = "livenessProbe.enabled"
+    value = tostring(var.liveness_probe_enabled)
+  }
+
+  set {
+    name  = "livenessProbe.timeoutSeconds"
+    value = tostring(var.liveness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.initialDelaySeconds"
+    value = tostring(var.liveness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.periodSeconds"
+    value = tostring(var.liveness_probe_period_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.failureThreshold"
+    value = tostring(var.liveness_probe_failure_threshold)
   }
 
   depends_on = [
@@ -149,13 +279,78 @@ resource "helm_release" "pmp_ui" {
   }
 
   set {
+    name  = "startupProbe.enabled"
+    value = tostring(var.startup_probe_enabled)
+  }
+
+  set {
     name  = "startupProbe.timeoutSeconds"
-    value = var.startup_probe_timeout
+    value = tostring(var.startup_probe_timeout_seconds)
   }
 
   set {
     name  = "startupProbe.initialDelaySeconds"
-    value = var.startup_probe_initial_delay
+    value = tostring(var.startup_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "startupProbe.periodSeconds"
+    value = tostring(var.startup_probe_period_seconds)
+  }
+
+  set {
+    name  = "startupProbe.failureThreshold"
+    value = tostring(var.startup_probe_failure_threshold)
+  }
+
+  set {
+    name  = "readinessProbe.enabled"
+    value = tostring(var.readiness_probe_enabled)
+  }
+
+  set {
+    name  = "readinessProbe.timeoutSeconds"
+    value = tostring(var.readiness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.initialDelaySeconds"
+    value = tostring(var.readiness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.periodSeconds"
+    value = tostring(var.readiness_probe_period_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.failureThreshold"
+    value = tostring(var.readiness_probe_failure_threshold)
+  }
+
+  set {
+    name  = "livenessProbe.enabled"
+    value = tostring(var.liveness_probe_enabled)
+  }
+
+  set {
+    name  = "livenessProbe.timeoutSeconds"
+    value = tostring(var.liveness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.initialDelaySeconds"
+    value = tostring(var.liveness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.periodSeconds"
+    value = tostring(var.liveness_probe_period_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.failureThreshold"
+    value = tostring(var.liveness_probe_failure_threshold)
   }
 
   depends_on = [

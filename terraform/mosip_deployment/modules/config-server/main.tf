@@ -245,7 +245,7 @@ resource "helm_release" "config_server" {
   repository = "https://mosip.github.io/mosip-helm"
   chart      = "config-server"
   version    = var.chart_version
-  timeout    = 1200
+  timeout    = 1800  # 30 minutes
 
   set {
     name  = "gitRepo.uri"
@@ -277,13 +277,81 @@ resource "helm_release" "config_server" {
     value = var.git_token
   }
 
+  # Startup Probe Configuration
+  set {
+    name  = "startupProbe.enabled"
+    value = tostring(var.startup_probe_enabled)
+  }
+
   set {
     name  = "startupProbe.timeoutSeconds"
-    value = "900"
+    value = tostring(var.startup_probe_timeout_seconds)
   }
 
   set {
     name  = "startupProbe.initialDelaySeconds"
-    value = "900"
+    value = tostring(var.startup_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "startupProbe.periodSeconds"
+    value = tostring(var.startup_probe_period_seconds)
+  }
+
+  set {
+    name  = "startupProbe.failureThreshold"
+    value = tostring(var.startup_probe_failure_threshold)
+  }
+
+  # Readiness Probe Configuration
+  set {
+    name  = "readinessProbe.enabled"
+    value = tostring(var.readiness_probe_enabled)
+  }
+
+  set {
+    name  = "readinessProbe.timeoutSeconds"
+    value = tostring(var.readiness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.initialDelaySeconds"
+    value = tostring(var.readiness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.periodSeconds"
+    value = tostring(var.readiness_probe_period_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.failureThreshold"
+    value = tostring(var.readiness_probe_failure_threshold)
+  }
+
+  # Liveness Probe Configuration
+  set {
+    name  = "livenessProbe.enabled"
+    value = tostring(var.liveness_probe_enabled)
+  }
+
+  set {
+    name  = "livenessProbe.timeoutSeconds"
+    value = tostring(var.liveness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.initialDelaySeconds"
+    value = tostring(var.liveness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.periodSeconds"
+    value = tostring(var.liveness_probe_period_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.failureThreshold"
+    value = tostring(var.liveness_probe_failure_threshold)
   }
 } 

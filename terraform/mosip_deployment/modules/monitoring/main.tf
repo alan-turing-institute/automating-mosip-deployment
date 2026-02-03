@@ -22,7 +22,7 @@ resource "helm_release" "rancher_monitoring_crd" {
   namespace        = "cattle-monitoring-system"
   version    = "102.0.5+up40.1.2" # MUST USE THIS VERSION OLD RANCHER !!!
   create_namespace = true
-  timeout          = 1200 # 20 minutes
+  timeout          = var.helm_timeout_seconds
 
   lifecycle {
     ignore_changes = [
@@ -43,7 +43,7 @@ resource "helm_release" "rancher_monitoring" {
   chart      = "rancher-monitoring"
   namespace  = "cattle-monitoring-system"
   version    = "102.0.5+up40.1.2" # MUST USE THIS VERSION OLD RANCHER !!!
-  timeout    = 1200 # 20 minutes
+  timeout    = var.helm_timeout_seconds
 
   set {
     name  = "windowsExporter.enabled"

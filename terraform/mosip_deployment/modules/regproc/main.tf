@@ -88,17 +88,85 @@ resource "helm_release" "regproc_group1" {
     value = "5Gi"
   }
 
+  # Startup Probe Configuration
+  set {
+    name  = "startupProbe.enabled"
+    value = tostring(var.startup_probe_enabled)
+  }
+
   set {
     name  = "startupProbe.timeoutSeconds"
-    value = "180"
+    value = tostring(var.startup_probe_timeout_seconds)
   }
 
   set {
     name  = "startupProbe.initialDelaySeconds"
-    value = "600"
+    value = tostring(var.startup_probe_initial_delay_seconds)
   }
 
-  timeout = var.helm_timeout
+  set {
+    name  = "startupProbe.periodSeconds"
+    value = tostring(var.startup_probe_period_seconds)
+  }
+
+  set {
+    name  = "startupProbe.failureThreshold"
+    value = tostring(var.startup_probe_failure_threshold)
+  }
+
+  # Readiness Probe Configuration
+  set {
+    name  = "readinessProbe.enabled"
+    value = tostring(var.readiness_probe_enabled)
+  }
+
+  set {
+    name  = "readinessProbe.timeoutSeconds"
+    value = tostring(var.readiness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.initialDelaySeconds"
+    value = tostring(var.readiness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.periodSeconds"
+    value = tostring(var.readiness_probe_period_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.failureThreshold"
+    value = tostring(var.readiness_probe_failure_threshold)
+  }
+
+  # Liveness Probe Configuration
+  set {
+    name  = "livenessProbe.enabled"
+    value = tostring(var.liveness_probe_enabled)
+  }
+
+  set {
+    name  = "livenessProbe.timeoutSeconds"
+    value = tostring(var.liveness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.initialDelaySeconds"
+    value = tostring(var.liveness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.periodSeconds"
+    value = tostring(var.liveness_probe_period_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.failureThreshold"
+    value = tostring(var.liveness_probe_failure_threshold)
+  }
+
+  timeout = var.helm_timeout_seconds
 }
 
 # Install regproc-group2
@@ -113,28 +181,85 @@ resource "helm_release" "regproc_group2" {
     kubernetes_config_map_v1.config_server_share,
     helm_release.regproc_salt
   ]
-  
-  # TODO: Disable startup probe as a workaround for the crash
+  # Added so it's not going to die if it's not ready
+  # All probes disabled for regproc-group2
+  # Regproc Group2 uses its own probe configuration variables
   set {
     name  = "startupProbe.enabled"
-    value = false
-  }
-  set {
-    name  = "readinessProbe.enabled"
-    value = false
+    value = tostring(var.regproc_group2_startup_probe_enabled)
   }
 
-#  set {
-#    name  = "startupProbe.timeoutSeconds"
-#    value = "180"
-#  }
-#
-#  set {
-#    name  = "startupProbe.initialDelaySeconds"
-#    value = "600"
-#  }
-  
-  timeout = 1500
+  set {
+    name  = "readinessProbe.enabled"
+    value = tostring(var.regproc_group2_readiness_probe_enabled)
+  }
+
+  set {
+    name  = "livenessProbe.enabled"
+    value = tostring(var.regproc_group2_liveness_probe_enabled)
+  }
+
+  set {
+    name  = "startupProbe.timeoutSeconds"
+    value = tostring(var.regproc_group2_startup_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "startupProbe.initialDelaySeconds"
+    value = tostring(var.regproc_group2_startup_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "startupProbe.periodSeconds"
+    value = tostring(var.regproc_group2_startup_probe_period_seconds)
+  }
+
+  set {
+    name  = "startupProbe.failureThreshold"
+    value = tostring(var.regproc_group2_startup_probe_failure_threshold)
+  }
+
+  set {
+    name  = "readinessProbe.timeoutSeconds"
+    value = tostring(var.regproc_group2_readiness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.initialDelaySeconds"
+    value = tostring(var.regproc_group2_readiness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.periodSeconds"
+    value = tostring(var.regproc_group2_readiness_probe_period_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.failureThreshold"
+    value = tostring(var.regproc_group2_readiness_probe_failure_threshold)
+  }
+
+  set {
+    name  = "livenessProbe.timeoutSeconds"
+    value = tostring(var.regproc_group2_liveness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.initialDelaySeconds"
+    value = tostring(var.regproc_group2_liveness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.periodSeconds"
+    value = tostring(var.regproc_group2_liveness_probe_period_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.failureThreshold"
+    value = tostring(var.regproc_group2_liveness_probe_failure_threshold)
+  }
+
+  timeout = var.helm_timeout_seconds
 }
 
 # Install regproc-group3
@@ -150,17 +275,85 @@ resource "helm_release" "regproc_group3" {
     helm_release.regproc_salt
   ]
 
+  # Startup Probe Configuration
+  set {
+    name  = "startupProbe.enabled"
+    value = tostring(var.startup_probe_enabled)
+  }
+
   set {
     name  = "startupProbe.timeoutSeconds"
-    value = "180"
+    value = tostring(var.startup_probe_timeout_seconds)
   }
 
   set {
     name  = "startupProbe.initialDelaySeconds"
-    value = "600"
+    value = tostring(var.startup_probe_initial_delay_seconds)
   }
 
-  timeout = 1500
+  set {
+    name  = "startupProbe.periodSeconds"
+    value = tostring(var.startup_probe_period_seconds)
+  }
+
+  set {
+    name  = "startupProbe.failureThreshold"
+    value = tostring(var.startup_probe_failure_threshold)
+  }
+
+  # Readiness Probe Configuration
+  set {
+    name  = "readinessProbe.enabled"
+    value = tostring(var.readiness_probe_enabled)
+  }
+
+  set {
+    name  = "readinessProbe.timeoutSeconds"
+    value = tostring(var.readiness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.initialDelaySeconds"
+    value = tostring(var.readiness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.periodSeconds"
+    value = tostring(var.readiness_probe_period_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.failureThreshold"
+    value = tostring(var.readiness_probe_failure_threshold)
+  }
+
+  # Liveness Probe Configuration
+  set {
+    name  = "livenessProbe.enabled"
+    value = tostring(var.liveness_probe_enabled)
+  }
+
+  set {
+    name  = "livenessProbe.timeoutSeconds"
+    value = tostring(var.liveness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.initialDelaySeconds"
+    value = tostring(var.liveness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.periodSeconds"
+    value = tostring(var.liveness_probe_period_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.failureThreshold"
+    value = tostring(var.liveness_probe_failure_threshold)
+  }
+
+  timeout = var.helm_timeout_seconds
 }
 
 # Install regproc-group4
@@ -176,17 +369,85 @@ resource "helm_release" "regproc_group4" {
     helm_release.regproc_salt
   ]
 
+  # Startup Probe Configuration
+  set {
+    name  = "startupProbe.enabled"
+    value = tostring(var.startup_probe_enabled)
+  }
+
   set {
     name  = "startupProbe.timeoutSeconds"
-    value = "180"
+    value = tostring(var.startup_probe_timeout_seconds)
   }
 
   set {
     name  = "startupProbe.initialDelaySeconds"
-    value = "600"
+    value = tostring(var.startup_probe_initial_delay_seconds)
   }
 
-  timeout = 1500
+  set {
+    name  = "startupProbe.periodSeconds"
+    value = tostring(var.startup_probe_period_seconds)
+  }
+
+  set {
+    name  = "startupProbe.failureThreshold"
+    value = tostring(var.startup_probe_failure_threshold)
+  }
+
+  # Readiness Probe Configuration
+  set {
+    name  = "readinessProbe.enabled"
+    value = tostring(var.readiness_probe_enabled)
+  }
+
+  set {
+    name  = "readinessProbe.timeoutSeconds"
+    value = tostring(var.readiness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.initialDelaySeconds"
+    value = tostring(var.readiness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.periodSeconds"
+    value = tostring(var.readiness_probe_period_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.failureThreshold"
+    value = tostring(var.readiness_probe_failure_threshold)
+  }
+
+  # Liveness Probe Configuration
+  set {
+    name  = "livenessProbe.enabled"
+    value = tostring(var.liveness_probe_enabled)
+  }
+
+  set {
+    name  = "livenessProbe.timeoutSeconds"
+    value = tostring(var.liveness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.initialDelaySeconds"
+    value = tostring(var.liveness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.periodSeconds"
+    value = tostring(var.liveness_probe_period_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.failureThreshold"
+    value = tostring(var.liveness_probe_failure_threshold)
+  }
+
+  timeout = var.helm_timeout_seconds
 }
 
 # Install regproc-group5
@@ -202,17 +463,85 @@ resource "helm_release" "regproc_group5" {
     helm_release.regproc_salt
   ]
 
+  # Startup Probe Configuration
+  set {
+    name  = "startupProbe.enabled"
+    value = tostring(var.startup_probe_enabled)
+  }
+
   set {
     name  = "startupProbe.timeoutSeconds"
-    value = "180"
+    value = tostring(var.startup_probe_timeout_seconds)
   }
 
   set {
     name  = "startupProbe.initialDelaySeconds"
-    value = "600"
+    value = tostring(var.startup_probe_initial_delay_seconds)
   }
 
-  timeout = 1500
+  set {
+    name  = "startupProbe.periodSeconds"
+    value = tostring(var.startup_probe_period_seconds)
+  }
+
+  set {
+    name  = "startupProbe.failureThreshold"
+    value = tostring(var.startup_probe_failure_threshold)
+  }
+
+  # Readiness Probe Configuration
+  set {
+    name  = "readinessProbe.enabled"
+    value = tostring(var.readiness_probe_enabled)
+  }
+
+  set {
+    name  = "readinessProbe.timeoutSeconds"
+    value = tostring(var.readiness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.initialDelaySeconds"
+    value = tostring(var.readiness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.periodSeconds"
+    value = tostring(var.readiness_probe_period_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.failureThreshold"
+    value = tostring(var.readiness_probe_failure_threshold)
+  }
+
+  # Liveness Probe Configuration
+  set {
+    name  = "livenessProbe.enabled"
+    value = tostring(var.liveness_probe_enabled)
+  }
+
+  set {
+    name  = "livenessProbe.timeoutSeconds"
+    value = tostring(var.liveness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.initialDelaySeconds"
+    value = tostring(var.liveness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.periodSeconds"
+    value = tostring(var.liveness_probe_period_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.failureThreshold"
+    value = tostring(var.liveness_probe_failure_threshold)
+  }
+
+  timeout = var.helm_timeout_seconds
 }
 
 # Install regproc-group6
@@ -228,17 +557,85 @@ resource "helm_release" "regproc_group6" {
     helm_release.regproc_salt
   ]
 
+  # Startup Probe Configuration
+  set {
+    name  = "startupProbe.enabled"
+    value = tostring(var.startup_probe_enabled)
+  }
+
   set {
     name  = "startupProbe.timeoutSeconds"
-    value = "180"
+    value = tostring(var.startup_probe_timeout_seconds)
   }
 
   set {
     name  = "startupProbe.initialDelaySeconds"
-    value = "600"
+    value = tostring(var.startup_probe_initial_delay_seconds)
   }
 
-  timeout = 1500
+  set {
+    name  = "startupProbe.periodSeconds"
+    value = tostring(var.startup_probe_period_seconds)
+  }
+
+  set {
+    name  = "startupProbe.failureThreshold"
+    value = tostring(var.startup_probe_failure_threshold)
+  }
+
+  # Readiness Probe Configuration
+  set {
+    name  = "readinessProbe.enabled"
+    value = tostring(var.readiness_probe_enabled)
+  }
+
+  set {
+    name  = "readinessProbe.timeoutSeconds"
+    value = tostring(var.readiness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.initialDelaySeconds"
+    value = tostring(var.readiness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.periodSeconds"
+    value = tostring(var.readiness_probe_period_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.failureThreshold"
+    value = tostring(var.readiness_probe_failure_threshold)
+  }
+
+  # Liveness Probe Configuration
+  set {
+    name  = "livenessProbe.enabled"
+    value = tostring(var.liveness_probe_enabled)
+  }
+
+  set {
+    name  = "livenessProbe.timeoutSeconds"
+    value = tostring(var.liveness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.initialDelaySeconds"
+    value = tostring(var.liveness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.periodSeconds"
+    value = tostring(var.liveness_probe_period_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.failureThreshold"
+    value = tostring(var.liveness_probe_failure_threshold)
+  }
+
+  timeout = var.helm_timeout_seconds
 }
 
 # Install regproc-group7
@@ -254,17 +651,85 @@ resource "helm_release" "regproc_group7" {
     helm_release.regproc_salt
   ]
 
+  # Startup Probe Configuration
+  set {
+    name  = "startupProbe.enabled"
+    value = tostring(var.startup_probe_enabled)
+  }
+
   set {
     name  = "startupProbe.timeoutSeconds"
-    value = "180"
+    value = tostring(var.startup_probe_timeout_seconds)
   }
 
   set {
     name  = "startupProbe.initialDelaySeconds"
-    value = "600"
+    value = tostring(var.startup_probe_initial_delay_seconds)
   }
 
-  timeout = 1500
+  set {
+    name  = "startupProbe.periodSeconds"
+    value = tostring(var.startup_probe_period_seconds)
+  }
+
+  set {
+    name  = "startupProbe.failureThreshold"
+    value = tostring(var.startup_probe_failure_threshold)
+  }
+
+  # Readiness Probe Configuration
+  set {
+    name  = "readinessProbe.enabled"
+    value = tostring(var.readiness_probe_enabled)
+  }
+
+  set {
+    name  = "readinessProbe.timeoutSeconds"
+    value = tostring(var.readiness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.initialDelaySeconds"
+    value = tostring(var.readiness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.periodSeconds"
+    value = tostring(var.readiness_probe_period_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.failureThreshold"
+    value = tostring(var.readiness_probe_failure_threshold)
+  }
+
+  # Liveness Probe Configuration
+  set {
+    name  = "livenessProbe.enabled"
+    value = tostring(var.liveness_probe_enabled)
+  }
+
+  set {
+    name  = "livenessProbe.timeoutSeconds"
+    value = tostring(var.liveness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.initialDelaySeconds"
+    value = tostring(var.liveness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.periodSeconds"
+    value = tostring(var.liveness_probe_period_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.failureThreshold"
+    value = tostring(var.liveness_probe_failure_threshold)
+  }
+
+  timeout = var.helm_timeout_seconds
 }
 
 # Install regproc-salt
@@ -279,17 +744,85 @@ resource "helm_release" "regproc_salt" {
     kubernetes_config_map_v1.config_server_share
   ]
 
+  # Startup Probe Configuration
+  set {
+    name  = "startupProbe.enabled"
+    value = tostring(var.startup_probe_enabled)
+  }
+
   set {
     name  = "startupProbe.timeoutSeconds"
-    value = "180"
+    value = tostring(var.startup_probe_timeout_seconds)
   }
 
   set {
     name  = "startupProbe.initialDelaySeconds"
-    value = "600"
+    value = tostring(var.startup_probe_initial_delay_seconds)
   }
 
-  timeout = 1500
+  set {
+    name  = "startupProbe.periodSeconds"
+    value = tostring(var.startup_probe_period_seconds)
+  }
+
+  set {
+    name  = "startupProbe.failureThreshold"
+    value = tostring(var.startup_probe_failure_threshold)
+  }
+
+  # Readiness Probe Configuration
+  set {
+    name  = "readinessProbe.enabled"
+    value = tostring(var.readiness_probe_enabled)
+  }
+
+  set {
+    name  = "readinessProbe.timeoutSeconds"
+    value = tostring(var.readiness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.initialDelaySeconds"
+    value = tostring(var.readiness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.periodSeconds"
+    value = tostring(var.readiness_probe_period_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.failureThreshold"
+    value = tostring(var.readiness_probe_failure_threshold)
+  }
+
+  # Liveness Probe Configuration
+  set {
+    name  = "livenessProbe.enabled"
+    value = tostring(var.liveness_probe_enabled)
+  }
+
+  set {
+    name  = "livenessProbe.timeoutSeconds"
+    value = tostring(var.liveness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.initialDelaySeconds"
+    value = tostring(var.liveness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.periodSeconds"
+    value = tostring(var.liveness_probe_period_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.failureThreshold"
+    value = tostring(var.liveness_probe_failure_threshold)
+  }
+
+  timeout = var.helm_timeout_seconds
 }
 
 # Install regproc-workflow
@@ -312,31 +845,85 @@ resource "helm_release" "regproc_workflow" {
     helm_release.regproc_group7
   ]
 
-  # TODO: Disable startup probe as a workaround for the crash
+  # Startup Probe Configuration
   set {
     name  = "startupProbe.enabled"
-    value = false
+    value = tostring(var.startup_probe_enabled)
   }
+
+  set {
+    name  = "startupProbe.timeoutSeconds"
+    value = tostring(var.startup_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "startupProbe.initialDelaySeconds"
+    value = tostring(var.startup_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "startupProbe.periodSeconds"
+    value = tostring(var.startup_probe_period_seconds)
+  }
+
+  set {
+    name  = "startupProbe.failureThreshold"
+    value = tostring(var.startup_probe_failure_threshold)
+  }
+
+  # Readiness Probe Configuration
   set {
     name  = "readinessProbe.enabled"
-    value = false
+    value = tostring(var.readiness_probe_enabled)
   }
+
+  set {
+    name  = "readinessProbe.timeoutSeconds"
+    value = tostring(var.readiness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.initialDelaySeconds"
+    value = tostring(var.readiness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.periodSeconds"
+    value = tostring(var.readiness_probe_period_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.failureThreshold"
+    value = tostring(var.readiness_probe_failure_threshold)
+  }
+
+  # Liveness Probe Configuration
   set {
     name  = "livenessProbe.enabled"
-    value = false
+    value = tostring(var.liveness_probe_enabled)
   }
 
-#  set {
-#    name  = "startupProbe.timeoutSeconds"
-#    value = "180"
-#  }
-#
-#  set {
-#    name  = "startupProbe.initialDelaySeconds"
-#    value = "600"
-#  }
+  set {
+    name  = "livenessProbe.timeoutSeconds"
+    value = tostring(var.liveness_probe_timeout_seconds)
+  }
 
-  timeout = 1500
+  set {
+    name  = "livenessProbe.initialDelaySeconds"
+    value = tostring(var.liveness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.periodSeconds"
+    value = tostring(var.liveness_probe_period_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.failureThreshold"
+    value = tostring(var.liveness_probe_failure_threshold)
+  }
+
+  timeout = var.helm_timeout_seconds
 }
 
 # Install regproc-status
@@ -358,17 +945,85 @@ resource "helm_release" "regproc_status" {
     helm_release.regproc_group6,
     helm_release.regproc_group7
   ]
+  # Startup Probe Configuration
+  set {
+    name  = "startupProbe.enabled"
+    value = tostring(var.startup_probe_enabled)
+  }
+
   set {
     name  = "startupProbe.timeoutSeconds"
-    value = "180"
+    value = tostring(var.startup_probe_timeout_seconds)
   }
 
   set {
     name  = "startupProbe.initialDelaySeconds"
-    value = "600"
+    value = tostring(var.startup_probe_initial_delay_seconds)
   }
 
-  timeout = 1500
+  set {
+    name  = "startupProbe.periodSeconds"
+    value = tostring(var.startup_probe_period_seconds)
+  }
+
+  set {
+    name  = "startupProbe.failureThreshold"
+    value = tostring(var.startup_probe_failure_threshold)
+  }
+
+  # Readiness Probe Configuration
+  set {
+    name  = "readinessProbe.enabled"
+    value = tostring(var.readiness_probe_enabled)
+  }
+
+  set {
+    name  = "readinessProbe.timeoutSeconds"
+    value = tostring(var.readiness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.initialDelaySeconds"
+    value = tostring(var.readiness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.periodSeconds"
+    value = tostring(var.readiness_probe_period_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.failureThreshold"
+    value = tostring(var.readiness_probe_failure_threshold)
+  }
+
+  # Liveness Probe Configuration
+  set {
+    name  = "livenessProbe.enabled"
+    value = tostring(var.liveness_probe_enabled)
+  }
+
+  set {
+    name  = "livenessProbe.timeoutSeconds"
+    value = tostring(var.liveness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.initialDelaySeconds"
+    value = tostring(var.liveness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.periodSeconds"
+    value = tostring(var.liveness_probe_period_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.failureThreshold"
+    value = tostring(var.liveness_probe_failure_threshold)
+  }
+
+  timeout = var.helm_timeout_seconds
 }
 
 # Install regproc-camel
@@ -391,17 +1046,85 @@ resource "helm_release" "regproc_camel" {
     helm_release.regproc_group7
   ]
 
+  # Startup Probe Configuration
+  set {
+    name  = "startupProbe.enabled"
+    value = tostring(var.startup_probe_enabled)
+  }
+
   set {
     name  = "startupProbe.timeoutSeconds"
-    value = "180"
+    value = tostring(var.startup_probe_timeout_seconds)
   }
 
   set {
     name  = "startupProbe.initialDelaySeconds"
-    value = "600"
+    value = tostring(var.startup_probe_initial_delay_seconds)
   }
 
-  timeout = 1500
+  set {
+    name  = "startupProbe.periodSeconds"
+    value = tostring(var.startup_probe_period_seconds)
+  }
+
+  set {
+    name  = "startupProbe.failureThreshold"
+    value = tostring(var.startup_probe_failure_threshold)
+  }
+
+  # Readiness Probe Configuration
+  set {
+    name  = "readinessProbe.enabled"
+    value = tostring(var.readiness_probe_enabled)
+  }
+
+  set {
+    name  = "readinessProbe.timeoutSeconds"
+    value = tostring(var.readiness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.initialDelaySeconds"
+    value = tostring(var.readiness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.periodSeconds"
+    value = tostring(var.readiness_probe_period_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.failureThreshold"
+    value = tostring(var.readiness_probe_failure_threshold)
+  }
+
+  # Liveness Probe Configuration
+  set {
+    name  = "livenessProbe.enabled"
+    value = tostring(var.liveness_probe_enabled)
+  }
+
+  set {
+    name  = "livenessProbe.timeoutSeconds"
+    value = tostring(var.liveness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.initialDelaySeconds"
+    value = tostring(var.liveness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.periodSeconds"
+    value = tostring(var.liveness_probe_period_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.failureThreshold"
+    value = tostring(var.liveness_probe_failure_threshold)
+  }
+
+  timeout = var.helm_timeout_seconds
 }
 
 # Install regproc-pktserver
@@ -424,17 +1147,85 @@ resource "helm_release" "regproc_pktserver" {
     helm_release.regproc_group7
   ]
 
+  # Startup Probe Configuration
+  set {
+    name  = "startupProbe.enabled"
+    value = tostring(var.startup_probe_enabled)
+  }
+
   set {
     name  = "startupProbe.timeoutSeconds"
-    value = "180"
+    value = tostring(var.startup_probe_timeout_seconds)
   }
 
   set {
     name  = "startupProbe.initialDelaySeconds"
-    value = "600"
+    value = tostring(var.startup_probe_initial_delay_seconds)
   }
 
-  timeout = 1500
+  set {
+    name  = "startupProbe.periodSeconds"
+    value = tostring(var.startup_probe_period_seconds)
+  }
+
+  set {
+    name  = "startupProbe.failureThreshold"
+    value = tostring(var.startup_probe_failure_threshold)
+  }
+
+  # Readiness Probe Configuration
+  set {
+    name  = "readinessProbe.enabled"
+    value = tostring(var.readiness_probe_enabled)
+  }
+
+  set {
+    name  = "readinessProbe.timeoutSeconds"
+    value = tostring(var.readiness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.initialDelaySeconds"
+    value = tostring(var.readiness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.periodSeconds"
+    value = tostring(var.readiness_probe_period_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.failureThreshold"
+    value = tostring(var.readiness_probe_failure_threshold)
+  }
+
+  # Liveness Probe Configuration
+  set {
+    name  = "livenessProbe.enabled"
+    value = tostring(var.liveness_probe_enabled)
+  }
+
+  set {
+    name  = "livenessProbe.timeoutSeconds"
+    value = tostring(var.liveness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.initialDelaySeconds"
+    value = tostring(var.liveness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.periodSeconds"
+    value = tostring(var.liveness_probe_period_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.failureThreshold"
+    value = tostring(var.liveness_probe_failure_threshold)
+  }
+
+  timeout = var.helm_timeout_seconds
 }
 # Install regproc-trans
 resource "helm_release" "regproc_trans" {
@@ -456,17 +1247,85 @@ resource "helm_release" "regproc_trans" {
     helm_release.regproc_group7
   ]
 
+  # Startup Probe Configuration
+  set {
+    name  = "startupProbe.enabled"
+    value = tostring(var.startup_probe_enabled)
+  }
+
   set {
     name  = "startupProbe.timeoutSeconds"
-    value = "180"
+    value = tostring(var.startup_probe_timeout_seconds)
   }
 
   set {
     name  = "startupProbe.initialDelaySeconds"
-    value = "600"
+    value = tostring(var.startup_probe_initial_delay_seconds)
   }
 
-  timeout = 1500
+  set {
+    name  = "startupProbe.periodSeconds"
+    value = tostring(var.startup_probe_period_seconds)
+  }
+
+  set {
+    name  = "startupProbe.failureThreshold"
+    value = tostring(var.startup_probe_failure_threshold)
+  }
+
+  # Readiness Probe Configuration
+  set {
+    name  = "readinessProbe.enabled"
+    value = tostring(var.readiness_probe_enabled)
+  }
+
+  set {
+    name  = "readinessProbe.timeoutSeconds"
+    value = tostring(var.readiness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.initialDelaySeconds"
+    value = tostring(var.readiness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.periodSeconds"
+    value = tostring(var.readiness_probe_period_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.failureThreshold"
+    value = tostring(var.readiness_probe_failure_threshold)
+  }
+
+  # Liveness Probe Configuration
+  set {
+    name  = "livenessProbe.enabled"
+    value = tostring(var.liveness_probe_enabled)
+  }
+
+  set {
+    name  = "livenessProbe.timeoutSeconds"
+    value = tostring(var.liveness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.initialDelaySeconds"
+    value = tostring(var.liveness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.periodSeconds"
+    value = tostring(var.liveness_probe_period_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.failureThreshold"
+    value = tostring(var.liveness_probe_failure_threshold)
+  }
+
+  timeout = var.helm_timeout_seconds
 }
 
 # Install regproc-notifier
@@ -489,17 +1348,85 @@ resource "helm_release" "regproc_notifier" {
     helm_release.regproc_group7
   ]
 
+  # Added so it's not going to die if it's not ready
+  # All probes disabled for regproc-notifier
+  # Regproc Notifier uses its own probe configuration variables
+  set {
+    name  = "startupProbe.enabled"
+    value = tostring(var.regproc_notifier_startup_probe_enabled)
+  }
+
+  set {
+    name  = "readinessProbe.enabled"
+    value = tostring(var.regproc_notifier_readiness_probe_enabled)
+  }
+
+  set {
+    name  = "livenessProbe.enabled"
+    value = tostring(var.regproc_notifier_liveness_probe_enabled)
+  }
+
   set {
     name  = "startupProbe.timeoutSeconds"
-    value = "180"
+    value = tostring(var.regproc_notifier_startup_probe_timeout_seconds)
   }
 
   set {
     name  = "startupProbe.initialDelaySeconds"
-    value = "600"
+    value = tostring(var.regproc_notifier_startup_probe_initial_delay_seconds)
   }
 
-  timeout = 1500
+  set {
+    name  = "startupProbe.periodSeconds"
+    value = tostring(var.regproc_notifier_startup_probe_period_seconds)
+  }
+
+  set {
+    name  = "startupProbe.failureThreshold"
+    value = tostring(var.regproc_notifier_startup_probe_failure_threshold)
+  }
+
+  set {
+    name  = "readinessProbe.timeoutSeconds"
+    value = tostring(var.regproc_notifier_readiness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.initialDelaySeconds"
+    value = tostring(var.regproc_notifier_readiness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.periodSeconds"
+    value = tostring(var.regproc_notifier_readiness_probe_period_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.failureThreshold"
+    value = tostring(var.regproc_notifier_readiness_probe_failure_threshold)
+  }
+
+  set {
+    name  = "livenessProbe.timeoutSeconds"
+    value = tostring(var.regproc_notifier_liveness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.initialDelaySeconds"
+    value = tostring(var.regproc_notifier_liveness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.periodSeconds"
+    value = tostring(var.regproc_notifier_liveness_probe_period_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.failureThreshold"
+    value = tostring(var.regproc_notifier_liveness_probe_failure_threshold)
+  }
+
+  timeout = var.helm_timeout_seconds
 }
 
 # Install regproc-reprocess
@@ -522,17 +1449,85 @@ resource "helm_release" "regproc_reprocess" {
     helm_release.regproc_group7
   ]
 
+  # Startup Probe Configuration
+  set {
+    name  = "startupProbe.enabled"
+    value = tostring(var.startup_probe_enabled)
+  }
+
   set {
     name  = "startupProbe.timeoutSeconds"
-    value = "180"
+    value = tostring(var.startup_probe_timeout_seconds)
   }
 
   set {
     name  = "startupProbe.initialDelaySeconds"
-    value = "600"
+    value = tostring(var.startup_probe_initial_delay_seconds)
   }
 
-  timeout = 1500
+  set {
+    name  = "startupProbe.periodSeconds"
+    value = tostring(var.startup_probe_period_seconds)
+  }
+
+  set {
+    name  = "startupProbe.failureThreshold"
+    value = tostring(var.startup_probe_failure_threshold)
+  }
+
+  # Readiness Probe Configuration
+  set {
+    name  = "readinessProbe.enabled"
+    value = tostring(var.readiness_probe_enabled)
+  }
+
+  set {
+    name  = "readinessProbe.timeoutSeconds"
+    value = tostring(var.readiness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.initialDelaySeconds"
+    value = tostring(var.readiness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.periodSeconds"
+    value = tostring(var.readiness_probe_period_seconds)
+  }
+
+  set {
+    name  = "readinessProbe.failureThreshold"
+    value = tostring(var.readiness_probe_failure_threshold)
+  }
+
+  # Liveness Probe Configuration
+  set {
+    name  = "livenessProbe.enabled"
+    value = tostring(var.liveness_probe_enabled)
+  }
+
+  set {
+    name  = "livenessProbe.timeoutSeconds"
+    value = tostring(var.liveness_probe_timeout_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.initialDelaySeconds"
+    value = tostring(var.liveness_probe_initial_delay_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.periodSeconds"
+    value = tostring(var.liveness_probe_period_seconds)
+  }
+
+  set {
+    name  = "livenessProbe.failureThreshold"
+    value = tostring(var.liveness_probe_failure_threshold)
+  }
+
+  timeout = var.helm_timeout_seconds
 }
 
 
@@ -577,5 +1572,5 @@ resource "helm_release" "regproc_reprocess" {
 ##    value = "600"
 ##  }
 #
-#  timeout = 1500
+#  timeout = var.helm_timeout_seconds
 #} 

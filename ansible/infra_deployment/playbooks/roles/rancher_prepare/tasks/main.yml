@@ -116,12 +116,26 @@
   become: true
   when: not docker_install_from_apt
 
-- name: Install Docker CE
+- name: Install Docker CE and related packages
   apt:
-    name: "docker-ce={{ docker_version }}"
+    name:
+      - "docker-ce={{ docker_version }}"
+      - "docker-ce-cli={{ docker_version }}"
+      - "docker-ce-rootless-extras={{ docker_version }}"
     state: present
     update_cache: yes
   become: true
+  when: not docker_install_from_apt
+
+- name: Hold Docker packages to prevent auto-upgrade
+  dpkg_selections:
+    name: "{{ item }}"
+    selection: hold
+  become: true
+  loop:
+    - docker-ce
+    - docker-ce-cli
+    - docker-ce-rootless-extras
   when: not docker_install_from_apt
 
 - name: Install Docker.io
