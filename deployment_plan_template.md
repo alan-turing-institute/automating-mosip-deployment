@@ -295,11 +295,11 @@ ansible-playbook -f 12 -v -i inventory/rancher.ini playbooks/apt-upgrade.yml
 - `kubectl get pods --all-namespaces` - all pods needs to be in Running or Completed
 - `curl https://rancher.{MOSIP_DOMAIN}` - It will show 404 for now as Helm is not yet deployed
 ### Terraform
-	- `cd ~/mosip/devops/terraform/obs_deployment`
-	- Copy the `terraform.tfvars.tmp` to `terraform.tfvars`, make sure you set both `rancher_hostname` to your MOSIP rancher DNS (e.g., `rancher.{MOSIP_DOMAIN}`) and `kubeconfig_path` is correct and use full path instead of `~`
-	- Run terraform init `terraform init`
-	- Run terraform plan `terraform plan`, check the hostname match the ansible `nginx_obs_public_domain_names`
-	- Run terraform apply: `terraform apply`
+- `cd ~/mosip/devops/terraform/obs_deployment`
+- Copy the `terraform.tfvars.tmp` to `terraform.tfvars`, make sure you set both `rancher_hostname` to your MOSIP rancher DNS (e.g., `rancher.{MOSIP_DOMAIN}`) and `kubeconfig_path` is correct and use full path instead of `~`
+- Run terraform init `terraform init`
+- Run terraform plan `terraform plan`, check the hostname match the ansible `nginx_obs_public_domain_names`
+- Run terraform apply: `terraform apply`
 ### Verification
 - `kubectl get pods --all-namespaces` - all pods needs to be in Running or Completed
 - `curl https://rancher.{MOSIP_DOMAIN}` - It will redirect to Rancher dashboard
