@@ -126,12 +126,27 @@ resource "kubernetes_secret" "keycloak_client_secrets" {
   depends_on = [kubernetes_namespace.partner_onboarder]
 }
 
+# Cleanup existing partner-onboarder Jobs that conflict with newer chart specs
+resource "null_resource" "partner_onboarder_jobs_cleanup" {
+  provisioner "local-exec" {
+    command = "kubectl delete job -n ${kubernetes_namespace.partner_onboarder.metadata[0].name} -l app.kubernetes.io/name=partner-onboarder --ignore-not-found"
+  }
+
+  triggers = {
+    # Re-run cleanup when chart version changes
+    helm_chart_version = var.helm_chart_version
+  }
+}
+
 # Install partner-onboarder
 resource "helm_release" "partner_onboarder" {
-  name       = "partner-onboarder"
-  chart      = "mosip/partner-onboarder"
-  version    = var.helm_chart_version
-  namespace  = kubernetes_namespace.partner_onboarder.metadata[0].name
+  name      = "partner-onboarder"
+  chart     = "mosip/partner-onboarder"
+  version   = var.helm_chart_version
+  namespace = kubernetes_namespace.partner_onboarder.metadata[0].name
+
+  # Ensure immutable resources like Jobs are recreated on changes
+  force_update = true
 
   # Module configuration
   set {
@@ -329,6 +344,7 @@ resource "helm_release" "partner_onboarder" {
   }
 
   depends_on = [
+    null_resource.partner_onboarder_jobs_cleanup,
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.keycloak_env_vars,
     kubernetes_config_map_v1.keycloak_host,
