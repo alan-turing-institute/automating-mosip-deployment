@@ -96,7 +96,6 @@ Create the following VMs on your chosen platform (OpenStack, VMware, AWS, Azure,
    - **Purpose**: Kubernetes cluster nodes for MOSIP (3 control plane + 3 worker nodes, or as per your HA requirements)
    - **Specifications**: 12 vCPU, 32 GB RAM, 128 GB storage each
    - **Network**: Internal network
-   - **Note**: The first 3 nodes typically serve as control plane and etcd nodes, while the remaining serve as worker nodes
 
 ### Deployment Node Configuration
 
@@ -188,7 +187,7 @@ Code repo:
 - Clone the repositorie:
 ``` sh
 mkdir ~/mosip; cd ~/mosip
-git clone https://gitlab.com/mosip4/devops.git #TO CHANGE FOR TURING REPO
+git clone https://github.com/alan-turing-institute/automating-mosip-deployment.git
 ```
 - Generate SSL certs `[OPTIONAL]` if you don't use your company wildcard cert.
 ```
@@ -270,8 +269,6 @@ In Ansible we have playbook to do `apt update && apt -y upgrade` on all hosts to
 ```
 cd ~/mosip/devops/ansible/infra_deployment
 ansible-playbook -f 12 -v -i inventory/rancher.ini playbooks/apt-upgrade.yml
-# To limit to only specific group of hosts
-ansible-playbook -f 12 -i inventory/rancher.ini --limit physical_vms playbooks/apt-upgrade.yml
 ```
 ## Wireguard deployment 
 - From `deployment-node`
@@ -314,15 +311,19 @@ ansible-playbook -f 12 -i inventory/rancher.ini --limit physical_vms playbooks/a
 - In `inventory/group_vars/all.yml` , update `rancher_import_url`
 - Copy wildcard certificate to `~/mosip/devops/ansible/infra_deployment/playbooks/roles/nginx/files` make sure the name is: `fullchain.pem` and `privkey.pem`
 - Run Ansible `ansible-playbook -f 8 -v -i inventory/rancher.ini playbooks/deploy-all.yml`
-- Verification:
-	- `kubectl get pods --all-namespaces` - all pods needs to be in Running or Completed
-	- `curl https://{MOSIP_DOMAIN}` - It will show 404 for now as Helm is not yet deployed
-- Terraform **IMPORTANT: It's expected for plan and apply stage to take over 10 minutes in preparation as MOSIP is a big and complex system to calculate the plan for.**
-	- `cd ~/mosip/devops/terraform/mosip_deployment`
-	- Copy the `terraform.tfvars.tmp` to `terraform.tfvars`, make sure you set both `installation_domain` to your MOSIP domain (e.g., `{MOSIP_DOMAIN}`) and `kubeconfig_path` is correct and use full path instead of `~`
-	- Run terraform init `terraform init`
-	- Run terraform plan `terraform plan`
-	- Run terraform apply: `terraform apply`
-- Verification:
-	- `kubectl get pods --all-namespaces` - all pods needs to be in Running or Completed
-	- `curl https://{MOSIP_DOMAIN}` - It will redirect to MOSIP landing page
+
+### Verification
+- `kubectl get pods --all-namespaces` - all pods needs to be in Running or Completed
+- `curl https://{MOSIP_DOMAIN}` - It will show 404 for now as Helm is not yet deployed
+
+## MOSIP deployment
+**IMPORTANT: It's expected for plan and apply stage to take over 10 minutes in preparation as MOSIP is a big and complex system to calculate the plan for.**
+- `cd ~/mosip/devops/terraform/mosip_deployment`
+- Copy the `terraform.tfvars.tmp` to `terraform.tfvars`, make sure you set both `installation_domain` to your MOSIP domain (e.g., `{MOSIP_DOMAIN}`) and `kubeconfig_path` is correct and use full path instead of `~`
+- Run terraform init `terraform init`
+- Run terraform plan `terraform plan`
+- Run terraform apply: `terraform apply`
+
+### Verification
+- `kubectl get pods --all-namespaces` - all pods needs to be in Running or Completed
+- `curl https://{MOSIP_DOMAIN}` - It will redirect to MOSIP landing page
