@@ -291,19 +291,19 @@ ansible-playbook -f 12 -v -i inventory/rancher.ini playbooks/apt-upgrade.yml
 - Update `inventory/group_vars/all.yml` Nginx OBS hostname: `nginx_obs_public_domain_names`
 - Copy wildcard certificate to `~/mosip/devops/ansible/infra_deployment/playbooks/roles/nginx_obs/files` make sure the name is: `fullchain.pem` and `privkey.pem`
 - Run Ansible `ansible-playbook -v -i inventory/rancher.ini playbooks/deploy-rancher-obs.yml`
-- Verification:
-	- `kubectl get pods --all-namespaces` - all pods needs to be in Running or Completed
-	- `curl https://rancher.{MOSIP_DOMAIN}` - It will show 404 for now as Helm is not yet deployed
-- Terraform
+### Verification
+- `kubectl get pods --all-namespaces` - all pods needs to be in Running or Completed
+- `curl https://rancher.{MOSIP_DOMAIN}` - It will show 404 for now as Helm is not yet deployed
+### Terraform
 	- `cd ~/mosip/devops/terraform/obs_deployment`
 	- Copy the `terraform.tfvars.tmp` to `terraform.tfvars`, make sure you set both `rancher_hostname` to your MOSIP rancher DNS (e.g., `rancher.{MOSIP_DOMAIN}`) and `kubeconfig_path` is correct and use full path instead of `~`
 	- Run terraform init `terraform init`
 	- Run terraform plan `terraform plan`, check the hostname match the ansible `nginx_obs_public_domain_names`
 	- Run terraform apply: `terraform apply`
-- Verification:
-	- `kubectl get pods --all-namespaces` - all pods needs to be in Running or Completed
-	- `curl https://rancher.{MOSIP_DOMAIN}` - It will redirect to Rancher dashboard
-	- Get IMPORT url from Rancher dashboard. Click Import Existing - Generic - Cluster Name (e.g., `mosip-cluster`) - Create - Copy URL only, e.g. `https://rancher.{MOSIP_DOMAIN}/v3/import/<import-token>.yaml`
+### Verification
+- `kubectl get pods --all-namespaces` - all pods needs to be in Running or Completed
+- `curl https://rancher.{MOSIP_DOMAIN}` - It will redirect to Rancher dashboard
+- Get IMPORT url from Rancher dashboard. Click Import Existing - Generic - Cluster Name (e.g., `mosip-cluster`) - Create - Copy URL only, e.g. `https://rancher.{MOSIP_DOMAIN}/v3/import/<import-token>.yaml`
 
 ## Infra deployment
 - From  `deployment-node`
