@@ -320,9 +320,14 @@ ansible-playbook -f 12 -v -i inventory/rancher.ini playbooks/apt-upgrade.yml
 **IMPORTANT: It's expected for plan and apply stage to take over 10 minutes in preparation as MOSIP is a big and complex system to calculate the plan for.**
 - `cd ~/mosip/devops/terraform/mosip_deployment`
 - Copy the `terraform.tfvars.tmp` to `terraform.tfvars`, make sure you set both `installation_domain` to your MOSIP domain (e.g., `{MOSIP_DOMAIN}`) and `kubeconfig_path` is correct and use full path instead of `~`
+- `cd infra`
 - Run terraform init `terraform init`
-- Run terraform plan `terraform plan`
-- Run terraform apply: `terraform apply`
+- Run terraform plan `terraform plan -var-file=../terraform.tfvars`
+- Run terraform apply: `terraform apply -var-file=../terraform.tfvars`
+- `cd ../mosip`
+- Run terraform init `terraform init`
+- Run terraform plan `terraform plan -var-file=../terraform.tfvars`
+- Run terraform apply: `terraform apply -var-file=../terraform.tfvars`
 
 ### Verification
 - `kubectl get pods --all-namespaces` - all pods needs to be in Running or Completed
