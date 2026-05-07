@@ -1,7 +1,7 @@
 ---
 - name: Create Wireguard config directory
   file:
-    path: "{{ wireguard_config_dir | expanduser }}"
+    path: "{{ wireguard_config_dir }}"
     state: directory
     mode: '0755'
 
@@ -36,7 +36,7 @@
     ports:
       - "{{ wireguard_port }}:51820/udp"
     volumes:
-      - "{{ wireguard_config_dir | expanduser }}:/config"
+      - "{{ wireguard_config_dir }}:/config"
       - "/lib/modules:/lib/modules"
     sysctls:
       net.ipv4.conf.all.src_valid_mark: 1

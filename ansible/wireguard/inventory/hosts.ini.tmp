@@ -1,5 +1,5 @@
 [wireguard]
-wireguard-node ansible_host=<IP_ADDRESS>  wireguard_endpoint=<public_ip>
+wireguard-node ansible_host=<public_ip>  wireguard_endpoint=<public_ip>
 
 [all:vars]
 ansible_python_interpreter=/usr/bin/python3

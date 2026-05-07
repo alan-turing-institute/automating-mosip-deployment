@@ -1,13 +1,13 @@
 ---
 - name: Wait for Wireguard configs to be generated
   wait_for:
-    path: "{{ wireguard_config_dir | expanduser }}/peer1/peer1.conf"
+    path: "{{ wireguard_config_dir }}/peer1/peer1.conf"
     state: present
     timeout: 30
 
 - name: Get list of peer directories
   find:
-    paths: "{{ wireguard_config_dir | expanduser }}"
+    paths: "{{ wireguard_config_dir }}"
     file_type: directory
     patterns: "peer*"
   register: peer_dirs
@@ -31,6 +31,16 @@
   loop_control:
     label: "{{ item.path | basename }}"
 
+- name: Add MTU to peer interface config
+  lineinfile:
+    path: "{{ item.path }}/{{ item.path | basename }}.conf"
+    regexp: '^MTU.*$'
+    line: 'MTU = {{ wireguard_mtu }}'
+    insertafter: '^\[Interface\]'
+  loop: "{{ peer_dirs.files }}"
+  loop_control:
+    label: "{{ item.path | basename }}"
+
 - name: Add Endpoint to peer config
   lineinfile:
     path: "{{ item.path }}/{{ item.path | basename }}.conf"
@@ -43,7 +53,7 @@
 
 - name: Get all configuration files
   find:
-    paths: "{{ wireguard_config_dir | expanduser }}"
+    paths: "{{ wireguard_config_dir }}"
     recurse: yes
     patterns: "*.conf"
   register: config_files

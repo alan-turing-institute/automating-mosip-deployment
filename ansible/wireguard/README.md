@@ -32,8 +32,8 @@ devops/ansible/wireguard/
    - SSH private key path
 
 3. Customize variables in `playbooks/roles/wireguard/defaults/main.yml`:
-   - `wireguard_network`: VPN network CIDR (default: 172.16.50.0/24)
-   - `wireguard_endpoint`: Server public IP
+   - `wireguard_network`: VPN network CIDR used for peer `AllowedIPs` (default: 10.0.0.0/16)
+   - `wireguard_mtu`: Wireguard interface MTU (default: 1330, recommended for cloud/VPN overlay paths)
    - `wireguard_port`: UDP port (default: 51820)
    - `wireguard_peers`: Number of peer configurations to generate
 

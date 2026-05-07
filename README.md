@@ -31,6 +31,16 @@ This repository provides a **repeatable, verifiable, and easy-to-deploy** enviro
 
 This repository uses two complementary tools that work together to automate the deployment process:
 
+### Deployment Modes (Single Switch)
+
+Use a single variable, `deployment_mode`, to distinguish deployment paths:
+
+- `onprem` (default): existing VM provisioning workflow.
+- `aws`: run AWS Terraform base infrastructure provisioning as a prerequisite, then continue with the same Ansible and Terraform stages.
+
+Important: in `aws` mode, Terraform is used for prerequisite infrastructure provisioning only. Host configuration, service bootstrap, and procedural operations remain in Ansible playbooks.
+The AWS prerequisite Terraform module lives in `terraform/aws/base-infra` and is executed before the unchanged Ansible and downstream Terraform stages.
+
 ### Ansible: Infrastructure Setup
 
 **Ansible** handles the initial infrastructure setup and configuration. It installs the necessary software, configures the servers, and sets up the Kubernetes environment where MOSIP will run. Ansible manages the foundational components needed before the MOSIP application itself can be deployed.
