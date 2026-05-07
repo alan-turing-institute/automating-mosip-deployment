@@ -274,6 +274,14 @@ resource "aws_security_group" "k8s_nodes" {
     cidr_blocks = [var.network_cidr]
   }
 
+  ingress {
+    description = "Kubelet and control plane component ports (10250-10252)"
+    from_port   = 10250
+    to_port     = 10252
+    protocol    = "tcp"
+    cidr_blocks = [var.network_cidr]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0

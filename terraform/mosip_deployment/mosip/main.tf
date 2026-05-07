@@ -163,6 +163,7 @@ module "kafka" {
   zookeeper_storage_size  = var.kafka_zookeeper_storage_size
   zookeeper_replica_count = var.kafka_zookeeper_replica_count
   bitnami_image_repository = var.bitnami_image_repository
+  helm_timeout_seconds    = var.global_helm_timeout_seconds
 
   # Startup Probe Configuration
   startup_probe_enabled                = var.kafka_startup_probe_enabled

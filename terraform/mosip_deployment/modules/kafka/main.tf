@@ -17,6 +17,7 @@ resource "helm_release" "kafka" {
   repository = "https://charts.bitnami.com/bitnami"
   chart      = "kafka"
   version    = var.kafka_chart_version
+  timeout    = var.helm_timeout_seconds
 
   values = [
     templatefile("${path.module}/values.yaml", {
@@ -127,6 +128,7 @@ resource "helm_release" "kafka_ui" {
   repository = "https://provectus.github.io/kafka-ui-charts"
   chart      = "kafka-ui"
   version    = var.kafka_ui_chart_version
+  timeout    = var.helm_timeout_seconds
 
   values = [
     file("${path.module}/ui-values.yaml")
@@ -219,6 +221,7 @@ resource "helm_release" "istio_addons" {
   name      = "istio-addons"
   namespace = kubernetes_namespace.kafka[0].metadata[0].name
   chart     = "${path.module}/chart/istio-addons"
+  timeout   = var.helm_timeout_seconds
 
   set {
     name  = "kafkaUiHost"

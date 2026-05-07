@@ -63,6 +63,12 @@ variable "bitnami_image_repository" {
   default     = "mosipid"
 }
 
+variable "helm_timeout_seconds" {
+  description = "Timeout for Helm operations in seconds"
+  type        = number
+  default     = 1800
+}
+
 # Startup Probe Configuration
 variable "startup_probe_enabled" {
   description = "Enable startup probe"

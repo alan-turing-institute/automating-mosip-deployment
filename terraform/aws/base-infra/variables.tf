@@ -59,7 +59,7 @@ variable "ssh_key_name" {
 variable "jumpserver_instance_type" {
   description = "Jumpserver EC2 instance type"
   type        = string
-  default     = "t3.medium"
+  default     = "t3a.2xlarge"
 }
 
 variable "jumpserver_ami_id" {
@@ -100,7 +100,7 @@ variable "single_nat_gateway" {
 variable "wireguard_cidr" {
   description = "CIDR range used by WireGuard clients for access"
   type        = string
-  default     = "172.16.50.0/24"
+  default     = "10.13.13.0/24"
 }
 
 variable "node_ami_id" {
@@ -111,25 +111,25 @@ variable "node_ami_id" {
 variable "k8s_instance_type" {
   description = "Instance type for Rancher control/etcd/worker nodes"
   type        = string
-  default     = "t3.xlarge"
+  default     = "t3a.2xlarge"
 }
 
 variable "nginx_instance_type" {
   description = "Instance type for MOSIP nginx node"
   type        = string
-  default     = "t3.large"
+  default     = "t3a.2xlarge"
 }
 
 variable "obs_instance_type" {
   description = "Instance type for OBS node"
   type        = string
-  default     = "t3.large"
+  default     = "t3a.2xlarge"
 }
 
 variable "nginx_obs_instance_type" {
   description = "Instance type for OBS nginx node"
   type        = string
-  default     = "t3.medium"
+  default     = "t3a.2xlarge"
 }
 
 variable "control_plane_count" {

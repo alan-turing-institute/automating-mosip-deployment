@@ -233,85 +233,6 @@ This certificate expires on 2026-02-17.
 These files will be updated when the certificate renews.
 ```
 
-### Update Ansible inventory file
-
-#### Wireguard hosts
-
-Wireguard Ansible is a whole separate playbooks as it can sit completely independent from the rest of MOSIP infrastructure.
-
-- Copy the `hosts.ini.tmp` to `host.ini`, make sure you set both `ansible_host` and assign public ip to `wireguard_endpoint`
-
-```
-cd ~/mosip/devops/ansible/wireguard
-vim inventory/hosts.ini
-
-[wireguard]
-wireguard-node ansible_host=<wg-bastion-private-ip> wireguard_endpoint=<wireguard-public-ip>
-```
-
-#### Infra hosts
-
-- Copy the `rancher.ini.tmp` to `rancher.ini` then update all HOSTS to match your VM deployment. The control_plane and etcd nodes are usually the same first three VMs, and workers are typically VMs four to six. The Observation node is usually one VM and Observation Nginx can be the same VM or a separate one.
-- Copy the `group_vars/all.yml.tmp` to `group_vars/all.yml`
-- **Important**: Replace all IP addresses in the example below with your actual VM IP addresses from your internal network.
-
-Example inventory structure (replace IPs with your actual values):
-
-```
-[physical_vms]
-# Physical VMs where nodes are running
-vm1 ansible_host=<node1-private-ip>
-vm2 ansible_host=<node2-private-ip>
-vm3 ansible_host=<node3-private-ip>
-vm4 ansible_host=<node4-private-ip>
-vm5 ansible_host=<node5-private-ip>
-vm6 ansible_host=<node6-private-ip>
-
-[control_plane_nodes]
-# Control plane nodes - responsible for managing the cluster
-control-1 physical_vm=vm1 node_ip=<node1-private-ip>
-control-2 physical_vm=vm2 node_ip=<node2-private-ip>
-control-3 physical_vm=vm3 node_ip=<node3-private-ip>
-
-[etcd_nodes]
-# etcd nodes - responsible for storing cluster state
-etcd-1 physical_vm=vm1 node_ip=<node1-private-ip>
-etcd-2 physical_vm=vm2 node_ip=<node2-private-ip>
-etcd-3 physical_vm=vm3 node_ip=<node3-private-ip>
-
-[worker_nodes]
-# Worker nodes - where applications run
-worker-1 physical_vm=vm4 node_ip=<node4-private-ip>
-worker-2 physical_vm=vm5 node_ip=<node5-private-ip>
-worker-3 physical_vm=vm6 node_ip=<node6-private-ip>
-
-[rancher_nodes:children]
-control_plane_nodes
-etcd_nodes
-worker_nodes
-
-[mosip_obs]
-# Single node Rancher OBS cluster
-obs-node-1 ansible_host=<observation-node-private-ip>
-
-[nginx]
-# Add your nginx nodes here
-nginx-node-1 ansible_host=<mosip-nginx-private-ip>
-
-[nginx_obs]
-# Add your OBS nginx nodes here
-nginx-obs-node-1 ansible_host=<obs-nginx-private-ip>
-```
-
-### Update all nodes
-
-In Ansible we have playbook to do `apt update && apt -y upgrade` on all hosts to streamline the deployment later. This role can also be used to install additional packages and expand in the future with additional configs.
-
-```
-cd ~/mosip/devops/ansible/infra_deployment
-ansible-playbook -f 12 -v -i inventory/rancher.ini playbooks/apt-upgrade.yml
-```
-
 ## AWS prerequisite provisioning (AWS deployments only)
 
 - Run this stage only for AWS deployments.
@@ -386,6 +307,89 @@ sudo certbot -v certonly --dns-route53 --agree-tos --preferred-challenges=dns -d
 - If this command is not available in your environment, you must provide certificates manually before continuing.
 - Required files for next stages: `fullchain.pem` and `privkey.pem`.
 
+### Update Ansible inventory file
+
+#### Wireguard hosts
+
+Wireguard Ansible is a whole separate playbooks as it can sit completely independent from the rest of MOSIP infrastructure.
+
+- Copy the `hosts.ini.tmp` to `host.ini`, make sure you set both `ansible_host` and assign public ip to `wireguard_endpoint`
+
+```
+cd ~/mosip/ansible/wireguard/inventory
+cp hosts.ini.tmp hosts.ini
+
+[wireguard]
+wireguard-node ansible_host=<wg-bastion-public-ip> wireguard_endpoint=<wireguard-public-ip>
+```
+
+#### Infra hosts
+
+- Copy the `rancher.ini.tmp` to `rancher.ini` then update all HOSTS to match your VM deployment. The control_plane and etcd nodes are usually the same first three VMs, and workers are typically VMs four to six. The Observation node is usually one VM and Observation Nginx can be the same VM or a separate one.
+- Copy the `group_vars/all.yml.tmp` to `group_vars/all.yml`
+- **Important**: Replace all IP addresses in the example below with your actual VM IP addresses from your internal network.
+
+Example inventory structure (replace IPs with your actual values):
+
+```
+cd ~/mosip/ansible/infra_deployment/inventory
+
+[physical_vms]
+# Physical VMs where nodes are running
+vm1 ansible_host=<node1-private-ip>
+vm2 ansible_host=<node2-private-ip>
+vm3 ansible_host=<node3-private-ip>
+vm4 ansible_host=<node4-private-ip>
+vm5 ansible_host=<node5-private-ip>
+vm6 ansible_host=<node6-private-ip>
+
+[control_plane_nodes]
+# Control plane nodes - responsible for managing the cluster
+control-1 physical_vm=vm1 node_ip=<node1-private-ip>
+control-2 physical_vm=vm2 node_ip=<node2-private-ip>
+control-3 physical_vm=vm3 node_ip=<node3-private-ip>
+
+[etcd_nodes]
+# etcd nodes - responsible for storing cluster state
+etcd-1 physical_vm=vm1 node_ip=<node1-private-ip>
+etcd-2 physical_vm=vm2 node_ip=<node2-private-ip>
+etcd-3 physical_vm=vm3 node_ip=<node3-private-ip>
+
+[worker_nodes]
+# Worker nodes - where applications run
+worker-1 physical_vm=vm4 node_ip=<node4-private-ip>
+worker-2 physical_vm=vm5 node_ip=<node5-private-ip>
+worker-3 physical_vm=vm6 node_ip=<node6-private-ip>
+
+[rancher_nodes:children]
+control_plane_nodes
+etcd_nodes
+worker_nodes
+
+[mosip_obs]
+# Single node Rancher OBS cluster
+obs-node-1 ansible_host=<observation-node-private-ip>
+
+[nginx]
+# Add your nginx nodes here
+nginx-node-1 ansible_host=<mosip-nginx-private-ip>
+
+[nginx_obs]
+# Add your OBS nginx nodes here
+nginx-obs-node-1 ansible_host=<obs-nginx-private-ip>
+```
+
+### Update all nodes
+
+In Ansible we have playbook to do `apt update && apt -y upgrade` on all hosts to streamline the deployment later. This role can also be used to install additional packages and expand in the future with additional configs.
+
+```
+cd ~/mosip/devops/ansible/infra_deployment
+ansible-playbook -f 12 -v -i inventory/rancher.ini playbooks/apt-upgrade.yml
+```
+
+
+
 ## Wireguard deployment
 
 - From `deployment-node`
@@ -393,7 +397,7 @@ sudo certbot -v certonly --dns-route53 --agree-tos --preferred-challenges=dns -d
 - SSH to wg-bastion and run `sudo apt update && sudo apt upgrade -y`
 - Check wireguard inventory file is ready as per [[#Wireguard hosts]]
 - Run Ansible: `ansible-playbook -v -i inventory/hosts.ini playbooks/wireguard.yml`
-- Get WG peer config: `ssh ubuntu@<wg-bastion-private-ip> "sudo cat /root/wireguard/config/peer1/peer1.conf"` and save on your laptop machine
+- Get WG peer config: `ssh ubuntu@<wg-bastion-public-ip> "sudo cat /root/wireguard/config/peer1/peer1.conf"` and save on your laptop machine
 - **MTU Configuration**: Default MTU is `1330` in generated peer/client WireGuard configs. Use this as the baseline across cloud providers to avoid fragmentation issues on overlay/network-edge paths. Override only if your specific network requires a different MTU.
 - **Port Configuration**: Ensure your firewall allows UDP traffic on port 51820 (or the port configured in your WireGuard setup) to the WireGuard public IP.
 - Test the setup on your client laptop:
@@ -411,7 +415,7 @@ sudo certbot -v certonly --dns-route53 --agree-tos --preferred-challenges=dns -d
   - Nginx OBS hostname: `nginx_obs_public_domain_names`
   - Mosip domain: `mosip_domain`
   - Rancher base dir where kubeconfig is stored: `rancher_base_dir` , `rancher_obs_base_dir`
-- Copy wildcard certificate to `~/mosip/devops/ansible/infra_deployment/playbooks/roles/nginx_obs/files` make sure the name is: `fullchain.pem` and `privkey.pem`
+- Copy wildcard certificate to `ansible/infra_deployment/playbooks/roles/nginx_obs/files` make sure the name is: `fullchain.pem` and `privkey.pem`
 - Run Ansible `ansible-playbook -v -i inventory/rancher.ini playbooks/deploy-rancher-obs.yml`
 
 ### Verification

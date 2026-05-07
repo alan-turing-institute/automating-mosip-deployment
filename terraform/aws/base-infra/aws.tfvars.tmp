@@ -17,6 +17,7 @@ network_name       = "mosip-boxes"
 network_cidr       = "10.0.0.0/16"
 public_subnets     = ["10.0.1.0/24", "10.0.2.0/24"]
 private_subnets    = ["10.0.3.0/24", "10.0.4.0/24"]
+wireguard_cidr     = "10.13.13.0/24" # WireGuard client tunnel subnet (must match wg Interface Address range)
 #availability_zones = ["ap-south-1a", "ap-south-1b"]
 availability_zones = ["eu-west-1a", "eu-west-1b"]
 
@@ -28,7 +29,7 @@ enable_dns_support   = true
 
 # Jumpserver
 jumpserver_name          = "wg-bastion"
-jumpserver_instance_type = "t3.medium"
+jumpserver_instance_type = "t3a.2xlarge"
 #jumpserver_ami_id        = "ami-0ad21ae1d0696ad58" #24.04
 #jumpserver_ami_id        = "ami-05e2a86d8dfbc265b" #22.04
 jumpserver_ami_id        = "ami-0bfd171be0640d169" #22.04 Ireland
@@ -38,10 +39,10 @@ create_jumpserver_eip    = true
 #node_ami_id             = "ami-0ad21ae1d0696ad58" #24.04
 #node_ami_id        = "ami-05e2a86d8dfbc265b" #22.04
 node_ami_id        = "ami-0bfd171be0640d169" #22.04 Ireland
-k8s_instance_type       = "t3.xlarge"
-nginx_instance_type     = "t3.large"
-obs_instance_type       = "t3.large"
-nginx_obs_instance_type = "t3.medium"
+k8s_instance_type       = "t3a.2xlarge"
+nginx_instance_type     = "t3a.2xlarge"
+obs_instance_type       = "t3a.2xlarge"
+nginx_obs_instance_type = "t3a.2xlarge"
 physical_vm_count       = 6
 control_plane_count     = 3
 etcd_count              = 3
