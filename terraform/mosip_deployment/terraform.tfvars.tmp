@@ -1,6 +1,6 @@
 # Required variables
-installation_name = "mosip"
-installation_domain = "mosip.hackmepls.co.uk"  # Change this to your actual domain
+installation_name = "dev1-mosip" # Shown at landing page
+installation_domain = "turing-mosip.net"  # Change this to your actual domain
 mosip_version = "1.2.0"           # Change this to your desired MOSIP version
 kubeconfig_path = "/home/ubuntu/rancher/mosip/kube_config_cluster.yml"  #IMPORTANT: Use the full path to the kubeconfig file, e.g. /home/ubuntu/ and not ~/
 

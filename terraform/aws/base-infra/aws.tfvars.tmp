@@ -8,15 +8,15 @@ aws_region = "eu-west-1"
 # Example: ssh_key_name = "mosip-dev-keypair"
 ssh_key_name = ""
 
-# Core metadata
+# Core metadata. Used to correctly lable AWS objects, e.g. for EC2 ${var.project_name}-obs-node-1
 environment  = "dev"
 project_name = "mosip"
 
 # Network
 network_name       = "mosip-boxes"
-network_cidr       = "10.0.0.0/16"
-public_subnets     = ["10.0.1.0/24", "10.0.2.0/24"]
-private_subnets    = ["10.0.3.0/24", "10.0.4.0/24"]
+network_cidr       = "10.100.0.0/16"
+public_subnets     = ["10.100.1.0/24", "10.100.2.0/24"]
+private_subnets    = ["10.100.3.0/24", "10.100.4.0/24"]
 wireguard_cidr     = "10.13.13.0/24" # WireGuard client tunnel subnet (must match wg Interface Address range)
 #availability_zones = ["ap-south-1a", "ap-south-1b"]
 availability_zones = ["eu-west-1a", "eu-west-1b"]
@@ -30,14 +30,12 @@ enable_dns_support   = true
 # Jumpserver
 jumpserver_name          = "wg-bastion"
 jumpserver_instance_type = "t3a.2xlarge"
-#jumpserver_ami_id        = "ami-0ad21ae1d0696ad58" #24.04
-#jumpserver_ami_id        = "ami-05e2a86d8dfbc265b" #22.04
+#jumpserver_ami_id        = "ami-05e2a86d8dfbc265b" #22.04 Asia
 jumpserver_ami_id        = "ami-0bfd171be0640d169" #22.04 Ireland
 create_jumpserver_eip    = true
 
 # Ansible-target compute nodes
-#node_ami_id             = "ami-0ad21ae1d0696ad58" #24.04
-#node_ami_id        = "ami-05e2a86d8dfbc265b" #22.04
+#node_ami_id        = "ami-05e2a86d8dfbc265b" #22.04 Asia
 node_ami_id        = "ami-0bfd171be0640d169" #22.04 Ireland
 k8s_instance_type       = "t3a.2xlarge"
 nginx_instance_type     = "t3a.2xlarge"
@@ -50,7 +48,7 @@ worker_count            = 6
 
 # Optional Route53 automation
 enable_route53_records = false
-cluster_env_domain     = "warwick-1.turing-mosip.net"
+cluster_env_domain     = "turing-mosip.net"
 # cluster_env_domain is the FULL deployment domain (can include subdomain), used in record names.
 # Examples:
 # - turing-mosip.net

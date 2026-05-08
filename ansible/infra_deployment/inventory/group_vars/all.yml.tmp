@@ -1,5 +1,18 @@
+# Mandatory changes
+
+# MOSIP Domain Configuration
+# Base domain for MOSIP installation (e.g., "turing-mosip.net", or if it's subdomain "warwick-1.turing-mosip.net")
+# This is used to generate public domain names: api.{domain}, prereg.{domain}, resident.{domain}
+# If not set, defaults to "warwick-1.turing-mosip.net" (for backward compatibility)
+mosip_domain: "turing-mosip.net"  # MOSIP Domain/Subdomain Root
+
+nginx_obs_public_domain_names: "rancher.turing-mosip.net" # Rancher DNS
+
+rancher_import_url: ""                   # UPDATE after OBS deployment. URL for the Rancher import manifest (e.g., https://rancher.example.com/v3/import/cluster-token.yaml)
+
+# OPTIONAL
 # Cluster Configuration
-cluster_name: "mosip"  # Name of the Kubernetes cluster
+cluster_name: "mosip"  # Name of the MOSIP Kubernetes cluster
 # IMPORTANT: Do not use ~ in the path, use the full path instead, e.g. "/home/ubuntu/rancher". --kubeconfig does not support ~.
 rancher_base_dir: "/home/ubuntu/rancher"  # Base directory for main rancher cluster
 check_existing_config: true   # Whether to check for existing configurations before deployment
@@ -14,7 +27,6 @@ auth_strategy: "x509"                     # Authentication strategy
 ingress_provider: "nginx"                # Ingress controller
 
 # Rancher Import Configuration
-rancher_import_url: ""                   # URL for the Rancher import manifest (e.g., https://rancher.example.com/v3/import/cluster-token.yaml)
 rancher_import_timeout: 1200             # Timeout in seconds for Rancher agent deployment (default: 20 minutes)
 
 # Rancher OBS Configuration
@@ -28,14 +40,7 @@ rancher_obs_cluster_cidr: "10.42.0.0/16" # Pod network CIDR for OBS cluster
 rancher_obs_network_plugin: "canal"      # Network plugin for OBS cluster
 rancher_obs_ingress_provider: "none"     # Ingress provider for OBS cluster
 
-# MOSIP Domain Configuration
-# Base domain for MOSIP installation (e.g., "warwick-1.turing-mosip.net")
-# This is used to generate public domain names: api.{domain}, prereg.{domain}, resident.{domain}
-# If not set, defaults to "warwick-1.turing-mosip.net" (for backward compatibility)
-mosip_domain: "warwick-1.turing-mosip.net"  # Change this to your actual domain
-
 # Nginx OBS Configuration
-nginx_obs_public_domain_names: "obs-api.mosip.example.com"
 nginx_obs_enable_firewall_rules: false
 
 # System Configuration

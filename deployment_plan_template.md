@@ -237,6 +237,7 @@ These files will be updated when the certificate renews.
 
 - Run this stage only for AWS deployments.
 - This stage is infrastructure provisioning only (declarative Terraform). Keep host configuration and bootstrap in Ansible stages below.
+- **[OPTIONAL]** Enable Route53 DNS record creation in `aws.tfvars` file. See section `AWS DNS and certbot automation`
 - After applying, map Terraform outputs into existing inventory and tfvars files, then proceed with the unchanged deployment sequence.
 
 ### Terraform apply (AWS base only)
@@ -263,14 +264,6 @@ Use the outputs from `aws-base-outputs.json` to populate existing files without 
 | `terraform/obs_deployment/terraform.tfvars`             | `rancher_hostname`, `kubeconfig_path`                                                                        | `rancher.<MOSIP_DOMAIN>`, existing kubeconfig path                                                                                                    |
 | `terraform/mosip_deployment/terraform.tfvars`           | `installation_domain`, `kubeconfig_path`                                                                     | `<MOSIP_DOMAIN>`, existing kubeconfig path                                                                                                            |
 
-
-### AWS stage validation checklist
-
-- `terraform plan` shows only base infrastructure resources.
-- `terraform apply` completes successfully and outputs are available.
-- `wireguard-node` private/public IP values are present for `hosts.ini`.
-- all `rancher.ini` host entries are populated from Terraform outputs for physical_vms/control/etcd/worker/nginx/obs groups.
-- no existing Ansible or MOSIP Terraform command below is modified or reordered.
 
 ### Optional AWS DNS and certbot automation
 
@@ -388,8 +381,6 @@ cd ~/mosip/devops/ansible/infra_deployment
 ansible-playbook -f 12 -v -i inventory/rancher.ini playbooks/apt-upgrade.yml
 ```
 
-
-
 ## Wireguard deployment
 
 - From `deployment-node`
@@ -414,7 +405,6 @@ ansible-playbook -f 12 -v -i inventory/rancher.ini playbooks/apt-upgrade.yml
 - In `inventory/group_vars/all.yml` update:
   - Nginx OBS hostname: `nginx_obs_public_domain_names`
   - Mosip domain: `mosip_domain`
-  - Rancher base dir where kubeconfig is stored: `rancher_base_dir` , `rancher_obs_base_dir`
 - Copy wildcard certificate to `ansible/infra_deployment/playbooks/roles/nginx_obs/files` make sure the name is: `fullchain.pem` and `privkey.pem`
 - Run Ansible `ansible-playbook -v -i inventory/rancher.ini playbooks/deploy-rancher-obs.yml`
 
@@ -465,6 +455,11 @@ ansible-playbook -f 12 -v -i inventory/rancher.ini playbooks/apt-upgrade.yml
 - Run terraform plan `terraform plan -var-file=../terraform.tfvars`
 - Run terraform apply: `terraform apply -var-file=../terraform.tfvars`
 
+### Troubleshooting
+
+In the event that the MOSIP module deployment failed. It is safe to re-run the Terraform apply stage, and Terraform will check the Helm deployment status, detect a failure, and remove and redeploy the module.
+If module deployment failed, but later, after the restart, it's showing as 2/2 Running, to avoid removing and redeploying the module when you run Terraform again to continue installation, you can first run `helm upgrade  <module-name> --reuse-values` it will update Helm status and terrform when run again will be able to detect that module is succesfully deployed and will resume from the next module on the list.
+
 ### Verification
 
 - `kubectl get pods --all-namespaces` - all pods needs to be in Running or Completed
@@ -474,5 +469,5 @@ ansible-playbook -f 12 -v -i inventory/rancher.ini playbooks/apt-upgrade.yml
 
 - For on-prem deployments: skip AWS prerequisite stage and run the existing flow exactly as documented.
 - For AWS deployments: execute AWS prerequisite stage first, then run the same downstream commands from `Update all nodes` onward.
-- In both modes, expected verification commands and results must remain unchanged.
+- In both modes, expected verification commands and results must remain the same.
 
