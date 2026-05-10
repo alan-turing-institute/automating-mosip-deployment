@@ -13,11 +13,11 @@ This deployment guide is platform-agnostic and can be used with any hypervisor o
 Use one flow with two infrastructure entry paths:
 
 - [AWS](#aws-provisioning): run AWS Terraform base infrastructure provisioning first, then continue the same Ansible and Terraform stages below. Except for the deployment node provisioning, the prerequisites section is automatically created on AWS.
-- On-prem: use your existing VM provisioning path and continue the standard Ansible/Terraform stages below. You manually create all resources listed in prerequestis section before you start the deployment. You manually create all resources listed in the prerequisites section before you start the deployment.
+- On-prem: use your existing VM provisioning path and continue the standard Ansible/Terraform stages below. You manually create all resources listed in prerequestis section before you start the deployment.
 
 ### Domain Configuration
 
-Before starting, you need to define your MOSIP domain. Replace `{MOSIP_DOMAIN}` throughout this document with your actual domain (e.g., `mosip.example.com` or `sandbox.example.org`).
+Before starting, you need to define your MOSIP domain. Replace `{MOSIP_DOMAIN}` throughout this document with your actual domain (e.g., `mosip.example.com` or `sandbox.example.org`). Subdomains are allowed, e.g. for multiple MOSIP environments under the same top-level domain. E.g. prod.mosip.net, dev.mosip.net
 
 ### DNS Records
 
@@ -230,7 +230,7 @@ These files will be updated when the certificate renews.
 
 - Run this stage only for AWS deployments.
 - This stage is infrastructure provisioning only (declarative Terraform). Keep host configuration and bootstrap in Ansible stages below.
-- **[OPTIONAL]** Enable Route53 DNS record creation in `aws.tfvars` file. See section `AWS DNS and certbot automation`
+- **[OPTIONAL]** Enable Route53 DNS record creation in `aws.tfvars` file. See section [AWS DNS](#optional-aws-dns-and-certbot-automation)
 - After applying, map Terraform outputs into existing inventory and tfvars files, then proceed with the unchanged deployment sequence.
 
 ### Terraform apply (AWS base only)
