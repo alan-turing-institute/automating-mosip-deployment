@@ -1,12 +1,3 @@
----
-
-## title: MOSIP
-
-authors:
-
-- mirek
-tags: []
-
 # MOSIP deployment
 
 > **Reference Documentation**: This deployment guide provides step-by-step instructions for deploying MOSIP. For comprehensive information about hardware requirements, network architecture, certificate requirements, and other prerequisites, please refer to the official MOSIP documentation at [https://docs.mosip.io/1.2.0/setup/deploymentnew/v3-installation/1.2.0.2/pre-requisites](https://docs.mosip.io/1.2.0/setup/deploymentnew/v3-installation/1.2.0.2/pre-requisites). The official documentation contains detailed specifications for VM sizing, network requirements, DNS configuration, and certificate management that should be reviewed before beginning deployment.
@@ -21,8 +12,8 @@ This deployment guide is platform-agnostic and can be used with any hypervisor o
 
 Use one flow with two infrastructure entry paths:
 
-- On-prem: use your existing VM provisioning path and continue the standard Ansible/Terraform stages below.
-- AWS: run AWS Terraform base infrastructure provisioning first, then continue the same Ansible and Terraform stages below.
+- [AWS](#aws-provisioning): run AWS Terraform base infrastructure provisioning first, then continue the same Ansible and Terraform stages below. Except for the deployment node provisioning, the prerequisites section is automatically created on AWS.
+- On-prem: use your existing VM provisioning path and continue the standard Ansible/Terraform stages below. You manually create all resources listed in prerequestis section before you start the deployment. You manually create all resources listed in the prerequisites section before you start the deployment.
 
 ### Domain Configuration
 
@@ -30,6 +21,7 @@ Before starting, you need to define your MOSIP domain. Replace `{MOSIP_DOMAIN}` 
 
 ### DNS Records
 
+Note: For AWS deployment, there is an option to automatically configure all DNS records. [See AWS section](#aws-provisioning)
 Configure the following DNS records for your `{MOSIP_DOMAIN}`. Replace `{MOSIP_DOMAIN}` with your actual domain and update IP addresses to match your infrastructure:
 
 
@@ -72,6 +64,7 @@ You will need valid SSL certificates for HTTPS connections. MOSIP requires:
 
 1. **Wildcard SSL Certificate for Observation Cluster**: A valid wildcard SSL certificate for your observation domain (e.g., `*.{MOSIP_DOMAIN}` or `*.obs.{MOSIP_DOMAIN}`). This certificate needs to be stored on the Observation Nginx server VM.
 2. **Wildcard SSL Certificate for MOSIP Cluster**: A valid wildcard SSL certificate for your MOSIP domain (e.g., `*.{MOSIP_DOMAIN}`). This certificate needs to be stored on the MOSIP Nginx server VM.
+Note: You can use the same certificate if both DNS records are under the same domain.
 
 The certificates should be in PEM format with:
 
@@ -135,7 +128,6 @@ The deployment node is the machine from which all Ansible playbooks and Terrafor
   ```
 
 **SSH Key Configuration:**
-
 - Copy your SSH private key to the deployment node to enable passwordless access to all other nodes:
   ```bash
   scp -i <key-to-connect-to-deployment-node> <ssh-private-key> ubuntu@<deployment-node-ip>:~/.ssh/id_ed25519
@@ -145,7 +137,7 @@ The deployment node is the machine from which all Ansible playbooks and Terrafor
   ssh ubuntu@<deployment-node-ip>
   chmod 600 ~/.ssh/id_ed25519
   ```
-- Ensure the SSH key is configured with the default naming (`id_ed25519` or `id_rsa`) so it's automatically used by Ansible
+- **Ensure the SSH key is configured with the default naming (`id_ed25519`) so it's automatically used by Ansible**
 - **Tool installation**
 Based on official requirements [MOSIP Docs 1.2.0](https://docs.mosip.io/1.2.0/setup/deploymentnew/v3-installation/on-prem-installation-guidelines#certificate-requirements)
 
@@ -161,7 +153,7 @@ Ansible version > 2.12.4
 
 Our Deployment:
 
-- With 22.04 use Ansible apt package. `sudo apt install ansible git`
+- With 22.04 use Ansible apt package.
 - Helm and Kubectl are in snap store
 
 ```
@@ -220,20 +212,21 @@ git clone https://github.com/alan-turing-institute/automating-mosip-deployment.g
 - Generate SSL certs `[OPTIONAL]` if you don't use your company wildcard cert.
 
 ```
-# Default DNS route
-sudo certbot certonly --agree-tos --manual --preferred-challenges=dns -d *.{MOSIP_DOMAIN} -d {MOSIP_DOMAIN}
 # Using AWS Route53
 sudo certbot -v certonly --dns-route53 --agree-tos --preferred-challenges=dns -d *.{MOSIP_DOMAIN} -d {MOSIP_DOMAIN}
 
-# NOTE: You might be asked to create two identical TXT records with diffrent values. It's allowed in DNS standard, do not remove the 1st record!!!
+# Manual DNS route
+sudo certbot certonly --agree-tos --manual --preferred-challenges=dns -d *.{MOSIP_DOMAIN} -d {MOSIP_DOMAIN}
+
+# NOTE: With manual DNS route you might be asked to create two identical TXT records with diffrent values. It's allowed in DNS standard, do not remove the 1st record!!!
 Successfully received certificate.  
 Certificate is saved at: /etc/letsencrypt/live/{MOSIP_DOMAIN}/fullchain.pem  
-Key is saved at:         /etc/letsencrypt/live/{MOSIP_DOMAIN}/privkey.pem  
+Key is saved at:         /etc/letsencrypt/live/{MOSIP_DOMAIN}/privkey.pem  
 This certificate expires on 2026-02-17.  
 These files will be updated when the certificate renews.
 ```
 
-## AWS prerequisite provisioning (AWS deployments only)
+## AWS provisioning
 
 - Run this stage only for AWS deployments.
 - This stage is infrastructure provisioning only (declarative Terraform). Keep host configuration and bootstrap in Ansible stages below.
@@ -243,7 +236,7 @@ These files will be updated when the certificate renews.
 ### Terraform apply (AWS base only)
 
 ```bash
-cd ~/mosip/devops/terraform/aws/base-infra
+cd ~/mosip/automating-mosip-deployment/terraform/aws/base-infra
 cp aws.tfvars.tmp aws.tfvars
 terraform init
 terraform plan -var-file=aws.tfvars
@@ -309,7 +302,7 @@ Wireguard Ansible is a whole separate playbooks as it can sit completely indepen
 - Copy the `hosts.ini.tmp` to `host.ini`, make sure you set both `ansible_host` and assign public ip to `wireguard_endpoint`
 
 ```
-cd ~/mosip/ansible/wireguard/inventory
+cd ~/mosip/automating-mosip-deployment/ansible/wireguard/inventory
 cp hosts.ini.tmp hosts.ini
 
 [wireguard]
@@ -325,7 +318,7 @@ wireguard-node ansible_host=<wg-bastion-public-ip> wireguard_endpoint=<wireguard
 Example inventory structure (replace IPs with your actual values):
 
 ```
-cd ~/mosip/ansible/infra_deployment/inventory
+cd ~/mosip/automating-mosip-deployment/ansible/infra_deployment/inventory
 
 [physical_vms]
 # Physical VMs where nodes are running
@@ -377,7 +370,7 @@ nginx-obs-node-1 ansible_host=<obs-nginx-private-ip>
 In Ansible we have playbook to do `apt update && apt -y upgrade` on all hosts to streamline the deployment later. This role can also be used to install additional packages and expand in the future with additional configs.
 
 ```
-cd ~/mosip/devops/ansible/infra_deployment
+cd ~/mosip/automating-mosip-deployment/ansible/infra_deployment
 ansible-playbook -f 12 -v -i inventory/rancher.ini playbooks/apt-upgrade.yml
 ```
 
@@ -386,7 +379,7 @@ ansible-playbook -f 12 -v -i inventory/rancher.ini playbooks/apt-upgrade.yml
 - From `deployment-node`
 - **Public IP**: Ensure your WireGuard public IP is assigned to the `wg-bastion` VM
 - SSH to wg-bastion and run `sudo apt update && sudo apt upgrade -y`
-- Check wireguard inventory file is ready as per [[#Wireguard hosts]]
+- Check wireguard inventory file is ready. 
 - Run Ansible: `ansible-playbook -v -i inventory/hosts.ini playbooks/wireguard.yml`
 - Get WG peer config: `ssh ubuntu@<wg-bastion-public-ip> "sudo cat /root/wireguard/config/peer1/peer1.conf"` and save on your laptop machine
 - **MTU Configuration**: Default MTU is `1330` in generated peer/client WireGuard configs. Use this as the baseline across cloud providers to avoid fragmentation issues on overlay/network-edge paths. Override only if your specific network requires a different MTU.
@@ -401,7 +394,7 @@ ansible-playbook -f 12 -v -i inventory/rancher.ini playbooks/apt-upgrade.yml
 ## Observation node deployment
 
 - From `deployment-node`
-- Check infra inventory file is ready as per [[#Infra hosts]]
+- Check infra inventory file is ready.
 - In `inventory/group_vars/all.yml` update:
   - Nginx OBS hostname: `nginx_obs_public_domain_names`
   - Mosip domain: `mosip_domain`
@@ -411,11 +404,11 @@ ansible-playbook -f 12 -v -i inventory/rancher.ini playbooks/apt-upgrade.yml
 ### Verification
 
 - `kubectl get pods --all-namespaces` - all pods needs to be in Running or Completed
-- `curl https://rancher.{MOSIP_DOMAIN}` - It will show 404 for now as Helm is not yet deployed
+- `curl https://rancher.{MOSIP_DOMAIN}` - It will show 502 for now as Helm is not yet deployed
 
 ### Terraform
 
-- `cd ~/mosip/devops/terraform/obs_deployment`
+- `cd ~/mosip/automating-mosip-deployment/terraform/obs_deployment`
 - Copy the `terraform.tfvars.tmp` to `terraform.tfvars`, make sure you set both `rancher_hostname` to your MOSIP rancher DNS (e.g., `rancher.{MOSIP_DOMAIN}`) and `kubeconfig_path` is correct and use full path instead of `~`
 - Run terraform init `terraform init`
 - Run terraform plan `terraform plan`, check the hostname match the ansible `nginx_obs_public_domain_names`
@@ -430,21 +423,21 @@ ansible-playbook -f 12 -v -i inventory/rancher.ini playbooks/apt-upgrade.yml
 ## Infra deployment
 
 - From  `deployment-node`
-- Check infra inventory file is ready as per [[#Infra hosts]]
+- Check infra inventory file is ready.
 - In `inventory/group_vars/all.yml` , update `rancher_import_url`
-- Copy wildcard certificate to `~/mosip/devops/ansible/infra_deployment/playbooks/roles/nginx/files` make sure the name is: `fullchain.pem` and `privkey.pem`
+- Copy wildcard certificate to `~/mosip/automating-mosip-deployment/ansible/infra_deployment/playbooks/roles/nginx/files` make sure the name is: `fullchain.pem` and `privkey.pem`
 - Run Ansible `ansible-playbook -f 8 -v -i inventory/rancher.ini playbooks/deploy-all.yml`
 
 ### Verification
 
 - `kubectl get pods --all-namespaces` - all pods needs to be in Running or Completed
-- `curl https://{MOSIP_DOMAIN}` - It will show 404 for now as Helm is not yet deployed
+- `curl https://{MOSIP_DOMAIN}` - It will show 502 for now as Helm is not yet deployed
 
 ## MOSIP deployment
 
 **IMPORTANT: It's expected for plan and apply stage to take over 10 minutes in preparation as MOSIP is a big and complex system to calculate the plan for.**
 
-- `cd ~/mosip/devops/terraform/mosip_deployment`
+- `cd ~/mosip/automating-mosip-deployment/terraform/mosip_deployment`
 - Copy the `terraform.tfvars.tmp` to `terraform.tfvars`, make sure you set both `installation_domain` to your MOSIP domain (e.g., `{MOSIP_DOMAIN}`) and `kubeconfig_path` is correct and use full path instead of `~`
 - `cd infra`
 - Run terraform init `terraform init`
@@ -457,8 +450,9 @@ ansible-playbook -f 12 -v -i inventory/rancher.ini playbooks/apt-upgrade.yml
 
 ### Troubleshooting
 
-In the event that the MOSIP module deployment failed. It is safe to re-run the Terraform apply stage, and Terraform will check the Helm deployment status, detect a failure, and remove and redeploy the module.
-If module deployment failed, but later, after the restart, it's showing as 2/2 Running, to avoid removing and redeploying the module when you run Terraform again to continue installation, you can first run `helm upgrade  <module-name> --reuse-values` it will update Helm status and terrform when run again will be able to detect that module is succesfully deployed and will resume from the next module on the list.
+In the event that the MOSIP module deployment failed. It is safe to re-run the Terraform apply stage, and Terraform will check the Helm deployment status, detect a failure, and remove and redeploy the module.  
+If module deployment failed, but later, after the restart, it's showing as 2/2 Running, to avoid removing and redeploying the module when you run Terraform again to continue installation, you can first run helm upgrde using same version of the module, e.g.: `helm upgrade regproc-reprocess mosip/regproc-reprocess -n regproc --reuse-values --version 12.0.1`
+ it will update Helm status and terrform when run again will be able to detect that module is succesfully deployed and will resume from the next module on the list. WARNING: If you don't use the same version, Helm will try to upgrade to the latest version in the repo and Terraform will detect this as tainted and still redeploy.
 
 ### Verification
 
