@@ -4,7 +4,7 @@
 
 ## Prerequisites
 
-After cloning the repository, copy this `deployment_plan.md.tmp` into `deployment_plan.md` and update all **REFERENCE** values.
+After cloning the repository, copy this `deployment_plan_template.md` into `deployment_plan.md` and update all **REFERENCE** values.
 
 This deployment guide is platform-agnostic and can be used with any hypervisor or cloud provider (OpenStack, VMware, AWS, Azure, bare metal, etc.) as long as the following prerequisites are met. The Ansible playbooks will deploy to any Linux-based VMs that meet the requirements, and Terraform handles Helm and Kubernetes.
 
