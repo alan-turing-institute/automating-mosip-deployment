@@ -2,6 +2,24 @@
 
 > **Reference Documentation**: This deployment guide provides step-by-step instructions for deploying MOSIP. For comprehensive information about hardware requirements, network architecture, certificate requirements, and other prerequisites, please refer to the official MOSIP documentation at [https://docs.mosip.io/1.2.0/setup/deploymentnew/v3-installation/1.2.0.2/pre-requisites](https://docs.mosip.io/1.2.0/setup/deploymentnew/v3-installation/1.2.0.2/pre-requisites). The official documentation contains detailed specifications for VM sizing, network requirements, DNS configuration, and certificate management that should be reviewed before beginning deployment.
 
+## Introduction
+
+This document is the working deployment plan for installing MOSIP 1.2.0.2 with the Turing automation framework. Copy this template to `deployment_plan.md`, replace the **REFERENCE** values with your environment details, and use it as the shared checklist for the teams responsible for DNS, certificates, networking, virtual machines, and the MOSIP deployment itself.
+
+The repository is an automation framework for the MOSIP deployment process. It uses the same MOSIP Helm charts and chart repositories as the official MOSIP deployment flow. It does not modify MOSIP application code, patch MOSIP modules, or replace MOSIP's own chart logic. The purpose of this framework is to make the official deployment process more repeatable, easier to verify, and easier to re-run when a step needs to be repeated.
+
+At a high level, the deployment flow is: prepare prerequisites, optionally provision AWS base infrastructure, deploy WireGuard access, deploy the observation node, deploy the MOSIP infrastructure layer, and then deploy the MOSIP application modules.
+
+## Deployment architecture overview
+
+All deployment commands should be run from a **deployment node**. This is a separate Ubuntu 22.04 machine used as the operator workstation for Ansible, Terraform, Helm, `kubectl`, certificate handling, and inventory management. The deployment node is not a MOSIP application node; it is the control point used to install and manage the environment.
+
+The target environment contains the WireGuard bastion, MOSIP Nginx reverse proxy, observation node, and MOSIP Kubernetes nodes. The deployment node must be able to SSH to these machines and reach the Kubernetes API endpoints created during the deployment.
+
+Where possible, place the deployment node on the same private network as the MOSIP and observation nodes. Ansible copies scripts and configuration to several machines, and Terraform/Helm repeatedly communicate with the Kubernetes cluster while waiting for modules to become healthy. Running those operations across a high-latency path, a VPN-only path, or an unreliable route increases the chance of slow deployments, SSH interruptions, chart download failures, and Kubernetes API timeouts.
+
+You may keep the deployment node powered off after installation and use it again for day-two operations such as changing Terraform variables, re-running Ansible, or applying upgrades.
+
 ## Prerequisites
 
 After cloning the repository, copy this `deployment_plan_template.md` into `deployment_plan.md` and update all **REFERENCE** values.
@@ -13,7 +31,7 @@ This deployment guide is platform-agnostic and can be used with any hypervisor o
 Use one flow with two infrastructure entry paths:
 
 - [AWS](#aws-provisioning): run AWS Terraform base infrastructure provisioning first, then continue the same Ansible and Terraform stages below. Except for the deployment node provisioning, the prerequisites section is automatically created on AWS.
-- On-prem: use your existing VM provisioning path and continue the standard Ansible/Terraform stages below. You manually create all resources listed in prerequestis section before you start the deployment.
+- On-prem: use your existing VM provisioning path and continue the standard Ansible/Terraform stages below. You manually create all resources listed in the prerequisites section before you start the deployment.
 
 ### Domain Configuration
 
@@ -27,12 +45,12 @@ Configure the following DNS records for your `{MOSIP_DOMAIN}`. Replace `{MOSIP_D
 
 | **Record Type** | **Domain Name**             | **IP/DNS**                  | **Mapping details**                                                 | **Purpose**                                                                                                                                                                                                                                       |
 | --------------- | --------------------------- | --------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| A Record        | rancher.{MOSIP_DOMAIN}      | `<OBS_NGINX_PRIVATE_IP>`    | Private IP of Nginx server or load balancer for Observation cluster | Rancher dashboard to monitor and manage the kubernetes cluster.                                                                                                                                                                                   |
-| A Record        | keycloak.{MOSIP_DOMAIN}     | `<OBS_NGINX_PRIVATE_IP>`    | Private IP of Nginx server for Observation cluster                  | Administrative IAM tool (keycloak). This is for the kubernetes administration.                                                                                                                                                                    |
+| A Record        | rancher.{MOSIP_DOMAIN}      | `<OBS_NGINX_PRIVATE_IP>`    | Private IP of Nginx server or load balancer for Observation cluster | Rancher dashboard to monitor and manage the Kubernetes cluster.                                                                                                                                                                                   |
+| A Record        | keycloak.{MOSIP_DOMAIN}     | `<OBS_NGINX_PRIVATE_IP>`    | Private IP of Nginx server for Observation cluster                  | Administrative IAM tool (keycloak). This is for the Kubernetes administration.                                                                                                                                                                    |
 | A Record        | api-internal.{MOSIP_DOMAIN} | `<MOSIP_NGINX_PRIVATE_IP>`  | Private IP of Nginx server for MOSIP cluster                        | Internal API's are exposed through this domain. They are accessible privately over wireguard channel                                                                                                                                              |
-| A Record        | api.{MOSIP_DOMAIN}          | `<MOSIP_PUBLIC_IP>`         | Public IP of Nginx server for MOSIP cluster                         | All the API's that are publically usable are exposed using this domain.                                                                                                                                                                           |
+| A Record        | api.{MOSIP_DOMAIN}          | `<MOSIP_PUBLIC_IP>`         | Public IP of Nginx server for MOSIP cluster                         | All the API's that are publicly usable are exposed using this domain.                                                                                                                                                                             |
 | CNAME Record    | prereg.{MOSIP_DOMAIN}       | api.{MOSIP_DOMAIN}          | Public IP of Nginx server for MOSIP cluster                         | Domain name for MOSIP's pre-registration portal. The portal is accessible publicly.                                                                                                                                                               |
-| CNAME Record    | resident.{MOSIP_DOMAIN}     | api.{MOSIP_DOMAIN}          | Public IP of Nginx server for MOSIP cluster                         | Accessing resident portal publically                                                                                                                                                                                                              |
+| CNAME Record    | resident.{MOSIP_DOMAIN}     | api.{MOSIP_DOMAIN}          | Public IP of Nginx server for MOSIP cluster                         | Accessing resident portal publicly                                                                                                                                                                                                                |
 | CNAME Record    | idp.{MOSIP_DOMAIN}          | api.{MOSIP_DOMAIN}          | Public IP of Nginx server for MOSIP cluster                         | Accessing IDP over public                                                                                                                                                                                                                         |
 | CNAME Record    | {MOSIP_DOMAIN}              | api-internal.{MOSIP_DOMAIN} | Private IP of Nginx server for MOSIP cluster                        | Index page for links to different dashboards of MOSIP env. (This is just for reference, please do not expose this page in a real production or UAT environment)                                                                                   |
 | CNAME Record    | activemq.{MOSIP_DOMAIN}     | api-internal.{MOSIP_DOMAIN} | Private IP of Nginx server for MOSIP cluster                        | Provides direct access to activemq dashboard. It is limited and can be used only over wireguard.                                                                                                                                                  |
@@ -52,7 +70,7 @@ Configure the following DNS records for your `{MOSIP_DOMAIN}`. Replace `{MOSIP_D
 
 You need to set up the following network infrastructure:
 
-1. **Internal Network**: All VMs must be on the same internal/private network. This network should:
+1. **Internal Network**: All VMs, including the deployment node, should be on the same internal/private network wherever possible. The deployment node must be able to SSH to all other nodes and reach the Kubernetes API endpoints without relying on a slow or unstable route.
 2. **Public IP Addresses**: You need **two public IP addresses**:
   - **Public API IP**: This IP will be assigned to the MOSIP Nginx server and used for public-facing services (api.{MOSIP_DOMAIN}, prereg.{MOSIP_DOMAIN}, resident.{MOSIP_DOMAIN}, idp.{MOSIP_DOMAIN}). Port 443/tcp
   - **WireGuard IP**: This IP will be assigned to the WireGuard bastion host for secure administrative access over VPN. Port 51820/udp
@@ -80,8 +98,8 @@ Create the following VMs on your chosen platform (OpenStack, VMware, AWS, Azure,
 1. **deployment-node** (1 VM)
   - **Purpose**: Node from which all deployment operations are executed
   - **Specifications**: 2 vCPU, 4 GB RAM, 20 GB storage
-  - **Network**: Internal network (must be able to SSH to all other nodes)
-  - **Additional**: If your deployment node needs access from an admin network, configure routing appropriately (see deployment node configuration below)
+  - **Network**: Internal network, preferably in the same private network as the MOSIP and observation nodes
+  - **Additional**: If your deployment node also needs access from an admin network, configure routing appropriately (see deployment node configuration below)
 2. **wg-bastion** (1 VM)
   - **Purpose**: WireGuard VPN bastion host for secure administrative access
   - **Specifications**: 2 vCPU, 4 GB RAM, 8 GB storage
@@ -105,11 +123,22 @@ Create the following VMs on your chosen platform (OpenStack, VMware, AWS, Azure,
 
 ### Deployment Node Configuration
 
-The deployment node is the machine from which all Ansible playbooks and Terraform operations are executed. It must be able to SSH to all other nodes in your infrastructure.
+The deployment node is the machine from which all Ansible playbooks and Terraform operations are executed. Treat it as the deployment control point rather than as a MOSIP application node. It stores the repository checkout, inventories, Terraform variables, kubeconfig files, Helm client configuration, and SSH key used by Ansible.
+
+Create or select this node before starting the rest of the deployment. For AWS deployments, the base Terraform stage creates the MOSIP infrastructure VMs, but you still need to provide the deployment node. A plain Ubuntu 22.04 VM is sufficient for the deployment node as long as it has the required tools installed and network access to the MOSIP private network.
+
+The deployment node should be close to the target infrastructure. The recommended setup is:
+
+- one interface or route for operator/admin access to the deployment node;
+- one interface or route into the MOSIP private network;
+- passwordless SSH from the deployment node to every MOSIP, observation, Nginx, and WireGuard node;
+- stable outbound access to the required Helm chart repositories and package repositories.
+
+Avoid running the main deployment from a laptop over WireGuard if you can use a deployment node inside the same network. WireGuard is useful for administration and verification, but the installation performs many SSH, Helm, Terraform, and Kubernetes API operations. Keeping the deployment node on the same network reduces latency and avoids avoidable communication failures during long-running stages.
 
 **If your deployment node has multiple network interfaces** (e.g., one for admin access and one for MOSIP network access), you may need to configure routing to ensure proper connectivity:
 
-- If both networks use the same gateway, configure route metrics to prioritize the admin network for SSH access
+- If both networks use the same gateway, configure route metrics to prioritise the admin network for SSH access
 - Alternatively, configure the MOSIP network interface with a static IP and omit the gateway to prevent routing conflicts
 - Example netplan configuration for multi-interface setup:
   ```yaml
@@ -166,7 +195,7 @@ helm repo add mosip https://mosip.github.io/mosip-helm
 ```
 
 - OpenSSL 1.1.1f
-For regclient certificate there is a dependency to use openssl 1.1.1f, install it manully. Otherwise you get an error during deployment `jarsigner error: java.lang.RuntimeException: keystore load: keystore password was incorrect`
+For regclient certificate there is a dependency to use openssl 1.1.1f, install it manually. Otherwise you get an error during deployment `jarsigner error: java.lang.RuntimeException: keystore load: keystore password was incorrect`
 
 ```
 mkdir openssl; cd openssl;
@@ -218,7 +247,7 @@ sudo certbot -v certonly --dns-route53 --agree-tos --preferred-challenges=dns -d
 # Manual DNS route
 sudo certbot certonly --agree-tos --manual --preferred-challenges=dns -d *.{MOSIP_DOMAIN} -d {MOSIP_DOMAIN}
 
-# NOTE: With manual DNS route you might be asked to create two identical TXT records with diffrent values. It's allowed in DNS standard, do not remove the 1st record!!!
+# NOTE: With manual DNS route you might be asked to create two identical TXT records with different values. It's allowed in DNS standard, do not remove the 1st record!!!
 Successfully received certificate.  
 Certificate is saved at: /etc/letsencrypt/live/{MOSIP_DOMAIN}/fullchain.pem  
 Key is saved at:         /etc/letsencrypt/live/{MOSIP_DOMAIN}/privkey.pem  
@@ -435,7 +464,13 @@ ansible-playbook -f 12 -v -i inventory/rancher.ini playbooks/apt-upgrade.yml
 
 ## MOSIP deployment
 
-**IMPORTANT: It's expected for plan and apply stage to take over 10 minutes in preparation as MOSIP is a big and complex system to calculate the plan for.**
+**IMPORTANT: It is expected for the Terraform plan and apply stages to take time. MOSIP is a large system, and Terraform must calculate a substantial Helm/Kubernetes deployment graph before applying changes.**
+
+The final MOSIP stage is usually the longest part of the deployment. A complete first deployment commonly takes several hours. Some modules are deployed sequentially because later modules depend on earlier ones being available, so not every chart can be installed in parallel.
+
+For MOSIP 1.2.0.2, some services may take 20-30 minutes to initialise before Kubernetes reports them as ready. This is common for `config-server` and parts of the `regproc` family. The automation uses long Helm timeout windows and delayed startup/readiness/liveness probes because testing showed that checking too early can cause otherwise healthy modules to be restarted or marked as failed before they finish initialising.
+
+During this stage, long periods of output such as `Still creating... [20m10s elapsed]` do not automatically mean that Terraform has frozen. In many cases Terraform has already asked Helm to deploy the chart and is polling the release status while Kubernetes waits for the pods to become healthy.
 
 - `cd ~/mosip/automating-mosip-deployment/terraform/mosip_deployment`
 - Copy the `terraform.tfvars.tmp` to `terraform.tfvars`, make sure you set both `installation_domain` to your MOSIP domain (e.g., `{MOSIP_DOMAIN}`) and `kubeconfig_path` is correct and use full path instead of `~`
@@ -448,20 +483,48 @@ ansible-playbook -f 12 -v -i inventory/rancher.ini playbooks/apt-upgrade.yml
 - Run terraform plan `terraform plan -var-file=../terraform.tfvars`
 - Run terraform apply: `terraform apply -var-file=../terraform.tfvars`
 
-### Troubleshooting
-
-In the event that the MOSIP module deployment failed. It is safe to re-run the Terraform apply stage, and Terraform will check the Helm deployment status, detect a failure, and remove and redeploy the module.  
-If module deployment failed, but later, after the restart, it's showing as 2/2 Running, to avoid removing and redeploying the module when you run Terraform again to continue installation, you can first run helm upgrde using same version of the module, e.g.: `helm upgrade regproc-reprocess mosip/regproc-reprocess -n regproc --reuse-values --version 12.0.1`
- it will update Helm status and terrform when run again will be able to detect that module is succesfully deployed and will resume from the next module on the list. WARNING: If you don't use the same version, Helm will try to upgrade to the latest version in the repo and Terraform will detect this as tainted and still redeploy.
-
 ### Verification
 
 - `kubectl get pods --all-namespaces` - all pods needs to be in Running or Completed
 - `curl https://{MOSIP_DOMAIN}` - It will redirect to MOSIP landing page
 
-## Path compatibility validation
+## Troubleshooting
 
-- For on-prem deployments: skip AWS prerequisite stage and run the existing flow exactly as documented.
-- For AWS deployments: execute AWS prerequisite stage first, then run the same downstream commands from `Update all nodes` onward.
-- In both modes, expected verification commands and results must remain the same.
+### Long-running MOSIP modules
 
+In the event that a MOSIP module deployment fails, it is safe to re-run the Terraform apply stage. Terraform will check the Helm deployment status, detect the failed release, and remove and redeploy the affected module before continuing.
+
+Long-running modules are expected. A module that is still creating after 20 minutes may simply be waiting for MOSIP to initialise. Before interrupting the deployment, check the relevant pods:
+
+```bash
+kubectl get pods --all-namespaces
+kubectl describe pod <pod-name> -n <namespace>
+kubectl logs <pod-name> -n <namespace> --all-containers
+```
+
+If Terraform reaches the 30-minute timeout for a module, wait a few more minutes and check the pods again. Sometimes the pod restarts once or twice and then becomes healthy. If the module later shows all containers as Running, for example `2/2 Running` or `3/3 Running`, you can update the Helm release status without forcing Terraform to redeploy it:
+
+```bash
+helm upgrade regproc-reprocess mosip/regproc-reprocess -n regproc --reuse-values --version 12.0.1
+```
+
+Use the same chart version that Terraform is configured to deploy. The command above reuses the existing values and lets Helm record the release as successfully upgraded. When Terraform is run again, it can detect that the module is healthy and continue with the next module. **Warning**: if you do not use the same chart version, Helm may try to upgrade to the latest chart in the repository and Terraform may still detect drift or redeploy the release.
+
+### Chart repository or network timeouts
+
+Temporary chart repository or network errors can also happen during long deployments. Examples include:
+
+- `could not download chart`
+- `context deadline exceeded`
+- `failed get OpenAPI spec`
+- `failed to determine resource type ID`
+
+These usually indicate a temporary communication problem between the deployment node and an external chart repository, or between the deployment node and the Kubernetes API. They do not necessarily mean that the automation or MOSIP chart is wrong. Check connectivity from the deployment node, confirm that the Helm repositories are reachable, and confirm that the Kubernetes API is responsive:
+
+```bash
+helm repo update
+kubectl get nodes
+kubectl get pods --all-namespaces
+```
+
+If the checks succeed, re-run the same Terraform apply command. Terraform is declarative and will continue from the current state where possible.
