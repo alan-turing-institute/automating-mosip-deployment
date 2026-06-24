@@ -1,0 +1,20 @@
+---
+- name: Prepare Rancher OBS Node for RKE2
+  hosts: mosip_obs
+  gather_facts: true
+  serial: 1
+  roles:
+    - rke2_prepare
+
+- name: Deploy RKE2 OBS cluster
+  hosts: mosip_obs
+  gather_facts: true
+  serial: 1
+  roles:
+    - rke2_obs
+
+- name: Deploy Nginx OBS Load Balancer
+  hosts: nginx_obs
+  gather_facts: true
+  roles:
+    - nginx_obs

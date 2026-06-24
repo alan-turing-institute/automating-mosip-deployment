@@ -1,0 +1,167 @@
+---
+- name: Verify OBS node is defined
+  fail:
+    msg: "mosip_obs group must contain at least one node"
+  when: groups['mosip_obs'] | length == 0
+  run_once: true
+
+- name: Check for existing OBS kubeconfig
+  stat:
+    path: "{{ cluster_dir }}/kube_config_cluster.yml"
+  register: existing_kubeconfig
+  delegate_to: localhost
+  run_once: true
+
+- name: Test OBS cluster connectivity
+  command: kubectl --kubeconfig={{ cluster_dir }}/kube_config_cluster.yml get nodes
+  register: kubectl_test
+  changed_when: false
+  failed_when: false
+  delegate_to: localhost
+  run_once: true
+  when: existing_kubeconfig.stat.exists
+
+- name: Set OBS cluster exists fact
+  set_fact:
+    rke2_obs_cluster_exists: "{{ existing_kubeconfig.stat.exists and kubectl_test.rc == 0 }}"
+  run_once: true
+
+- name: Display OBS cluster status
+  debug:
+    msg: "RKE2 OBS cluster '{{ cluster_name }}' is already running"
+  when: rke2_obs_cluster_exists | default(false)
+
+- name: Create OBS cluster directory on deployment node
+  file:
+    path: "{{ cluster_dir }}"
+    state: directory
+    mode: '0750'
+  delegate_to: localhost
+  run_once: true
+  when: not rke2_obs_cluster_exists | default(false)
+
+- name: Check for persisted OBS RKE2 token
+  stat:
+    path: "{{ rke2_token_file }}"
+  register: obs_token_stat
+  delegate_to: localhost
+  run_once: true
+  when: not rke2_obs_cluster_exists | default(false)
+
+- name: Load persisted OBS RKE2 token
+  slurp:
+    src: "{{ rke2_token_file }}"
+  register: obs_token_slurp
+  delegate_to: localhost
+  run_once: true
+  when:
+    - not rke2_obs_cluster_exists | default(false)
+    - obs_token_stat.stat.exists | default(false)
+
+- name: Set OBS cluster token from file
+  set_fact:
+    rke2_cluster_token: "{{ obs_token_slurp.content | b64decode | trim }}"
+  run_once: true
+  when:
+    - not rke2_obs_cluster_exists | default(false)
+    - obs_token_stat.stat.exists | default(false)
+  no_log: true
+
+- name: Generate OBS cluster token
+  set_fact:
+    rke2_cluster_token: "{{ cluster_name | hash('md5') | truncate(32, True, '') }}"
+  run_once: true
+  when:
+    - not rke2_obs_cluster_exists | default(false)
+    - not obs_token_stat.stat.exists | default(false)
+  no_log: true
+
+- name: Persist OBS cluster token
+  copy:
+    dest: "{{ rke2_token_file }}"
+    content: "{{ rke2_cluster_token }}"
+    mode: '0600'
+  delegate_to: localhost
+  run_once: true
+  when:
+    - not rke2_obs_cluster_exists | default(false)
+    - not obs_token_stat.stat.exists | default(false)
+  no_log: true
+
+- name: Skip OBS node install when cluster already exists
+  meta: end_host
+  when: rke2_obs_cluster_exists | default(false)
+
+- name: Check if OBS RKE2 server is already active
+  systemd:
+    name: rke2-server
+  register: obs_rke2_status
+  failed_when: false
+
+- name: Skip OBS node when service already active
+  meta: end_host
+  when: obs_rke2_status.status is defined and obs_rke2_status.status.ActiveState == "active"
+
+- name: Create RKE2 config directory on OBS node
+  file:
+    path: "{{ rke2_config_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Install RKE2 on OBS node
+  shell: |
+    curl -sfL https://get.rke2.io | INSTALL_RKE2_VERSION="{{ rke2_version }}" sh -
+  args:
+    creates: /usr/local/bin/rke2
+
+- name: Render OBS primary RKE2 config
+  template:
+    src: rke2-server-control-plane-primary.conf.j2
+    dest: "{{ rke2_config_dir }}/config.yaml"
+    mode: '0600'
+  no_log: true
+
+- name: Start and enable RKE2 server on OBS node
+  systemd:
+    name: rke2-server
+    enabled: yes
+    state: restarted
+
+- name: Wait for OBS RKE2 kubeconfig
+  wait_for:
+    path: "{{ rke2_config_dir }}/rke2.yaml"
+    timeout: 300
+
+- name: Wait for OBS Kubernetes API
+  wait_for:
+    port: 6443
+    host: "{{ ansible_host }}"
+    timeout: 300
+    delay: 15
+
+- name: Read OBS kubeconfig from node
+  slurp:
+    src: "{{ rke2_config_dir }}/rke2.yaml"
+  register: obs_kubeconfig
+  become: true
+
+- name: Write OBS kubeconfig on deployment node
+  copy:
+    dest: "{{ cluster_dir }}/kube_config_cluster.yml"
+    content: >-
+      {{ (obs_kubeconfig.content | b64decode)
+         | regex_replace('127.0.0.1', ansible_host)
+         | regex_replace('default', cluster_name) }}
+    mode: '0600'
+  delegate_to: localhost
+
+- name: Verify OBS cluster from deployment node
+  command: kubectl --kubeconfig={{ cluster_dir }}/kube_config_cluster.yml get nodes
+  register: obs_nodes
+  changed_when: false
+  delegate_to: localhost
+
+- name: Display OBS cluster nodes
+  debug:
+    msg: "{{ obs_nodes.stdout_lines }}"
+  delegate_to: localhost

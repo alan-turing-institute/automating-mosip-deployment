@@ -684,6 +684,9 @@ module "prereg" {
 
   namespace           = var.prereg_namespace
   helm_chart_version  = var.prereg_chart_version
+  prereg_gateway_chart_version = var.prereg_gateway_chart_version
+  prereg_booking_chart_version = var.prereg_booking_chart_version
+  prereg_ui_chart_version      = var.prereg_ui_chart_version
   istio_injection_label = var.prereg_istio_injection_label
   helm_timeout_seconds = var.global_helm_timeout_seconds
   rate_limit_max_tokens = var.prereg_rate_limit_max_tokens
@@ -764,6 +767,8 @@ module "pms" {
   namespace                   = var.pms_namespace
   helm_chart_version         = var.pms_helm_chart_version
   pmp_ui_chart_version       = var.pmp_ui_chart_version
+  pmp_revamp_ui_enabled      = var.pmp_revamp_ui_enabled
+  pmp_revamp_ui_chart_version = var.pmp_revamp_ui_chart_version
   istio_injection_label      = var.pms_istio_injection_label
   helm_timeout_seconds       = var.global_helm_timeout_seconds
 

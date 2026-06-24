@@ -6,6 +6,17 @@ variable "kubeconfig_path" {
   description = "Path to kubeconfig file"
 }
 
+variable "kubernetes_engine" {
+  type        = string
+  description = "Cluster engine: rke2 (default) or rke1 (legacy). Selects default infra chart pins."
+  default     = "rke2"
+
+  validation {
+    condition     = contains(["rke2", "rke1"], var.kubernetes_engine)
+    error_message = "kubernetes_engine must be rke2 or rke1."
+  }
+}
+
 variable "installation_name" {
   type        = string
   description = "Name of the MOSIP installation"
@@ -140,7 +151,7 @@ variable "enable_istio" {
 variable "istio_version" {
   type        = string
   description = "Version of Istio to install"
-  default     = "1.15.0"
+  default     = "1.22.0"
 }
 
 variable "istio_namespace" {

@@ -1,0 +1,58 @@
+---
+- name: Create rancher base directory
+  file:
+    path: "{{ rancher_base_dir }}"
+    state: directory
+    mode: '0750'
+  when: not rke2_cluster_exists | default(false)
+
+- name: Create cluster-specific directory
+  file:
+    path: "{{ cluster_dir }}"
+    state: directory
+    mode: '0750'
+  when: not rke2_cluster_exists | default(false)
+
+- name: Check for persisted RKE2 token
+  stat:
+    path: "{{ rke2_token_file }}"
+  register: rke2_token_stat
+  when: not rke2_cluster_exists | default(false)
+
+- name: Load persisted RKE2 token
+  slurp:
+    src: "{{ rke2_token_file }}"
+  register: rke2_token_slurp
+  when:
+    - not rke2_cluster_exists | default(false)
+    - rke2_token_stat.stat.exists | default(false)
+
+- name: Set cluster token from file
+  set_fact:
+    rke2_cluster_token: "{{ rke2_token_slurp.content | b64decode | trim }}"
+  when:
+    - not rke2_cluster_exists | default(false)
+    - rke2_token_stat.stat.exists | default(false)
+  no_log: true
+
+- name: Generate deterministic RKE2 cluster token
+  set_fact:
+    rke2_cluster_token: "{{ cluster_name | hash('md5') | truncate(32, True, '') }}"
+  when:
+    - not rke2_cluster_exists | default(false)
+    - not rke2_token_stat.stat.exists | default(false)
+  no_log: true
+
+- name: Persist RKE2 cluster token
+  copy:
+    dest: "{{ rke2_token_file }}"
+    content: "{{ rke2_cluster_token }}"
+    mode: '0600'
+  when:
+    - not rke2_cluster_exists | default(false)
+    - not rke2_token_stat.stat.exists | default(false)
+  no_log: true
+
+- name: Resolve primary control plane IP
+  set_fact:
+    rke2_primary_ip: "{{ hostvars[groups['control_plane_primary'][0]]['ansible_host'] }}"

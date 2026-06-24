@@ -1,0 +1,8 @@
+---
+cluster_name: "{{ cluster_name | default('mosip') }}"
+rancher_base_dir: "{{ rancher_base_dir | default(ansible_env.HOME + '/rancher') }}"
+cluster_dir: "{{ rancher_base_dir }}/{{ cluster_name }}"
+rke2_config_dir: "/etc/rancher/rke2"
+rke2_version: "{{ rke2_version | default('v1.28.9+rke2r1') }}"
+ssh_key_path: "~/.ssh/id_ed25519"
+rke2_token_file: "{{ cluster_dir }}/rke2_token"

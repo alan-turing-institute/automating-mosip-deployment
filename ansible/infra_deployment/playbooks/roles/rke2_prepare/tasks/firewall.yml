@@ -1,0 +1,59 @@
+---
+- name: Open SSH
+  community.general.ufw:
+    rule: allow
+    port: "22"
+    proto: tcp
+
+- name: Open Kubelet metrics
+  community.general.ufw:
+    rule: allow
+    port: "10250"
+    proto: tcp
+
+- name: Open Kubernetes nodeports
+  community.general.ufw:
+    rule: allow
+    port: "30000:32767"
+    proto: tcp
+
+- name: Open Canal CNI VXLAN
+  community.general.ufw:
+    rule: allow
+    port: "8472"
+    proto: udp
+
+- name: Open Canal CNI health checks
+  community.general.ufw:
+    rule: allow
+    port: "9099"
+    proto: tcp
+
+- name: Open Kubernetes API
+  community.general.ufw:
+    rule: allow
+    port: "6443"
+    proto: tcp
+  when: inventory_hostname in groups.get('control_plane_primary', []) + groups.get('control_plane_subsequent', []) + groups.get('mosip_obs', [])
+
+- name: Open RKE2 supervisor API
+  community.general.ufw:
+    rule: allow
+    port: "9345"
+    proto: tcp
+  when: inventory_hostname in groups.get('control_plane_primary', []) + groups.get('control_plane_subsequent', []) + groups.get('mosip_obs', [])
+
+- name: Open ETCD ports
+  community.general.ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  loop:
+    - "2379"
+    - "2380"
+    - "2381"
+  when: inventory_hostname in groups.get('control_plane_primary', []) + groups.get('control_plane_subsequent', []) + groups.get('rke2_etcd', [])
+
+- name: Enable UFW
+  community.general.ufw:
+    state: enabled

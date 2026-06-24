@@ -5,9 +5,27 @@ variable "namespace" {
 }
 
 variable "helm_chart_version" {
-  description = "Prereg helm chart version"
+  description = "Default prereg helm chart version (application, datasync, batchjob, captcha)"
   type        = string
-  default     = "12.0.1"
+  default     = "1.3.0"
+}
+
+variable "prereg_gateway_chart_version" {
+  description = "Prereg gateway helm chart version"
+  type        = string
+  default     = "1.0.0"
+}
+
+variable "prereg_booking_chart_version" {
+  description = "Prereg booking helm chart version"
+  type        = string
+  default     = "1.3.1-rc.1"
+}
+
+variable "prereg_ui_chart_version" {
+  description = "Prereg UI helm chart version"
+  type        = string
+  default     = "1.3.0"
 }
 
 variable "istio_injection_label" {

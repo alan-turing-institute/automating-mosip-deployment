@@ -27,11 +27,16 @@ provider "helm" {
   }
 }
 
+locals {
+  rancher_version_effective       = var.rancher_version != "" ? var.rancher_version : (var.kubernetes_engine == "rke2" ? "2.8.3" : "2.6.9")
+  ingress_nginx_version_effective = var.ingress_nginx_version != "" ? var.ingress_nginx_version : (var.kubernetes_engine == "rke2" ? "4.10.0" : "4.0.18")
+}
+
 resource "helm_release" "ingress_nginx" {
   name             = "ingress-nginx"
   repository       = "https://kubernetes.github.io/ingress-nginx"
   chart            = "ingress-nginx"
-  version          = var.ingress_nginx_version
+  version          = local.ingress_nginx_version_effective
   namespace        = var.ingress_nginx_namespace
   create_namespace = true
 
@@ -128,7 +133,7 @@ resource "helm_release" "rancher" {
   name             = "rancher"
   repository       = "https://releases.rancher.com/server-charts/stable"
   chart            = "rancher"
-  version          = var.rancher_version
+  version          = local.rancher_version_effective
   namespace        = var.rancher_namespace
   create_namespace = true
 

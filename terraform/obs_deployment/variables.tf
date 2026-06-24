@@ -3,6 +3,17 @@ variable "kubeconfig_path" {
   type        = string
 }
 
+variable "kubernetes_engine" {
+  description = "Cluster engine: rke2 (default) or rke1 (legacy). Selects default chart pins when version overrides are empty."
+  type        = string
+  default     = "rke2"
+
+  validation {
+    condition     = contains(["rke2", "rke1"], var.kubernetes_engine)
+    error_message = "kubernetes_engine must be rke2 or rke1."
+  }
+}
+
 variable "ingress_nginx_namespace" {
   description = "Namespace for ingress-nginx"
   type        = string
@@ -10,9 +21,9 @@ variable "ingress_nginx_namespace" {
 }
 
 variable "ingress_nginx_version" {
-  description = "Version of ingress-nginx Helm chart"
+  description = "Version of ingress-nginx Helm chart (empty uses kubernetes_engine default)"
   type        = string
-  default     = "4.0.18"
+  default     = ""
 }
 
 variable "rancher_namespace" {
@@ -27,9 +38,9 @@ variable "rancher_hostname" {
 }
 
 variable "rancher_version" {
-  description = "Version of Rancher Helm chart"
+  description = "Version of Rancher Helm chart (empty uses kubernetes_engine default)"
   type        = string
-  default     = "2.6.9"
+  default     = ""
 }
 
 variable "rancher_replicas" {

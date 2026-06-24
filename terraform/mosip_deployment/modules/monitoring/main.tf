@@ -15,12 +15,17 @@ terraform {
   }
 }
 
+locals {
+  monitoring_crd_version_effective = var.monitoring_crd_version != "" ? var.monitoring_crd_version : "102.0.5+up40.1.2"
+  monitoring_version_effective     = var.monitoring_version != "" ? var.monitoring_version : "102.0.5+up40.1.2"
+}
+
 resource "helm_release" "rancher_monitoring_crd" {
   name             = "rancher-monitoring-crd"
   repository       = "https://charts.rancher.io"
   chart            = "rancher-monitoring-crd"
   namespace        = "cattle-monitoring-system"
-  version    = "102.0.5+up40.1.2" # MUST USE THIS VERSION OLD RANCHER !!!
+  version          = local.monitoring_crd_version_effective
   create_namespace = true
   timeout          = var.helm_timeout_seconds
 
@@ -42,7 +47,7 @@ resource "helm_release" "rancher_monitoring" {
   repository = "https://charts.rancher.io"
   chart      = "rancher-monitoring"
   namespace  = "cattle-monitoring-system"
-  version    = "102.0.5+up40.1.2" # MUST USE THIS VERSION OLD RANCHER !!!
+  version    = local.monitoring_version_effective
   timeout    = var.helm_timeout_seconds
 
   set {

@@ -1,3 +1,11 @@
 # Required variables
+kubernetes_engine = "rke2"  # rke2 (default) or rke1 (legacy chart pins)
 rancher_hostname = "rancher.turing-mosip.net"  # Change this to rancher DNS
 kubeconfig_path = "/home/ubuntu/rancher/obs/kube_config_cluster.yml"  #IMPORTANT: Use the full path to the kubeconfig file, e.g. /home/ubuntu/ and not ~/
+
+# Optional version overrides (leave empty to use kubernetes_engine defaults)
+# RKE2 defaults: rancher 2.8.3, ingress-nginx 4.10.0, longhorn 1.4.2
+# RKE1 legacy:  rancher 2.6.9, ingress-nginx 4.0.18, longhorn 1.4.2
+# rancher_version = ""
+# ingress_nginx_version = ""
+# longhorn_version = ""

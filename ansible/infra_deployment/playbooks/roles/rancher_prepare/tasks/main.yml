@@ -101,20 +101,24 @@
   become: true
   when: disable_swap
 
-# Install Docker
+# Install Docker (RKE1 only — RKE2 uses bundled containerd)
 - name: Add Docker GPG apt Key
   apt_key:
     url: "{{ docker_apt_gpg_key }}"
     state: present
   become: true
-  when: not docker_install_from_apt
+  when:
+    - kubernetes_engine | default('rke2') == 'rke1'
+    - not docker_install_from_apt
 
 - name: Add Docker Repository
   apt_repository:
     repo: "{{ docker_apt_repository }}"
     state: present
   become: true
-  when: not docker_install_from_apt
+  when:
+    - kubernetes_engine | default('rke2') == 'rke1'
+    - not docker_install_from_apt
 
 - name: Install Docker CE and related packages
   apt:
@@ -125,7 +129,9 @@
     state: present
     update_cache: yes
   become: true
-  when: not docker_install_from_apt
+  when:
+    - kubernetes_engine | default('rke2') == 'rke1'
+    - not docker_install_from_apt
 
 - name: Hold Docker packages to prevent auto-upgrade
   dpkg_selections:
@@ -136,7 +142,9 @@
     - docker-ce
     - docker-ce-cli
     - docker-ce-rootless-extras
-  when: not docker_install_from_apt
+  when:
+    - kubernetes_engine | default('rke2') == 'rke1'
+    - not docker_install_from_apt
 
 - name: Install Docker.io
   apt:
@@ -144,7 +152,9 @@
     state: present
     update_cache: yes
   become: true
-  when: docker_install_from_apt
+  when:
+    - kubernetes_engine | default('rke2') == 'rke1'
+    - docker_install_from_apt
 
 - name: Start Docker service
   service:
@@ -152,6 +162,7 @@
     state: started
     enabled: yes
   become: true
+  when: kubernetes_engine | default('rke2') == 'rke1'
 
 # Configure Docker user
 - name: Create docker group
@@ -159,6 +170,7 @@
     name: docker
     state: present
   become: true
+  when: kubernetes_engine | default('rke2') == 'rke1'
 
 - name: Add user to docker group
   user:
@@ -166,10 +178,12 @@
     groups: docker
     append: yes
   become: true
+  when: kubernetes_engine | default('rke2') == 'rke1'
 
 # Ensure group membership is available without logout
 - name: Reset SSH connection to allow user changes to affect ansible user
   meta: reset_connection
+  when: kubernetes_engine | default('rke2') == 'rke1'
 
 # Configure Docker daemon
 - name: Create Docker daemon directory
@@ -178,6 +192,7 @@
     state: directory
     mode: '0755'
   become: true
+  when: kubernetes_engine | default('rke2') == 'rke1'
 
 - name: Configure Docker daemon
   become: true
@@ -206,4 +221,5 @@
         },
         "storage-driver": "overlay2",
         "storage-opts": ["overlay2.override_kernel_check=true"]
-      } 
+      }
+  when: kubernetes_engine | default('rke2') == 'rke1' 

@@ -38,6 +38,11 @@ Use a single variable, `deployment_mode`, to distinguish deployment paths:
 - `onprem` (default): existing VM provisioning workflow.
 - `aws`: run AWS Terraform base infrastructure provisioning as a prerequisite, then continue with the same Ansible and Terraform stages.
 
+Use `kubernetes_engine` in Ansible inventory (`group_vars/all.yml`) to select the cluster bootstrap path:
+
+- `rke2` (default): RKE2 via `deploy-all-rke2.yml` / `deploy-rke2-obs.yml`.
+- `rke1` (legacy): RKE1 via `deploy-all.yml` / `deploy-rancher-obs.yml`.
+
 Important: in `aws` mode, Terraform is used for prerequisite infrastructure provisioning only. Host configuration, service bootstrap, and procedural operations remain in Ansible playbooks.
 The AWS prerequisite Terraform module lives in `terraform/aws/base-infra` and is executed before the unchanged Ansible and downstream Terraform stages.
 

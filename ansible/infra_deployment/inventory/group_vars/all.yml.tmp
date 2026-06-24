@@ -1,5 +1,14 @@
 # Mandatory changes
 
+# Kubernetes engine: rke2 (default) or rke1 (legacy)
+kubernetes_engine: rke2
+
+# RKE2 Configuration (used when kubernetes_engine=rke2)
+rke2_version: "v1.28.9+rke2r1"
+rke2_config_dir: "/etc/rancher/rke2"
+rke2_enable_firewall: false
+rke2_dedicated_etcd: false
+
 # MOSIP Domain Configuration
 # Base domain for MOSIP installation (e.g., "turing-mosip.net", or if it's subdomain "warwick-1.turing-mosip.net")
 # This is used to generate public domain names: api.{domain}, prereg.{domain}, resident.{domain}
@@ -106,7 +115,7 @@ docker_daemon_config:
   ulimit_nproc: 1048576
 
 # Istio Configuration
-istio_version: "1.15.0"                  # Version of Istio to install
+istio_version: "1.22.0"                  # Version of Istio to install (use 1.15.0 for kubernetes_engine=rke1)
 istio_namespace: "istio-system"          # Namespace for Istio components
 istio_operator_wait_timeout: 300         # Timeout for operator readiness check
 

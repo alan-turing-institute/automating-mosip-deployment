@@ -3,6 +3,12 @@ variable "kubeconfig_path" {
   description = "Path to kubeconfig file"
 }
 
+variable "kubernetes_engine" {
+  type        = string
+  description = "Cluster engine selector (shared with infra tfvars; unused in mosip layer)"
+  default     = "rke2"
+}
+
 # Installation metadata variables removed - these are stored in Global ConfigMap
 # created by infrastructure deployment and accessed via data source
 
@@ -1821,7 +1827,25 @@ variable "prereg_namespace" {
 variable "prereg_chart_version" {
   description = "Prereg helm chart version"
   type        = string
-  default     = "12.0.1"
+  default     = "1.3.0"
+}
+
+variable "prereg_gateway_chart_version" {
+  description = "Prereg gateway helm chart version"
+  type        = string
+  default     = "1.0.0"
+}
+
+variable "prereg_booking_chart_version" {
+  description = "Prereg booking helm chart version"
+  type        = string
+  default     = "1.3.1-rc.1"
+}
+
+variable "prereg_ui_chart_version" {
+  description = "Prereg UI helm chart version"
+  type        = string
+  default     = "1.3.0"
 }
 
 variable "prereg_istio_injection_label" {
@@ -2081,7 +2105,19 @@ variable "pms_helm_chart_version" {
 variable "pmp_ui_chart_version" {
   description = "Helm chart version for PMP UI"
   type        = string
-  default     = "12.0.1"
+  default     = "12.2.3"
+}
+
+variable "pmp_revamp_ui_enabled" {
+  description = "Deploy PMP revamp UI chart"
+  type        = bool
+  default     = true
+}
+
+variable "pmp_revamp_ui_chart_version" {
+  description = "Helm chart version for PMP revamp UI"
+  type        = string
+  default     = "12.2.2"
 }
 
 variable "pms_istio_injection_label" {

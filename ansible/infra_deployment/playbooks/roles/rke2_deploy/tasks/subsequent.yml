@@ -1,0 +1,62 @@
+---
+- name: Skip subsequent install when cluster already exists
+  meta: end_host
+  when: rke2_cluster_exists | default(false)
+
+- name: Determine RKE2 node role
+  set_fact:
+    rke2_node_template: >-
+      {{
+        'rke2-server-control-plane-subsequent.conf.j2'
+        if inventory_hostname in groups.get('control_plane_subsequent', [])
+        else 'rke2-etcd-agents.conf.j2'
+        if inventory_hostname in groups.get('rke2_etcd', [])
+        else 'rke2-agents.conf.j2'
+      }}
+    rke2_service_name: >-
+      {{
+        'rke2-server'
+        if inventory_hostname in groups.get('control_plane_subsequent', [])
+        else 'rke2-agent'
+      }}
+
+- name: Check if RKE2 service is already active
+  systemd:
+    name: "{{ rke2_service_name }}"
+  register: node_rke2_status
+  failed_when: false
+
+- name: Skip node when service already active
+  meta: end_host
+  when: node_rke2_status.status is defined and node_rke2_status.status.ActiveState == "active"
+
+- name: Wait for primary RKE2 supervisor API
+  wait_for:
+    port: 9345
+    host: "{{ rke2_primary_ip }}"
+    timeout: 300
+
+- name: Create RKE2 config directory
+  file:
+    path: "{{ rke2_config_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Install RKE2 on node
+  shell: |
+    curl -sfL https://get.rke2.io | INSTALL_RKE2_VERSION="{{ rke2_version }}" sh -
+  args:
+    creates: /usr/local/bin/rke2
+
+- name: Render RKE2 config for node
+  template:
+    src: "{{ rke2_node_template }}"
+    dest: "{{ rke2_config_dir }}/config.yaml"
+    mode: '0600'
+  no_log: true
+
+- name: Start and enable RKE2 service on node
+  systemd:
+    name: "{{ rke2_service_name }}"
+    enabled: yes
+    state: restarted

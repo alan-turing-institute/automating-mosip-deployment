@@ -210,24 +210,43 @@ sudo dpkg -i libssl-dev_1.1.1f-1ubuntu2_amd64.deb
 sudo dpkg -i openssl_1.1.1f-1ubuntu2_amd64.deb
 ```
 
-- Istioctl 1.15.0
+- Istioctl (version depends on `kubernetes_engine` in `group_vars/all.yml`)
 
 ```sh
-cd ~; mkdir istioctl-1.15.0 ; cd istioctl-1.15.0/
-wget https://github.com/istio/istio/releases/download/1.15.0/istioctl-1.15.0-linux-amd64.tar.gz
-tar -xzf istioctl-1.15.0-linux-amd64.tar.gz
+# RKE2 default (kubernetes_engine=rke2)
+cd ~; mkdir istioctl-1.22.0 ; cd istioctl-1.22.0/
+wget https://github.com/istio/istio/releases/download/1.22.0/istioctl-1.22.0-linux-amd64.tar.gz
+tar -xzf istioctl-1.22.0-linux-amd64.tar.gz
 sudo cp istioctl /usr/local/bin
 istioctl version
+
+# Legacy RKE1 only (kubernetes_engine=rke1)
+# cd ~; mkdir istioctl-1.15.0 ; cd istioctl-1.15.0/
+# wget https://github.com/istio/istio/releases/download/1.15.0/istioctl-1.15.0-linux-amd64.tar.gz
+# tar -xzf istioctl-1.15.0-linux-amd64.tar.gz
+# sudo cp istioctl /usr/local/bin
 ```
 
-- RKE 1.3.10
+- RKE2 cluster engine (default). RKE1 binary only required for legacy `kubernetes_engine=rke1`.
 
 ```sh
-cd ~; wget https://github.com/rancher/rke/releases/download/v1.3.10/rke_linux-amd64
-chmod +x rke_linux-amd64
-sudo mv rke_linux-amd64 /usr/local/bin/rke
-rke --version
+# No RKE/RKE2 binary needed on deployment-node for default RKE2 path.
+# Ansible installs RKE2 via get.rke2.io on cluster nodes.
+
+# Legacy RKE1 only:
+# cd ~; wget https://github.com/rancher/rke/releases/download/v1.3.10/rke_linux-amd64
+# chmod +x rke_linux-amd64
+# sudo mv rke_linux-amd64 /usr/local/bin/rke
+# rke --version
 ```
+
+Set `kubernetes_engine: rke2` (default) and `rke2_version: "v1.28.9+rke2r1"` in `inventory/group_vars/all.yml`. Use `kubernetes_engine: rke1` only for legacy clusters.
+
+**RKE2 paths (default):**
+- Main cluster kubeconfig: `{rancher_base_dir}/{cluster_name}/kube_config_cluster.yml` (e.g. `/home/ubuntu/rancher/mosip/kube_config_cluster.yml`)
+- Main cluster token: `{rancher_base_dir}/{cluster_name}/rke2_token`
+- OBS cluster kubeconfig: `{rancher_obs_base_dir}/kube_config_cluster.yml` (e.g. `/home/ubuntu/rancher/obs/kube_config_cluster.yml`)
+- OBS cluster token: `{rancher_obs_base_dir}/rke2_token`
 
 Code repo:
 
@@ -428,7 +447,8 @@ ansible-playbook -f 12 -v -i inventory/rancher.ini playbooks/apt-upgrade.yml
   - Nginx OBS hostname: `nginx_obs_public_domain_names`
   - Mosip domain: `mosip_domain`
 - Copy wildcard certificate to `ansible/infra_deployment/playbooks/roles/nginx_obs/files` make sure the name is: `fullchain.pem` and `privkey.pem`
-- Run Ansible `ansible-playbook -v -i inventory/rancher.ini playbooks/deploy-rancher-obs.yml`
+- Run Ansible `ansible-playbook -v -i inventory/rancher.ini playbooks/deploy-rke2-obs.yml`
+  - Legacy RKE1: `playbooks/deploy-rancher-obs.yml`
 
 ### Verification
 
@@ -455,7 +475,8 @@ ansible-playbook -f 12 -v -i inventory/rancher.ini playbooks/apt-upgrade.yml
 - Check infra inventory file is ready.
 - In `inventory/group_vars/all.yml` , update `rancher_import_url`
 - Copy wildcard certificate to `~/mosip/automating-mosip-deployment/ansible/infra_deployment/playbooks/roles/nginx/files` make sure the name is: `fullchain.pem` and `privkey.pem`
-- Run Ansible `ansible-playbook -f 8 -v -i inventory/rancher.ini playbooks/deploy-all.yml`
+- Run Ansible `ansible-playbook -f 8 -v -i inventory/rancher.ini playbooks/deploy-all-rke2.yml`
+  - Legacy RKE1: `playbooks/deploy-all.yml`
 
 ### Verification
 

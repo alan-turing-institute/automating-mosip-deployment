@@ -1,0 +1,21 @@
+---
+- name: Check for existing cluster directory
+  stat:
+    path: "{{ cluster_dir }}/kube_config_cluster.yml"
+  register: existing_kubeconfig
+
+- name: Test cluster connectivity using existing kubeconfig
+  command: kubectl --kubeconfig={{ cluster_dir }}/kube_config_cluster.yml get nodes
+  register: kubectl_test
+  changed_when: false
+  failed_when: false
+  when: existing_kubeconfig.stat.exists
+
+- name: Set cluster exists fact
+  set_fact:
+    rke2_cluster_exists: "{{ existing_kubeconfig.stat.exists and kubectl_test.rc == 0 }}"
+
+- name: Display cluster status
+  debug:
+    msg: "RKE2 cluster '{{ cluster_name }}' is already running and accessible"
+  when: rke2_cluster_exists | default(false)

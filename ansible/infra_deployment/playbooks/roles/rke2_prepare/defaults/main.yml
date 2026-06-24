@@ -1,0 +1,13 @@
+---
+disable_swap: true
+rke2_enable_firewall: false
+
+required_packages:
+  - curl
+  - wget
+  - jq
+  - apt-transport-https
+  - ca-certificates
+  - software-properties-common
+  - gnupg
+  - nfs-common

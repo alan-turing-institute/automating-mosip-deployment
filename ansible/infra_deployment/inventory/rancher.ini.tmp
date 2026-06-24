@@ -36,6 +36,31 @@ control_plane_nodes
 etcd_nodes
 worker_nodes
 
+# RKE2 cluster groups (used when kubernetes_engine=rke2 in group_vars/all.yml)
+# Colocated topology: vm1=primary CP, vm2-vm3=HA CP, vm4-vm6=worker agents
+[control_plane_primary]
+vm1 ansible_host=10.100.0.
+
+[control_plane_subsequent]
+vm2 ansible_host=10.100.0.
+vm3 ansible_host=10.100.0.
+
+[rke2_agents]
+vm4 ansible_host=10.100.0.
+vm5 ansible_host=10.100.0.
+vm6 ansible_host=10.100.0.
+
+# Optional dedicated etcd nodes (leave empty for embedded etcd)
+[rke2_etcd]
+
+[rke2_cluster:children]
+control_plane_primary
+control_plane_subsequent
+rke2_agents
+
+# Optional dedicated etcd nodes (comment out group members for embedded-etcd sandbox)
+# [rke2_etcd]
+
 [mosip_obs]
 # Single node Rancher OBS cluster
 obs-node-1 ansible_host=10.100.0.

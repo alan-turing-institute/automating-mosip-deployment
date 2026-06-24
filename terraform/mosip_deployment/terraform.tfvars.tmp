@@ -4,6 +4,9 @@ installation_domain = "turing-mosip.net"  # Change this to your actual domain
 mosip_version = "1.2.0"           # Change this to your desired MOSIP version
 kubeconfig_path = "/home/ubuntu/rancher/mosip/kube_config_cluster.yml"  #IMPORTANT: Use the full path to the kubeconfig file, e.g. /home/ubuntu/ and not ~/
 
+# Cluster engine (must match Ansible kubernetes_engine)
+kubernetes_engine = "rke2"  # rke2 (default) or rke1 (legacy infra chart pins)
+
 # Enable modules
 ###### KEEP DOCKER OFF FOR NOW #####
 # Orginal location before conf_secrets
@@ -368,6 +371,10 @@ websub_liveness_probe_period_seconds = 60
 websub_liveness_probe_failure_threshold = 10
 
 # Component toggles and versions
+# --- Infra chart pins (RKE2 default) ---
+# Legacy RKE1: monitoring 102.0.5+up40.1.2, istio 1.15.0, rancher obs 2.6.9 / ingress 4.0.18
+monitoring_crd_version = "103.1.1+up45.31.1"
+monitoring_version     = "103.1.0+up45.31.1"
 # Longhorn Storage
 longhorn_version = "1.5.1"         # Version of Longhorn to deploy
 longhorn_namespace = "longhorn-system"  # Namespace for Longhorn deployment
@@ -385,12 +392,12 @@ longhorn_storage_class_name = "longhorn"              # Name of the storage clas
 #longhorn_filesystem_size = "10Gi"                     # Size for filesystem PV
 
 # Istio Service Mesh and Gateway Configuration
-istio_version = "1.15.0"           # Specific version required for MOSIP compatibility
+istio_version = "1.22.0"           # RKE2 default (use 1.15.0 when kubernetes_engine=rke1)
 proxy_protocol_enabled = false     # Set to true to enable proxy protocol for ingress gateway
 
 # IAM (Keycloak)
 iam_version = "7.1.18"            # Version of Keycloak Helm chart
-iam_init_version = "12.0.1"       # Version of Keycloak Init Helm chart
+iam_init_version = "1.3.0"       # Version of Keycloak Init Helm chart
 iam_namespace = "keycloak"        # Namespace for IAM deployment
 iam_admin_password = "admin"      # Initial admin password for Keycloak (change this in production)
 iam_image_repository = "mosipid/mosip-artemis-keycloak"
@@ -410,13 +417,13 @@ iam_smtp_password = ""      # Optional, only if smtp_auth is true
 # Postgres Database
 postgres_version = "12.11.1"       # Version of Postgres Helm chart to deploy
 postgres_namespace = "postgres"     # Namespace for Postgres deployment
-postgres_init_version = "12.0.1"   # Version of Postgres Init Helm chart
+postgres_init_version = "1.3.0"   # Version of Postgres Init Helm chart
 
 # Httpbin Debug Tool
 httpbin_namespace = "httpbin"      # Namespace for httpbin deployment
 
 # SoftHSM
-softhsm_chart_version = "12.0.1"  # Version of SoftHSM Helm chart to deploy
+softhsm_chart_version = "1.4.1-rc.1"  # Version of SoftHSM Helm chart to deploy
 softhsm_namespace = "softhsm"     # Namespace for SoftHSM deployment
 
 # MinIO Object Store
@@ -440,7 +447,7 @@ kafka_zookeeper_storage_size = "2Gi"
 kafka_zookeeper_replica_count = 5
 
 # ClamAV Configuration
-clamav_helm_chart_version = "2.4.1"
+clamav_helm_chart_version = "3.1.0"
 clamav_replica_count = 1
 clamav_image_repository = "clamav/clamav"
 clamav_image_tag = "latest"
@@ -465,11 +472,11 @@ docker_email = ""
 
 # Conf Secrets
 conf_secrets_namespace = "conf-secrets"
-conf_secrets_chart_version = "12.0.1"
+conf_secrets_chart_version = "1.3.1-rc.1"
 
 # Config Server Configuration
 config_server_namespace = "config-server"
-config_server_chart_version = "12.0.1"
+config_server_chart_version = "1.3.1-rc.1"
 config_server_git_repo_uri = "https://github.com/mosip/mosip-config"
 config_server_git_repo_version = "v1.2.0.1"
 config_server_git_search_folders = ""
@@ -495,7 +502,7 @@ config_server_liveness_probe_period_seconds = 60
 config_server_liveness_probe_failure_threshold = 10
 
 # Landing Page Configuration
-landing_page_chart_version = "12.0.1"  # Version of Landing Page Helm chart
+landing_page_chart_version = "1.3.0"  # Version of Landing Page Helm chart
 landing_version = "1.2.0.2"           # Version of Landing Page to deploy
 healthservices_host = "healthservices.mosip.net"  # Health Services host URL
 
@@ -509,7 +516,7 @@ resident_captcha_secret_key = "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe" # Defau
 
 # Artifactory Configuration
 artifactory_namespace = "artifactory"
-artifactory_chart_version = "12.0.2"
+artifactory_chart_version = "1.3.2-rc.1"
 
 # Artifactory Probe Configuration
 artifactory_startup_probe_enabled = true
@@ -529,13 +536,13 @@ artifactory_liveness_probe_period_seconds = 60
 artifactory_liveness_probe_failure_threshold = 10
 
 # Keymanager configuration
-keymanager_chart_version = "12.0.1"
-keymanager_keygen_chart_version = "12.0.1"
+keymanager_chart_version = "1.4.1-rc.1"
+keymanager_keygen_chart_version = "1.4.1-rc.1"
 keymanager_spring_config_name_env = "kernel"
 keymanager_softhsm_cm = "softhsm-kernel-share"
 
 # Websub Configuration
-websub_helm_chart_version = "12.0.1"
+websub_helm_chart_version = "1.3.2-rc.1"
 
 # Mock SMTP Configuration
 mock_smtp_host             = "smtp.mosip.net"
@@ -543,7 +550,7 @@ mock_smtp_helm_version = "1.0.0"
 
 # Kernel Configuration
 kernel_namespace               = "kernel"
-kernel_helm_chart_version      = "12.0.1"
+kernel_helm_chart_version      = "1.3.1-rc.1"
 kernel_enable_insecure         = false
 kernel_helm_timeout_seconds    = 1200
 
@@ -582,12 +589,12 @@ kernel_idgenerator_liveness_probe_period_seconds = 60
 kernel_idgenerator_liveness_probe_failure_threshold = 10
 
 # Masterdata Loader
-masterdata_loader_helm_chart_version = "12.0.1"
+masterdata_loader_helm_chart_version = "1.3.0"
 masterdata_loader_mosip_data_github_branch = "v1.2.0.1"
 
 # BioSDK settings
 biosdk_namespace = "biosdk"
-biosdk_helm_chart_version = "12.0.1"
+biosdk_helm_chart_version = "1.3.1-rc.1"
 
 # BioSDK Probe Configuration
 biosdk_startup_probe_enabled = true
@@ -608,11 +615,11 @@ biosdk_liveness_probe_failure_threshold = 10
 
 # Packetmanager settings
 packetmanager_namespace = "packetmanager"
-packetmanager_helm_chart_version = "12.0.1"
+packetmanager_helm_chart_version = "1.3.1-rc.1"
 
 # Datashare settings
 datashare_namespace = "datashare"
-datashare_helm_chart_version = "12.0.1"
+datashare_helm_chart_version = "1.3.1-rc.1"
 
 # Datashare Probe Configuration
 datashare_startup_probe_enabled = true
@@ -632,7 +639,10 @@ datashare_liveness_probe_period_seconds = 60
 datashare_liveness_probe_failure_threshold = 10
 
 # Prereg configuration
-prereg_chart_version = "12.0.1"
+prereg_chart_version = "1.3.0"
+prereg_gateway_chart_version = "1.0.0"
+prereg_booking_chart_version = "1.3.1-rc.1"
+prereg_ui_chart_version = "1.3.0"
 prereg_istio_injection_label = "disabled"
 prereg_helm_timeout_seconds = 1200
 prereg_rate_limit_max_tokens = 100
@@ -641,25 +651,27 @@ prereg_rate_limit_fill_interval = "50ms"
 
 # IDREPO settings
 idrepo_namespace = "idrepo"
-idrepo_helm_chart_version = "12.0.1"
+idrepo_helm_chart_version = "1.3.1-rc.1"
 idrepo_istio_injection_label = "enabled"
 idrepo_helm_timeout_seconds = 1200
 
 # PMS settings
 pms_namespace = "pms"
-pms_helm_chart_version = "12.0.1"
-pmp_ui_chart_version = "12.0.1"
+pms_helm_chart_version = "12.2.3"
+pmp_ui_chart_version = "12.2.3"
+pmp_revamp_ui_enabled = true
+pmp_revamp_ui_chart_version = "12.2.2"
 pms_istio_injection_label = "enabled"
 pms_helm_timeout_seconds = 1200
 
 # Mock ABIS settings
 mock_abis_namespace = "abis"
-mock_abis_helm_chart_version = "12.0.2"
+mock_abis_helm_chart_version = "1.3.1-rc.1"
 mock_abis_istio_injection_label = "enabled"
 mock_abis_helm_timeout_seconds = 1200
 
 # Mock MV settings
-mock_mv_helm_chart_version = "12.0.2"
+mock_mv_helm_chart_version = "1.3.1-rc.1"
 mock_mv_istio_injection_label = "enabled"
 mock_mv_startup_probe_initial_delay = 90
 mock_mv_startup_probe_timeout = 180
@@ -667,7 +679,7 @@ mock_mv_helm_timeout_seconds = 1200
 
 # Regproc Configuration
 regproc_namespace         = "regproc"
-regproc_helm_chart_version = "12.0.1" 
+regproc_helm_chart_version = "1.3.1-rc.1" 
 regproc_helm_timeout      = 1200
 
 # Regproc Probe Configuration (for all components except group2 and notifier)
@@ -723,39 +735,39 @@ regproc_notifier_liveness_probe_failure_threshold = 10
 
 # Admin Configuration
 admin_namespace         = "admin"
-admin_helm_chart_version = "12.0.1"
+admin_helm_chart_version = "1.3.1"
 admin_helm_timeout      = 1200
 
 # IDA Configuration
 ida_namespace         = "ida"
-ida_helm_chart_version = "12.0.1"
+ida_helm_chart_version = "1.3.1-rc.1"
 ida_enable_insecure   = false
 ida_helm_timeout      = 1200
 
 # Print Configuration
 print_namespace         = "print"
-print_helm_chart_version = "12.0.1"
+print_helm_chart_version = "1.3.1"
 print_helm_timeout      = 1200
 
 # Resident Configuration
 resident_namespace = "resident"
-resident_helm_chart_version = "12.0.1"
-resident_ui_chart_version = "0.0.1"
+resident_helm_chart_version = "1.3.1"
+resident_ui_chart_version = "0.9.1"
 resident_enable_insecure = false
 
 # Regclient Configuration
 regclient_namespace = "regclient"
-regclient_helm_chart_version = "12.0.2"
+regclient_helm_chart_version = "12.0.3"
 
 # Partner Onboarder Configuration
 partner_onboarder_namespace         = "onboarder"
-partner_onboarder_helm_chart_version = "12.0.1"
+partner_onboarder_helm_chart_version = "1.3.1"
 partner_onboarder_helm_timeout      = 1200
 partner_onboarder_s3_bucket_name    = "onboarder"
 
 # mosip-file-server Configuration
 mosip_file_server_namespace          = "mosip-file-server"
-mosip_file_server_helm_chart_version = "12.0.1"
+mosip_file_server_helm_chart_version = "1.3.0"
 mosip_file_server_helm_timeout       = 1200
 
 # Additional variables

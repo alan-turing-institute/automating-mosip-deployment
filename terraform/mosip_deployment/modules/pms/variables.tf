@@ -7,13 +7,25 @@ variable "namespace" {
 variable "helm_chart_version" {
   description = "PMS helm chart version"
   type        = string
-  default     = "12.0.1"
+  default     = "12.2.3"
 }
 
 variable "pmp_ui_chart_version" {
   description = "PMP UI helm chart version"
   type        = string
-  default     = "12.0.2"
+  default     = "12.2.3"
+}
+
+variable "pmp_revamp_ui_enabled" {
+  description = "Deploy PMP revamp UI chart"
+  type        = bool
+  default     = true
+}
+
+variable "pmp_revamp_ui_chart_version" {
+  description = "PMP revamp UI helm chart version"
+  type        = string
+  default     = "12.2.2"
 }
 
 variable "istio_injection_label" {
