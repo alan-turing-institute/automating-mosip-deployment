@@ -56,6 +56,26 @@ variable "ssh_key_name" {
   }
 }
 
+variable "enable_deployment_node_private_eni" {
+  description = "Create a network interface in the first private subnet and attach it to an existing deployment node EC2 instance"
+  type        = bool
+  default     = true
+}
+
+variable "deployment_node_instance_id" {
+  description = "EC2 instance ID of the pre-provisioned deployment node (required when enable_deployment_node_private_eni=true)"
+  type        = string
+  default     = ""
+
+  validation {
+    condition = (
+      !var.enable_deployment_node_private_eni ||
+      trimspace(var.deployment_node_instance_id) != ""
+    )
+    error_message = "deployment_node_instance_id must be set when enable_deployment_node_private_eni=true, or set enable_deployment_node_private_eni=false to skip."
+  }
+}
+
 variable "jumpserver_instance_type" {
   description = "Jumpserver EC2 instance type"
   type        = string

@@ -105,8 +105,7 @@ On Ubuntu 26.04:
 
 ```sh
 sudo apt update
-sudo apt -y install ansible jq git curl wget unzip ca-certificates openssh-client \
-  python3 python3-pip certbot python3-certbot-dns-route53
+sudo apt -y install ansible jq git curl wget unzip ca-certificates openssh-client python3 python3-pip certbot python3-certbot-dns-route53
 
 sudo snap install kubectl --classic
 sudo snap install helm --classic
@@ -172,12 +171,16 @@ Run this stage only for AWS deployments. Terraform here is **declarative infrast
 
 ```bash
 cd ~/mosip/automating-mosip-deployment/terraform/aws/base-infra
-# Edit aws.tfvars — see aws.tfvars.tmp in the repo for available settings
+cp aws.tfvars.tmp aws.tfvars # Min changes ssh_key_name.
 terraform init
 terraform plan -var-file=aws.tfvars
 terraform apply -var-file=aws.tfvars
 terraform output -json > aws-base-outputs.json
 ```
+
+#### Add MOSIP-NET interface to deployment node
+Once your MOSIP network is created, we can create network interface and attach to the deployment VM.
+
 
 #### Map AWS outputs to Ansible / Terraform templates
 

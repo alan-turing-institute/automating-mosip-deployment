@@ -102,3 +102,13 @@ output "certbot_instance_profile_name" {
   value       = var.enable_certbot_iam_profile ? aws_iam_instance_profile.certbot_profile[0].name : null
 }
 
+output "deployment_node_private_eni_id" {
+  description = "Network interface ID attached to the deployment node when enable_deployment_node_private_eni=true"
+  value       = var.enable_deployment_node_private_eni ? aws_network_interface.deployment_node[0].id : null
+}
+
+output "deployment_node_private_ip" {
+  description = "Private IP of the deployment node ENI on the first private subnet when enabled"
+  value       = var.enable_deployment_node_private_eni ? aws_network_interface.deployment_node[0].private_ip : null
+}
+
