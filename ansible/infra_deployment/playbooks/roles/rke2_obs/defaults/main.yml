@@ -4,3 +4,5 @@ rancher_base_dir: "{{ rancher_obs_base_dir | default(ansible_env.HOME | default(
 cluster_dir: "{{ rancher_base_dir }}"
 rke2_config_dir: "{{ rke2_obs_config_dir | default(ansible_env.HOME | default('/home/ubuntu') + '/rancher/obs/rke2') }}"
 rke2_token_file: "{{ cluster_dir }}/rke2_token"
+# Fallback when group_vars/platform_versions.yml is missing; overridden by platform_version_profile there.
+rke2_version: "v1.28.8+rke2r1"
