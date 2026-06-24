@@ -41,8 +41,8 @@
     path: "{{ rke2_config_dir }}"
     state: directory
     mode: '0750'
-    owner: "{{ ansible_user_id }}"
-    group: "{{ ansible_user_gid | default(ansible_user_id) }}"
+    owner: "{{ ansible_facts['user_id'] }}"
+    group: "{{ ansible_facts['user_gid'] | default(ansible_facts['user_id']) }}"
 
 - name: Install RKE2 on node
   shell: |
