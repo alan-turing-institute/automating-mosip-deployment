@@ -69,4 +69,10 @@ Terraform provides several key capabilities:
 
 ## Getting Started
 
-To begin, copy the `deployment_plan_template.md` into `deployment_plan.md` to create your master copy of project deployment steps and variables. This template contains all the detailed technical instructions, step-by-step procedures, configuration requirements, and technical details needed to deploy MOSIP using these automated tools. Once copied, update all configuration values in `deployment_plan.md` to match your specific environment.
+Copy `deployment_plan_template.md` to `deployment_plan.md` and follow it in order:
+
+1. **Phase 1** — deployment node (create VM, network placement, tools, clone repo)
+2. **Phase 2** — AWS or on-prem infrastructure
+3. **Phase 3** — shared WireGuard → OBS RKE2 → main RKE2 → MOSIP Terraform sequence
+
+All operational commands run from the deployment node after Phase 1.
