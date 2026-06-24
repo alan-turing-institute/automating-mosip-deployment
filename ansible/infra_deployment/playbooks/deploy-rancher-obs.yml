@@ -8,6 +8,7 @@
 
 - name: Deploy RKE2 OBS cluster
   hosts: mosip_obs
+  become: true
   gather_facts: true
   serial: 1
   roles:

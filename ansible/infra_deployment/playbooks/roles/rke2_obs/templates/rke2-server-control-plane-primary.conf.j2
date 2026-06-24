@@ -1,3 +1,5 @@
+write-kubeconfig: {{ rke2_config_dir }}/rke2.yaml
+write-kubeconfig-mode: "0600"
 token: {{ rke2_cluster_token }}
 node-name: {{ inventory_hostname }}
 node-ip: {{ ansible_host }}

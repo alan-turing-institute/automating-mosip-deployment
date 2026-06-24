@@ -4,7 +4,11 @@
 # Change platform_version_profile there (and terraform/platform_versions.tfvars) for install/upgrade stacks.
 
 # RKE2 Configuration
-rke2_config_dir: "/etc/rancher/rke2"
+# Cluster-node config/kubeconfig paths live under ~/rancher (not /etc/rancher/rke2).
+# Ansible still uses become on nodes for RKE2 install/systemd; only a small
+# /etc/rancher/rke2/rke2-{server,agent}.env pointer file is written there.
+rke2_config_dir: "/home/ubuntu/rancher/mosip/rke2"
+rke2_obs_config_dir: "/home/ubuntu/rancher/obs/rke2"
 rke2_enable_firewall: false
 rke2_dedicated_etcd: false
 

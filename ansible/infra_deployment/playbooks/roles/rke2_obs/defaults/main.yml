@@ -2,6 +2,6 @@
 cluster_name: "{{ rancher_obs_cluster_name | default('mosip_obs') }}"
 rancher_base_dir: "{{ rancher_obs_base_dir | default(ansible_env.HOME + '/rancher/obs') | replace('~', ansible_env.HOME) }}"
 cluster_dir: "{{ rancher_base_dir }}"
-rke2_config_dir: "/etc/rancher/rke2"
+rke2_config_dir: "{{ rke2_obs_config_dir | default(ansible_env.HOME | default('/home/ubuntu') + '/rancher/obs/rke2') }}"
 rke2_version: "{{ rke2_version | default('v1.28.8+rke2r1') }}"
 rke2_token_file: "{{ cluster_dir }}/rke2_token"

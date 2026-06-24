@@ -55,7 +55,7 @@ The deployment node must reach every target VM by **private IP** and SSH. How yo
 
 1. You will run AWS base Terraform (Phase 2) to create the VPC, subnets, and MOSIP infrastructure VMs.
 2. The deployment node is **not** created by that Terraform module — provision it separately (same cloud account or your admin network).
-3. Attach a **second network interface** (or equivalent routing) so the deployment node sits on the **same VPC private network** as the WireGuard, Nginx, observation, and MOSIP nodes output by Terraform.
+3. After the terraform deployment, the 2nd interface is added to your deployment node.
 4. From the deployment node, verify SSH to private IPs of all provisioned nodes before starting Ansible.
 
 Use private IPs from `terraform output` when filling Ansible inventories after AWS apply.
@@ -139,7 +139,6 @@ helm repo list | grep -E 'bitnami|mosip'
 ### Step 5 — Clone the repository
 
 ```sh
-mkdir ~/mosip && cd ~/mosip
 git clone https://github.com/alan-turing-institute/automating-mosip-deployment.git
 cd automating-mosip-deployment
 ```
@@ -167,10 +166,17 @@ Run this stage only for AWS deployments. Terraform here is **declarative infrast
 
 **Optional:** enable Route53 DNS in `aws.tfvars` — see [Optional AWS DNS](#optional-aws-dns-and-certbot-automation).
 
+#### Configure AWS credentials
+You need working aws credentials on deployment node.
+```
+mkdir ~/.aws
+vim ~/.aws/credentials #Copy your temporary access code from AWS Console under [default]
+```
+
 #### Terraform apply
 
 ```bash
-cd ~/mosip/automating-mosip-deployment/terraform/aws/base-infra
+cd ~/automating-mosip-deployment/terraform/aws/base-infra
 cp aws.tfvars.tmp aws.tfvars # Min changes ssh_key_name.
 terraform init
 terraform plan -var-file=aws.tfvars
@@ -178,9 +184,26 @@ terraform apply -var-file=aws.tfvars
 terraform output -json > aws-base-outputs.json
 ```
 
-#### Add MOSIP-NET interface to deployment node
-Once your MOSIP network is created, we can create network interface and attach to the deployment VM.
+#### Access to MOSIP network
+After the terraform your deployment node VM has 2nd interface added. Check deployment node netplan `sudo vim /etc/netplan/50-cloud-init.yaml` and update routes for 2nd interface, usually ens6 and change `routes:` from e.g.
+```
+#FROM
+      routes:
+        - table: 101
+          to: "10.100.0.0/16"
+          via: "10.100.3.1"
+        - scope: link
+          table: 101
+          to: "10.100.3.0/24"
+      routing-policy:
+        - table: 101
+          to: "10.100.0.0/16"
 
+#TO
+      routes:
+        - to: "10.100.0.0/16"
+          via: "10.100.3.1"
+```
 
 #### Map AWS outputs to Ansible / Terraform templates
 
@@ -266,12 +289,11 @@ Wildcard PEM for observation and MOSIP Nginx (can be one cert if same domain):
 
 ```bash
 # AWS Route53
-sudo certbot -v certonly --dns-route53 --agree-tos --preferred-challenges=dns \
-  -d *.{MOSIP_DOMAIN} -d {MOSIP_DOMAIN}
+sudo cp -r ~/.aws/credentials /root #Copy AWS credentials to root user
+sudo certbot -v certonly --dns-route53 --agree-tos --preferred-challenges=dns -d *.{MOSIP_DOMAIN} -d {MOSIP_DOMAIN}
 
 # Manual DNS
-sudo certbot certonly --agree-tos --manual --preferred-challenges=dns \
-  -d *.{MOSIP_DOMAIN} -d {MOSIP_DOMAIN}
+sudo certbot certonly --agree-tos --manual --preferred-challenges=dns -d *.{MOSIP_DOMAIN} -d {MOSIP_DOMAIN}
 ```
 
 With manual DNS, you may need two TXT records with different values — both are allowed; do not remove the first before validation completes.
@@ -294,15 +316,6 @@ Cluster nodes: Ubuntu 22.04 or 24.04 LTS per [official MOSIP docs](https://docs.
 
 Run all steps below **from the deployment node** after Phase 1 is complete and Phase 2 (AWS or on-prem) has provided VMs, DNS, and certificates.
 
-**RKE2 kubeconfig paths (defaults):**
-
-| Cluster | Kubeconfig | Token |
-|---------|------------|-------|
-| Main (`mosip`) | `{rancher_base_dir}/{cluster_name}/kube_config_cluster.yml` | `.../rke2_token` |
-| OBS | `{rancher_obs_base_dir}/kube_config_cluster.yml` | `.../rke2_token` |
-
-Example: `/home/ubuntu/rancher/mosip/kube_config_cluster.yml`, `/home/ubuntu/rancher/obs/kube_config_cluster.yml`
-
 ### Prepare Ansible inventory
 
 Edit inventory files under the repo with your IP addresses and domain. Examples and field names are in the `*.tmp` files alongside each inventory if you need a reference.
@@ -311,7 +324,11 @@ Edit inventory files under the repo with your IP addresses and domain. Examples 
 
 File: `ansible/wireguard/inventory/hosts.ini`
 
-```
+```sh
+cp hosts.ini.tmp hosts.ini
+
+vim hosts.ini
+
 [wireguard]
 wireguard-node ansible_host=<wg-bastion-private-ip> wireguard_endpoint=<wireguard-public-ip>
 ```
@@ -363,7 +380,7 @@ Set `rancher_hostname`, `kubeconfig_path`, and `installation_domain` in the Terr
 ### Update all nodes (optional but recommended)
 
 ```bash
-cd ~/mosip/automating-mosip-deployment/ansible/infra_deployment
+cd ~/automating-mosip-deployment/ansible/infra_deployment
 ansible-playbook -f 12 -v -i inventory/rancher.ini playbooks/apt-upgrade.yml
 ```
 
@@ -374,7 +391,7 @@ ansible-playbook -f 12 -v -i inventory/rancher.ini playbooks/apt-upgrade.yml
 - From deployment node:
 
 ```bash
-cd ~/mosip/automating-mosip-deployment/ansible/wireguard
+cd ~/automating-mosip-deployment/ansible/wireguard
 ansible-playbook -v -i inventory/hosts.ini playbooks/wireguard.yml
 ```
 
@@ -391,9 +408,15 @@ ssh ubuntu@<any-internal-host-ip>
 
 - In `group_vars/all.yml`: set `nginx_obs_public_domain_names`, `mosip_domain`
 - Place wildcard cert as `fullchain.pem` and `privkey.pem` in `playbooks/roles/nginx_obs/files/`
+```sh
+sudo cp /etc/letsencrypt/live/turing-mosip2.net/fullchain.pem ~/automating-mosip-deployment/ansible/infra_deployment/playbooks/roles/nginx_obs/files/
+sudo cp /etc/letsencrypt/live/turing-mosip2.net/privkey.pem ~/automating-mosip-deployment/ansible/infra_deployment/playbooks/roles/nginx_obs/files/
+sudo chown -R ubuntu:ubuntu ~/automating-mosip-deployment/ansible/infra_deployment/playbooks/roles/nginx_obs/files/*.pem
+```
 
+- Run Ansible
 ```bash
-cd ~/mosip/automating-mosip-deployment/ansible/infra_deployment
+cd ~/automating-mosip-deployment/ansible/infra_deployment
 ansible-playbook -v -i inventory/rancher.ini playbooks/deploy-rancher-obs.yml
 ```
 
@@ -402,7 +425,7 @@ ansible-playbook -v -i inventory/rancher.ini playbooks/deploy-rancher-obs.yml
 **Terraform OBS:**
 
 ```bash
-cd ~/mosip/automating-mosip-deployment/terraform/obs_deployment
+cd ~/automating-mosip-deployment/terraform/obs_deployment
 terraform init
 terraform plan -var-file=terraform.tfvars
 terraform apply -var-file=terraform.tfvars
