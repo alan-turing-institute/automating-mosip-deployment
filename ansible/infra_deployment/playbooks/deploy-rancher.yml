@@ -26,6 +26,7 @@
   vars:
     rke2_cluster_exists: "{{ hostvars[groups['deployment'][0]]['rke2_cluster_exists'] | default(false) }}"
     rke2_cluster_token: "{{ hostvars[groups['deployment'][0]]['rke2_cluster_token'] }}"
+    rke2_config_dir: "{{ rke2_main_config_dir | default('/home/ubuntu/rancher/mosip/rke2') }}"
   roles:
     - role: rke2_deploy
       tasks_from: primary.yml
@@ -40,6 +41,7 @@
     rke2_cluster_exists: "{{ hostvars[groups['deployment'][0]]['rke2_cluster_exists'] | default(false) }}"
     rke2_cluster_token: "{{ hostvars[groups['deployment'][0]]['rke2_cluster_token'] }}"
     rke2_primary_ip: "{{ hostvars[groups['deployment'][0]]['rke2_primary_ip'] }}"
+    rke2_config_dir: "{{ rke2_main_config_dir | default('/home/ubuntu/rancher/mosip/rke2') }}"
   roles:
     - role: rke2_deploy
       tasks_from: subsequent.yml
@@ -51,6 +53,7 @@
   vars:
     rke2_cluster_exists: "{{ hostvars[groups['deployment'][0]]['rke2_cluster_exists'] | default(false) }}"
     rke2_primary_ip: "{{ hostvars[groups['deployment'][0]]['rke2_primary_ip'] }}"
+    rke2_config_dir: "{{ rke2_main_config_dir | default('/home/ubuntu/rancher/mosip/rke2') }}"
   roles:
     - role: rke2_deploy
       tasks_from: kubeconfig.yml

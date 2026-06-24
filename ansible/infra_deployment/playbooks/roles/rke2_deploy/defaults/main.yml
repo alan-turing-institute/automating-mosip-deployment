@@ -1,6 +1,6 @@
 ---
 cluster_dir: "{{ rancher_base_dir }}/{{ cluster_name }}"
-rke2_config_dir: "{{ ansible_env.HOME | default('/home/ubuntu') }}/rancher/{{ cluster_name }}/rke2"
+rke2_config_dir: "{{ rke2_main_config_dir | default(ansible_env.HOME | default('/home/ubuntu') + '/rancher/' + cluster_name + '/rke2') }}"
 rke2_token_file: "{{ cluster_dir }}/rke2_token"
 ssh_key_path: "~/.ssh/id_ed25519"
 # Fallback when group_vars/platform_versions.yml is missing; overridden by platform_version_profile there.

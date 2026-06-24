@@ -11,6 +11,10 @@
   become: true
   gather_facts: true
   serial: 1
+  vars:
+    cluster_dir: "{{ rancher_obs_base_dir | default('/home/ubuntu/rancher/obs') }}"
+    rke2_config_dir: "{{ rke2_obs_config_dir | default('/home/ubuntu/rancher/obs/rke2') }}"
+    rke2_token_file: "{{ cluster_dir }}/rke2_token"
   roles:
     - rke2_obs
 

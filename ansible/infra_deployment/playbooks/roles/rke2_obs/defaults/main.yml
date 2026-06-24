@@ -1,7 +1,6 @@
 ---
 cluster_name: "{{ rancher_obs_cluster_name | default('mosip_obs') }}"
-rancher_base_dir: "{{ rancher_obs_base_dir | default(ansible_env.HOME | default('/home/ubuntu') + '/rancher/obs') | replace('~', ansible_env.HOME) }}"
-cluster_dir: "{{ rancher_base_dir }}"
+cluster_dir: "{{ rancher_obs_base_dir | default(ansible_env.HOME | default('/home/ubuntu') + '/rancher/obs') | replace('~', ansible_env.HOME) }}"
 rke2_config_dir: "{{ rke2_obs_config_dir | default(ansible_env.HOME | default('/home/ubuntu') + '/rancher/obs/rke2') }}"
 rke2_token_file: "{{ cluster_dir }}/rke2_token"
 # Fallback when group_vars/platform_versions.yml is missing; overridden by platform_version_profile there.
