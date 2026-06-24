@@ -14,44 +14,6 @@ ssh_key_name = ""
 enable_deployment_node_private_eni = true
 deployment_node_instance_id        = ""
 
-# Core metadata. Used to correctly lable AWS objects, e.g. for EC2 ${var.project_name}-obs-node-1
-environment  = "dev"
-project_name = "mosip"
-
-# Network
-network_name       = "mosip-boxes"
-network_cidr       = "10.100.0.0/16"
-public_subnets     = ["10.100.1.0/24", "10.100.2.0/24"]
-private_subnets    = ["10.100.3.0/24", "10.100.4.0/24"]
-wireguard_cidr     = "10.13.13.0/24" # WireGuard client tunnel subnet (must match wg Interface Address range)
-#availability_zones = ["ap-south-1a", "ap-south-1b"]
-availability_zones = ["eu-west-1a", "eu-west-1b"]
-
-# Networking options
-enable_nat_gateway   = true
-single_nat_gateway   = true
-enable_dns_hostnames = true
-enable_dns_support   = true
-
-# Jumpserver
-jumpserver_name          = "wg-bastion"
-jumpserver_instance_type = "t3a.2xlarge"
-#jumpserver_ami_id        = "ami-05e2a86d8dfbc265b" #22.04 Asia
-jumpserver_ami_id        = "ami-0bfd171be0640d169" #22.04 Ireland
-create_jumpserver_eip    = true
-
-# Ansible-target compute nodes
-#node_ami_id        = "ami-05e2a86d8dfbc265b" #22.04 Asia
-node_ami_id        = "ami-0bfd171be0640d169" #22.04 Ireland
-k8s_instance_type       = "t3a.2xlarge"
-nginx_instance_type     = "t3a.2xlarge"
-obs_instance_type       = "t3a.2xlarge"
-nginx_obs_instance_type = "t3a.2xlarge"
-physical_vm_count       = 6
-control_plane_count     = 3
-etcd_count              = 3
-worker_count            = 6
-
 # Optional Route53 automation
 enable_route53_records = false
 cluster_env_domain     = "turing-mosip.net"
@@ -76,3 +38,40 @@ root_domain_record_type   = "A"
 
 # Optional certbot Route53 IAM/profile attachment on nginx node
 enable_certbot_iam_profile = false
+
+# Core metadata. Used to correctly lable AWS objects, e.g. for EC2 ${var.project_name}-obs-node-1
+environment  = "dev"
+project_name = "mosip"
+
+# Network
+network_name       = "mosip-boxes"
+network_cidr       = "10.100.0.0/16"
+public_subnets     = ["10.100.1.0/24", "10.100.2.0/24"]
+private_subnets    = ["10.100.3.0/24", "10.100.4.0/24"]
+wireguard_cidr     = "10.13.13.0/24" # WireGuard client tunnel subnet (must match wg Interface Address range)
+#availability_zones = ["ap-south-1a", "ap-south-1b"]
+availability_zones = ["eu-west-1a", "eu-west-1b"]
+
+# Networking options
+enable_nat_gateway   = true
+single_nat_gateway   = true
+enable_dns_hostnames = true
+enable_dns_support   = true
+
+# Jumpserver
+jumpserver_name          = "wg-bastion"
+jumpserver_instance_type = "t3a.2xlarge"
+jumpserver_ami_id        = "ami-0bdc0c421b0b5c443" #26.04 Ireland
+create_jumpserver_eip    = true
+
+# Ansible-target compute nodes
+node_ami_id        = "ami-0bdc0c421b0b5c443" #26.04 Ireland
+k8s_instance_type       = "t3a.2xlarge"
+nginx_instance_type     = "t3a.2xlarge"
+obs_instance_type       = "t3a.2xlarge"
+nginx_obs_instance_type = "t3a.2xlarge"
+physical_vm_count       = 6
+control_plane_count     = 3
+etcd_count              = 3
+worker_count            = 6
+
