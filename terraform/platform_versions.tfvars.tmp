@@ -1,0 +1,20 @@
+# Platform component versions (Terraform)
+# Copy to platform_versions.tfvars and apply together with each root's terraform.tfvars:
+#
+#   cd terraform/obs_deployment
+#   terraform apply -var-file=terraform.tfvars -var-file=../platform_versions.tfvars
+#
+#   cd terraform/mosip_deployment/infra
+#   terraform apply -var-file=../terraform.tfvars -var-file=../../platform_versions.tfvars
+#
+# Keep platform_version_profile in sync with Ansible group_vars/platform_versions.yml.
+
+platform_version_profile = "k8s_1_28" # k8s_1_28 (tested) | k8s_1_35 (future)
+
+# Optional per-component overrides for install or upgrade (empty = profile default):
+# rancher_version          = ""
+# ingress_nginx_version    = ""
+# longhorn_version         = ""
+# monitoring_crd_version = ""
+# monitoring_version       = ""
+# istio_version            = ""

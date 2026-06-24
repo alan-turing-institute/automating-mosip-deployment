@@ -1,10 +1,9 @@
 # Mandatory changes
 
-# Kubernetes engine: rke2 (default) or rke1 (legacy)
-kubernetes_engine: rke2
+# Platform version pins: copy group_vars/platform_versions.yml.tmp → platform_versions.yml
+# Change platform_version_profile there (and terraform/platform_versions.tfvars) for install/upgrade stacks.
 
-# RKE2 Configuration (used when kubernetes_engine=rke2)
-rke2_version: "v1.28.9+rke2r1"
+# RKE2 Configuration
 rke2_config_dir: "/etc/rancher/rke2"
 rke2_enable_firewall: false
 rke2_dedicated_etcd: false
@@ -55,14 +54,6 @@ nginx_obs_enable_firewall_rules: false
 # System Configuration
 disable_swap: true                       # Whether to disable swap
 
-# Docker Configuration
-docker_install_from_apt: false           # Whether to install Docker from default apt repos
-#docker_version: "5:20.10.24~3-0~ubuntu-focal"  # Docker version to install IF USING 20.04
-docker_version: "5:20.10.24~3-0~ubuntu-jammy"  # Docker version to install IF USING 22.04
-docker_apt_gpg_key: "https://download.docker.com/linux/ubuntu/gpg"
-docker_apt_repository: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
-docker_user: "{{ ansible_user }}"        # User to add to docker group
-
 # Required Packages
 required_packages:
   - apt-transport-https
@@ -105,17 +96,7 @@ sysctl_params:
   fs.inotify.max_user_watches: 1048576
   net.ipv4.tcp_tw_reuse: 1
 
-# Docker Daemon Configuration
-docker_daemon_config:
-  max_concurrent_downloads: 20
-  max_concurrent_uploads: 20
-  log_max_size: "100m"
-  log_max_file: 3
-  ulimit_nofile: 1048576
-  ulimit_nproc: 1048576
-
-# Istio Configuration
-istio_version: "1.22.0"                  # Version of Istio to install (use 1.15.0 for kubernetes_engine=rke1)
+# Istio Configuration (istio_version pinned in platform_versions.yml)
 istio_namespace: "istio-system"          # Namespace for Istio components
 istio_operator_wait_timeout: 300         # Timeout for operator readiness check
 

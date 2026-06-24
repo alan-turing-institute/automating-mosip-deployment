@@ -10,33 +10,7 @@ vm4 ansible_host=10.100.0.
 vm5 ansible_host=10.100.0.
 vm6 ansible_host=10.100.0.
 
-[control_plane_nodes]
-# Control plane nodes - responsible for managing the cluster
-control-1 physical_vm=vm1 node_ip=10.100.0.
-control-2 physical_vm=vm2 node_ip=10.100.0.
-control-3 physical_vm=vm3 node_ip=10.100.0.
-
-[etcd_nodes]
-# etcd nodes - responsible for storing cluster state
-etcd-1 physical_vm=vm1 node_ip=10.100.0.
-etcd-2 physical_vm=vm2 node_ip=10.100.0.
-etcd-3 physical_vm=vm3 node_ip=10.100.0.
-
-[worker_nodes]
-# Worker nodes - where applications run
-worker-1 physical_vm=vm1 node_ip=10.100.0.
-worker-2 physical_vm=vm2 node_ip=10.100.0.
-worker-3 physical_vm=vm3 node_ip=10.100.0.
-worker-4 physical_vm=vm4 node_ip=10.100.0.
-worker-5 physical_vm=vm5 node_ip=10.100.0.
-worker-6 physical_vm=vm6 node_ip=10.100.0.
-
-[rancher_nodes:children]
-control_plane_nodes
-etcd_nodes
-worker_nodes
-
-# RKE2 cluster groups (used when kubernetes_engine=rke2 in group_vars/all.yml)
+# RKE2 cluster groups
 # Colocated topology: vm1=primary CP, vm2-vm3=HA CP, vm4-vm6=worker agents
 [control_plane_primary]
 vm1 ansible_host=10.100.0.
@@ -58,9 +32,6 @@ control_plane_primary
 control_plane_subsequent
 rke2_agents
 
-# Optional dedicated etcd nodes (comment out group members for embedded-etcd sandbox)
-# [rke2_etcd]
-
 [mosip_obs]
 # Single node Rancher OBS cluster
 obs-node-1 ansible_host=10.100.0.
@@ -78,16 +49,6 @@ ansible_user=ubuntu
 ansible_ssh_private_key_file=~/.ssh/id_ed25519
 ansible_python_interpreter=/usr/bin/python3
 ansible_host_key_checking=False
-
-# Node role labels
-[control_plane_nodes:vars]
-node_role=control
-
-[etcd_nodes:vars]
-node_role=etcd
-
-[worker_nodes:vars]
-node_role=worker
 
 [mosip_obs:vars]
 node_role=obs

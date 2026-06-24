@@ -6,15 +6,10 @@ variable "kubeconfig_path" {
   description = "Path to kubeconfig file"
 }
 
-variable "kubernetes_engine" {
+variable "platform_version_profile" {
+  description = "Version profile: k8s_1_28 or k8s_1_35. Set in terraform/platform_versions.tfvars."
   type        = string
-  description = "Cluster engine: rke2 (default) or rke1 (legacy). Selects default infra chart pins."
-  default     = "rke2"
-
-  validation {
-    condition     = contains(["rke2", "rke1"], var.kubernetes_engine)
-    error_message = "kubernetes_engine must be rke2 or rke1."
-  }
+  default     = "k8s_1_28"
 }
 
 variable "installation_name" {
@@ -52,8 +47,9 @@ variable "longhorn_namespace" {
 }
 
 variable "longhorn_version" {
-  description = "Version of Longhorn to deploy"
+  description = "Override Longhorn chart version (empty = profile default from platform_version_profile)."
   type        = string
+  default     = ""
 }
 
 variable "longhorn_replica_count" {
@@ -130,13 +126,13 @@ variable "monitoring_namespace" {
 }
 
 variable "monitoring_crd_version" {
-  description = "Version of Rancher monitoring CRD chart"
+  description = "Override rancher-monitoring-crd chart (empty = profile default)."
   type        = string
   default     = ""
 }
 
 variable "monitoring_version" {
-  description = "Version of Rancher monitoring chart"
+  description = "Override rancher-monitoring chart (empty = profile default)."
   type        = string
   default     = ""
 }
@@ -150,8 +146,8 @@ variable "enable_istio" {
 
 variable "istio_version" {
   type        = string
-  description = "Version of Istio to install"
-  default     = "1.22.0"
+  description = "Override Istio version (empty = profile default from platform_version_profile)."
+  default     = ""
 }
 
 variable "istio_namespace" {

@@ -1,23 +1,20 @@
 ---
-# Prepare Rancher OBS Node
-- name: Prepare Rancher OBS Node
+- name: Prepare Rancher OBS Node for RKE2
   hosts: mosip_obs
   gather_facts: true
-  serial: 1  # Process one VM at a time to avoid apt locks
+  serial: 1
   roles:
-    - rancher_prepare
+    - rke2_prepare
 
-# Deploy Rancher OBS from Deployment Node
-- name: Deploy Rancher OBS from Deployment Node
-  hosts: deployment
+- name: Deploy RKE2 OBS cluster
+  hosts: mosip_obs
   gather_facts: true
+  serial: 1
   roles:
-    - rancher_obs
+    - rke2_obs
 
-# Deploy Nginx for OBS cluster
 - name: Deploy Nginx OBS Load Balancer
   hosts: nginx_obs
   gather_facts: true
   roles:
     - nginx_obs
-

@@ -3,15 +3,10 @@ variable "kubeconfig_path" {
   type        = string
 }
 
-variable "kubernetes_engine" {
-  description = "Cluster engine: rke2 (default) or rke1 (legacy). Selects default chart pins when version overrides are empty."
+variable "platform_version_profile" {
+  description = "Version profile: k8s_1_28 or k8s_1_35. Set in terraform/platform_versions.tfvars."
   type        = string
-  default     = "rke2"
-
-  validation {
-    condition     = contains(["rke2", "rke1"], var.kubernetes_engine)
-    error_message = "kubernetes_engine must be rke2 or rke1."
-  }
+  default     = "k8s_1_28"
 }
 
 variable "ingress_nginx_namespace" {
@@ -20,8 +15,14 @@ variable "ingress_nginx_namespace" {
   default     = "ingress-nginx"
 }
 
+variable "rancher_version" {
+  description = "Override Rancher chart version (empty = profile default from platform_version_profile)."
+  type        = string
+  default     = ""
+}
+
 variable "ingress_nginx_version" {
-  description = "Version of ingress-nginx Helm chart (empty uses kubernetes_engine default)"
+  description = "Override ingress-nginx chart version (empty = profile default)."
   type        = string
   default     = ""
 }
@@ -35,12 +36,6 @@ variable "rancher_namespace" {
 variable "rancher_hostname" {
   description = "Hostname for Rancher UI"
   type        = string
-}
-
-variable "rancher_version" {
-  description = "Version of Rancher Helm chart (empty uses kubernetes_engine default)"
-  type        = string
-  default     = ""
 }
 
 variable "rancher_replicas" {
@@ -62,9 +57,9 @@ variable "longhorn_namespace" {
 }
 
 variable "longhorn_version" {
-  description = "Version of Longhorn Helm chart"
+  description = "Override Longhorn chart version (empty = profile default)."
   type        = string
-  default     = "1.4.2"
+  default     = ""
 }
 
 variable "filesystem_pv_size" {

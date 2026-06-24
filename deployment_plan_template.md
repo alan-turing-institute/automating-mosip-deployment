@@ -12,7 +12,7 @@ At a high level, the deployment flow is: prepare prerequisites, optionally provi
 
 ## Deployment architecture overview
 
-All deployment commands should be run from a **deployment node**. This is a separate Ubuntu 22.04 machine used as the operator workstation for Ansible, Terraform, Helm, `kubectl`, certificate handling, and inventory management. The deployment node is not a MOSIP application node; it is the control point used to install and manage the environment.
+All deployment commands should be run from a **deployment node**. This is a separate Ubuntu 26.04 LTS machine used as the operator workstation for Ansible, Terraform, Helm, `kubectl`, certificate handling, and inventory management. The deployment node is not a MOSIP application node; it is the control point used to install and manage the environment.
 
 The target environment contains the WireGuard bastion, MOSIP Nginx reverse proxy, observation node, and MOSIP Kubernetes nodes. The deployment node must be able to SSH to these machines and reach the Kubernetes API endpoints created during the deployment.
 
@@ -91,7 +91,7 @@ The certificates should be in PEM format with:
 
 ### VM Requirements
 
-Create the following VMs on your chosen platform (OpenStack, VMware, AWS, Azure, bare metal, etc.). All VMs should run Ubuntu 22.04 LTS and be connected to your internal network. Refer to the [official MOSIP documentation](https://docs.mosip.io/1.2.0/setup/deploymentnew/v3-installation/1.2.0.2/pre-requisites) for detailed hardware specifications.
+Create the following VMs on your chosen platform (OpenStack, VMware, AWS, Azure, bare metal, etc.). Cluster and infrastructure VMs should run a supported Ubuntu LTS (22.04 or 24.04 per [official MOSIP documentation](https://docs.mosip.io/1.2.0/setup/deploymentnew/v3-installation/1.2.0.2/pre-requisites) until 26.04 is validated for cluster nodes). The **deployment node** should run **Ubuntu 26.04 LTS**. All VMs should be connected to your internal network.
 
 **Required VMs:**
 
@@ -125,7 +125,7 @@ Create the following VMs on your chosen platform (OpenStack, VMware, AWS, Azure,
 
 The deployment node is the machine from which all Ansible playbooks and Terraform operations are executed. Treat it as the deployment control point rather than as a MOSIP application node. It stores the repository checkout, inventories, Terraform variables, kubeconfig files, Helm client configuration, and SSH key used by Ansible.
 
-Create or select this node before starting the rest of the deployment. For AWS deployments, the base Terraform stage creates the MOSIP infrastructure VMs, but you still need to provide the deployment node. A plain Ubuntu 22.04 VM is sufficient for the deployment node as long as it has the required tools installed and network access to the MOSIP private network.
+Create or select this node before starting the rest of the deployment. For AWS deployments, the base Terraform stage creates the MOSIP infrastructure VMs, but you still need to provide the deployment node. A plain Ubuntu 26.04 LTS VM is sufficient for the deployment node as long as it has the required tools installed and network access to the MOSIP private network.
 
 The deployment node should be close to the target infrastructure. The recommended setup is:
 
@@ -168,79 +168,130 @@ Avoid running the main deployment from a laptop over WireGuard if you can use a 
   ```
 - **Ensure the SSH key is configured with the default naming (`id_ed25519`) so it's automatically used by Ansible**
 - **Tool installation**
-Based on official requirements [MOSIP Docs 1.2.0](https://docs.mosip.io/1.2.0/setup/deploymentnew/v3-installation/on-prem-installation-guidelines#certificate-requirements)
 
+### Cluster bootstrap (RKE2)
+
+This automation deploys **RKE2 only** on the **k8s_1_28** profile (RKE2 **v1.28.8+rke2r1**, tested baseline). Pin deployment-node tools via the profile files below — do not rely on unpinned snap packages.
+
+**Legacy RKE1 deployments** use a separate git branch — not supported on this branch.
+
+**Where to configure platform versions**
+
+Copy the templates once per environment:
+
+| Purpose | Template | Live copy |
+|---------|----------|-----------|
+| Ansible (cluster + deployment node) | `ansible/.../group_vars/platform_versions.yml.tmp` | `group_vars/platform_versions.yml` |
+| Terraform (OBS + MOSIP infra charts) | `terraform/platform_versions.tfvars.tmp` | `terraform/platform_versions.tfvars` |
+
+Set **`platform_version_profile = "k8s_1_28"`** in both files (must stay in sync). To move to a future stack, change to `k8s_1_35` after end-to-end validation — profile definitions live in `terraform/shared/version_pins/locals.tf` and `platform_versions.yml` (`version_profiles`).
+
+| Component group | Ansible (`platform_versions.yml`) | Terraform (`platform_versions.tfvars` via shared module) |
+|-----------------|-----------------------------------|----------------------------------------------------------|
+| Kubernetes / RKE2 | `rke2_version` | — (Ansible installs RKE2 on nodes) |
+| Deployment-node CLI | `kubectl_client_version`, `helm_client_version` | — |
+| Service mesh | `istio_version` | `istio_version` (optional override) |
+| OBS stack | — | `rancher_version`, `ingress_nginx_version`, `longhorn_version` |
+| Main infra stack | — | `longhorn_version`, `monitoring_*_version`, `istio_version` |
+
+Optional per-component overrides: uncomment individual keys in `platform_versions.tfvars` or `platform_versions.yml` for one-off install/upgrade pins without editing code.
+
+**k8s_1_28 profile defaults (active / tested)**
+
+| Tool / chart | Pin | Config key |
+|--------------|-----|------------|
+| RKE2 / K8s | **v1.28.8+rke2r1** → API **1.28.x** | `rke2_version` |
+| kubectl | **v1.28.15** (same K8s minor) | `kubectl_client_version` |
+| helm | **v3.16.4** | `helm_client_version` |
+| istioctl | **1.22.0** | `istio_version` (Ansible + TF profile) |
+| Rancher chart | **2.8.3** | OBS `platform_versions.tfvars` |
+| ingress-nginx chart | **4.10.0** | OBS profile |
+| Longhorn chart | **1.5.1** | OBS + MOSIP infra profile |
+| rancher-monitoring | **103.1.1+up45.31.1** / **103.1.0+up45.31.1** | MOSIP infra profile |
+| terraform | **>= 1.3.0** (1.5+ recommended) | `terraform/aws/base-infra` requires >= 1.3.0 |
+| Ansible | **>= 2.14** (ansible-core via apt on 26.04) | playbooks use `ansible.builtin` |
+| rke | **not required** on deployment node | RKE2 installed on cluster nodes by Ansible |
+| openssl | **system OpenSSL 3.x** (Ubuntu 26.04 default) | regclient PKCS12 uses legacy cipher flags in Terraform |
+
+**k8s_1_35 profile (future — not yet tested end-to-end):** RKE2 v1.35.5+rke2r2, Istio 1.30.0, Rancher 2.14.2, Longhorn 1.12.0, monitoring 109.0.1+up80.9.1-rancher.7. Switch profile only after validation.
+
+Compatibility notes: **Rancher 2.8.x** pairs with K8s **1.28**. **Istio 1.22.x** supports the 1.28 line used in this profile.
+
+**Base packages (Ubuntu 26.04):**
+
+```sh
+sudo apt update
+sudo apt -y install ansible jq git curl wget unzip ca-certificates openssh-client \
+  python3 python3-pip certbot python3-certbot-dns-route53
 ```
-kubectl- any client version above 1.19
-helm- any client version above 3.0.0 and add below repos as well:
-  helm repo add bitnami https://charts.bitnami.com/bitnami
-  helm repo add mosip https://mosip.github.io/mosip-helm
-Istioctl : version: 1.15.0
-rke : version: 1.3.10
-Ansible version > 2.12.4
+
+**kubectl** (match `kubectl_client_version` in group_vars; same minor as cluster):
+
+```sh
+KUBECTL_VERSION=v1.28.15
+curl -LO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
+curl -LO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl.sha256"
+echo "$(cat kubectl.sha256)  kubectl" | sha256sum --check
+sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+kubectl version --client
 ```
 
-Our Deployment:
+**Helm 3.x** (match `helm_client_version` from `platform_versions.yml`):
 
-- With 22.04 use Ansible apt package.
-- Helm and Kubectl are in snap store
-
-```
-sudo apt -y install ansible jq certbot python3-certbot-dns-route53
-sudo snap install kubectl --classic
-sudo snap install helm --classic
-sudo snap install terraform --classic
+```sh
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+chmod 700 get_helm.sh
+sudo DESIRED_VERSION=v3.16.4 ./get_helm.sh
+helm version
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo add mosip https://mosip.github.io/mosip-helm
+helm repo update
 ```
 
-- OpenSSL 1.1.1f
-For regclient certificate there is a dependency to use openssl 1.1.1f, install it manually. Otherwise you get an error during deployment `jarsigner error: java.lang.RuntimeException: keystore load: keystore password was incorrect`
-
-```
-mkdir openssl; cd openssl;
-# download binary openssl packages from Impish builds
-wget https://security.ubuntu.com/ubuntu/pool/main/o/openssl/openssl_1.1.1f-1ubuntu2_amd64.deb
-wget https://security.ubuntu.com/ubuntu/pool/main/o/openssl/libssl-dev_1.1.1f-1ubuntu2_amd64.deb
-wget https://security.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
-
-# install downloaded binary packages
-sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
-sudo dpkg -i libssl-dev_1.1.1f-1ubuntu2_amd64.deb
-sudo dpkg -i openssl_1.1.1f-1ubuntu2_amd64.deb
-```
-
-- Istioctl (version depends on `kubernetes_engine` in `group_vars/all.yml`)
+**Terraform** (HashiCorp apt repo — preferred over snap for version control):
 
 ```sh
-# RKE2 default (kubernetes_engine=rke2)
-cd ~; mkdir istioctl-1.22.0 ; cd istioctl-1.22.0/
-wget https://github.com/istio/istio/releases/download/1.22.0/istioctl-1.22.0-linux-amd64.tar.gz
-tar -xzf istioctl-1.22.0-linux-amd64.tar.gz
-sudo cp istioctl /usr/local/bin
-istioctl version
-
-# Legacy RKE1 only (kubernetes_engine=rke1)
-# cd ~; mkdir istioctl-1.15.0 ; cd istioctl-1.15.0/
-# wget https://github.com/istio/istio/releases/download/1.15.0/istioctl-1.15.0-linux-amd64.tar.gz
-# tar -xzf istioctl-1.15.0-linux-amd64.tar.gz
-# sudo cp istioctl /usr/local/bin
+wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+sudo apt update && sudo apt -y install terraform
+terraform version   # expect >= 1.3.0
 ```
 
-- RKE2 cluster engine (default). RKE1 binary only required for legacy `kubernetes_engine=rke1`.
+**istioctl** (version must match `istio_version` in `group_vars/platform_versions.yml`):
 
 ```sh
-# No RKE/RKE2 binary needed on deployment-node for default RKE2 path.
-# Ansible installs RKE2 via get.rke2.io on cluster nodes.
-
-# Legacy RKE1 only:
-# cd ~; wget https://github.com/rancher/rke/releases/download/v1.3.10/rke_linux-amd64
-# chmod +x rke_linux-amd64
-# sudo mv rke_linux-amd64 /usr/local/bin/rke
-# rke --version
+# k8s_1_28 profile default
+ISTIO_VERSION=1.22.0
+curl -L https://istio.io/downloadIstio | ISTIO_VERSION=${ISTIO_VERSION} TARGET_ARCH=x86_64 sh -
+sudo install -o root -g root -m 0755 istio-${ISTIO_VERSION}/bin/istioctl /usr/local/bin/istioctl
+istioctl version --remote=false
 ```
 
-Set `kubernetes_engine: rke2` (default) and `rke2_version: "v1.28.9+rke2r1"` in `inventory/group_vars/all.yml`. Use `kubernetes_engine: rke1` only for legacy clusters.
+**RKE2 cluster engine.** No RKE/RKE2 binary is required on the deployment node — Ansible installs RKE2 on cluster nodes via `get.rke2.io`.
+
+**OpenSSL / regclient certificates:** Ubuntu 26.04 ships OpenSSL 3.x only. Do **not** install legacy OpenSSL 1.1.1 `.deb` packages (they are incompatible with 26.04 and unnecessary). The regclient Terraform module generates PKCS12 keystores with OpenSSL 3 legacy cipher flags (`-keypbe PBE-SHA1-3DES`, etc.). Verify before MOSIP Terraform apply:
+
+```sh
+openssl version
+# OpenSSL 3.x.x expected
+```
+
+If regclient cert generation fails during Terraform, check `terraform/mosip_deployment/modules/regclient/main.tf` and confirm `openssl pkcs12 -export` supports the legacy flags on your OpenSSL build.
+
+**Post-install verification** (run on deployment node before starting WireGuard/OBS):
+
+```sh
+ansible --version | head -1
+kubectl version --client
+helm version
+istioctl version --remote=false    # must match istio_version in platform_versions.yml (default 1.22.0)
+terraform version
+openssl version
+which git jq curl wget
+helm repo list | grep -E 'bitnami|mosip'
+```
+
+Copy `group_vars/all.yml.tmp` → `all.yml` and `group_vars/platform_versions.yml.tmp` → `platform_versions.yml`. Set `platform_version_profile: "k8s_1_28"` in `platform_versions.yml` (must match `terraform/platform_versions.tfvars`).
 
 **RKE2 paths (default):**
 - Main cluster kubeconfig: `{rancher_base_dir}/{cluster_name}/kube_config_cluster.yml` (e.g. `/home/ubuntu/rancher/mosip/kube_config_cluster.yml`)
@@ -360,7 +411,8 @@ wireguard-node ansible_host=<wg-bastion-public-ip> wireguard_endpoint=<wireguard
 #### Infra hosts
 
 - Copy the `rancher.ini.tmp` to `rancher.ini` then update all HOSTS to match your VM deployment. The control_plane and etcd nodes are usually the same first three VMs, and workers are typically VMs four to six. The Observation node is usually one VM and Observation Nginx can be the same VM or a separate one.
-- Copy the `group_vars/all.yml.tmp` to `group_vars/all.yml`
+- Copy `group_vars/all.yml.tmp` → `group_vars/all.yml`
+- Copy `group_vars/platform_versions.yml.tmp` → `group_vars/platform_versions.yml` (set `platform_version_profile: "k8s_1_28"`)
 - **Important**: Replace all IP addresses in the example below with your actual VM IP addresses from your internal network.
 
 Example inventory structure (replace IPs with your actual values):
@@ -447,8 +499,7 @@ ansible-playbook -f 12 -v -i inventory/rancher.ini playbooks/apt-upgrade.yml
   - Nginx OBS hostname: `nginx_obs_public_domain_names`
   - Mosip domain: `mosip_domain`
 - Copy wildcard certificate to `ansible/infra_deployment/playbooks/roles/nginx_obs/files` make sure the name is: `fullchain.pem` and `privkey.pem`
-- Run Ansible `ansible-playbook -v -i inventory/rancher.ini playbooks/deploy-rke2-obs.yml`
-  - Legacy RKE1: `playbooks/deploy-rancher-obs.yml`
+- Run Ansible `ansible-playbook -v -i inventory/rancher.ini playbooks/deploy-rancher-obs.yml`
 
 ### Verification
 
@@ -458,10 +509,11 @@ ansible-playbook -f 12 -v -i inventory/rancher.ini playbooks/apt-upgrade.yml
 ### Terraform
 
 - `cd ~/mosip/automating-mosip-deployment/terraform/obs_deployment`
-- Copy the `terraform.tfvars.tmp` to `terraform.tfvars`, make sure you set both `rancher_hostname` to your MOSIP rancher DNS (e.g., `rancher.{MOSIP_DOMAIN}`) and `kubeconfig_path` is correct and use full path instead of `~`
+- Copy `terraform.tfvars.tmp` → `terraform.tfvars` (set `rancher_hostname`, `kubeconfig_path`)
+- Copy `../platform_versions.tfvars.tmp` → `../platform_versions.tfvars` (set `platform_version_profile = "k8s_1_28"`)
 - Run terraform init `terraform init`
-- Run terraform plan `terraform plan`, check the hostname match the ansible `nginx_obs_public_domain_names`
-- Run terraform apply: `terraform apply`
+- Run terraform plan `terraform plan -var-file=terraform.tfvars -var-file=../platform_versions.tfvars`, check the hostname matches ansible `nginx_obs_public_domain_names`
+- Run terraform apply: `terraform apply -var-file=terraform.tfvars -var-file=../platform_versions.tfvars`
 
 ### Verification
 
@@ -475,8 +527,7 @@ ansible-playbook -f 12 -v -i inventory/rancher.ini playbooks/apt-upgrade.yml
 - Check infra inventory file is ready.
 - In `inventory/group_vars/all.yml` , update `rancher_import_url`
 - Copy wildcard certificate to `~/mosip/automating-mosip-deployment/ansible/infra_deployment/playbooks/roles/nginx/files` make sure the name is: `fullchain.pem` and `privkey.pem`
-- Run Ansible `ansible-playbook -f 8 -v -i inventory/rancher.ini playbooks/deploy-all-rke2.yml`
-  - Legacy RKE1: `playbooks/deploy-all.yml`
+- Run Ansible `ansible-playbook -f 8 -v -i inventory/rancher.ini playbooks/deploy-all.yml`
 
 ### Verification
 
@@ -494,11 +545,12 @@ For MOSIP 1.2.0.2, some services may take 20-30 minutes to initialise before Kub
 During this stage, long periods of output such as `Still creating... [20m10s elapsed]` do not automatically mean that Terraform has frozen. In many cases Terraform has already asked Helm to deploy the chart and is polling the release status while Kubernetes waits for the pods to become healthy.
 
 - `cd ~/mosip/automating-mosip-deployment/terraform/mosip_deployment`
-- Copy the `terraform.tfvars.tmp` to `terraform.tfvars`, make sure you set both `installation_domain` to your MOSIP domain (e.g., `{MOSIP_DOMAIN}`) and `kubeconfig_path` is correct and use full path instead of `~`
+- Copy `terraform.tfvars.tmp` → `terraform.tfvars` (set `installation_domain`, `kubeconfig_path`)
+- Copy `../platform_versions.tfvars.tmp` → `../platform_versions.tfvars` if not already done (same profile as Ansible)
 - `cd infra`
 - Run terraform init `terraform init`
-- Run terraform plan `terraform plan -var-file=../terraform.tfvars`
-- Run terraform apply: `terraform apply -var-file=../terraform.tfvars`
+- Run terraform plan `terraform plan -var-file=../terraform.tfvars -var-file=../../platform_versions.tfvars`
+- Run terraform apply: `terraform apply -var-file=../terraform.tfvars -var-file=../../platform_versions.tfvars`
 - `cd ../mosip`
 - Run terraform init `terraform init`
 - Run terraform plan `terraform plan -var-file=../terraform.tfvars`

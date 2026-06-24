@@ -347,11 +347,11 @@ resource "aws_security_group" "nginx" {
   }
 }
 
-# OBS: RKE1 cluster nodes. Port set aligned with MOSIP k8s-infra
-# k8-cluster/on-prem/rke1/ports.yaml (plus VPC-scoped SSH from WireGuard CIDR).
+# OBS: RKE2 cluster nodes. Port set aligned with MOSIP k8s-infra
+# k8-cluster/on-prem/rke2/ports.yaml (plus VPC-scoped SSH from WireGuard CIDR).
 resource "aws_security_group" "obs" {
   name        = "${var.project_name}-obs-sg"
-  description = "Security group for OBS RKE1 cluster nodes"
+  description = "Security group for OBS RKE2 cluster nodes"
   vpc_id      = aws_vpc.main.id
 
   ingress {
@@ -372,7 +372,7 @@ resource "aws_security_group" "obs" {
 
   # ports.yaml: HTTP/HTTPS on cluster nodes (scoped to VPC)
   ingress {
-    description = "HTTP (RKE1 / Rancher node requirements)"
+    description = "HTTP (RKE2 / Rancher node requirements)"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
@@ -380,7 +380,7 @@ resource "aws_security_group" "obs" {
   }
 
   ingress {
-    description = "HTTPS (RKE1 / Rancher node requirements)"
+    description = "HTTPS (RKE2 / Rancher node requirements)"
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
@@ -388,16 +388,25 @@ resource "aws_security_group" "obs" {
   }
 
   ingress {
-    description = "Kubernetes API (RKE1)"
+    description = "Kubernetes API (RKE2)"
     from_port   = 6443
     to_port     = 6443
     protocol    = "tcp"
     cidr_blocks = [var.network_cidr]
   }
 
-  # ports.yaml: Docker daemon (RKE SSH provisioning)
+  # RKE2 supervisor / join port
   ingress {
-    description = "Docker daemon (RKE1)"
+    description = "RKE2 supervisor (9345)"
+    from_port   = 9345
+    to_port     = 9345
+    protocol    = "tcp"
+    cidr_blocks = [var.network_cidr]
+  }
+
+  # Legacy Docker daemon port (not used by RKE2; retained for compatibility with shared port lists)
+  ingress {
+    description = "Docker daemon (legacy RKE port list)"
     from_port   = 2376
     to_port     = 2376
     protocol    = "tcp"
@@ -406,7 +415,7 @@ resource "aws_security_group" "obs" {
 
   # ports.yaml: etcd client and peer (Rancher/RKE reference range)
   ingress {
-    description = "Etcd client/peer (RKE1)"
+    description = "Etcd client/peer (RKE2)"
     from_port   = 2379
     to_port     = 2380
     protocol    = "tcp"
@@ -423,7 +432,7 @@ resource "aws_security_group" "obs" {
   }
 
   ingress {
-    description = "Kube-proxy health / metrics (RKE1 ports.yaml: 10256)"
+    description = "Kube-proxy health / metrics (10256)"
     from_port   = 10256
     to_port     = 10256
     protocol    = "tcp"
@@ -431,7 +440,7 @@ resource "aws_security_group" "obs" {
   }
 
   ingress {
-    description = "RKE1 ports.yaml: 9796"
+    description = "Node metrics (9796)"
     from_port   = 9796
     to_port     = 9796
     protocol    = "tcp"
@@ -439,7 +448,7 @@ resource "aws_security_group" "obs" {
   }
 
   ingress {
-    description = "RKE1 ports.yaml: 10254"
+    description = "Ingress controller health (10254)"
     from_port   = 10254
     to_port     = 10254
     protocol    = "tcp"

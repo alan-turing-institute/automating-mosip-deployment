@@ -27,16 +27,20 @@ provider "helm" {
   }
 }
 
-locals {
-  rancher_version_effective       = var.rancher_version != "" ? var.rancher_version : (var.kubernetes_engine == "rke2" ? "2.8.3" : "2.6.9")
-  ingress_nginx_version_effective = var.ingress_nginx_version != "" ? var.ingress_nginx_version : (var.kubernetes_engine == "rke2" ? "4.10.0" : "4.0.18")
+module "version_pins" {
+  source = "../shared/version_pins"
+
+  platform_version_profile = var.platform_version_profile
+  rancher_version            = var.rancher_version
+  ingress_nginx_version      = var.ingress_nginx_version
+  longhorn_version           = var.longhorn_version
 }
 
 resource "helm_release" "ingress_nginx" {
   name             = "ingress-nginx"
   repository       = "https://kubernetes.github.io/ingress-nginx"
   chart            = "ingress-nginx"
-  version          = local.ingress_nginx_version_effective
+  version          = module.version_pins.ingress_nginx_version
   namespace        = var.ingress_nginx_namespace
   create_namespace = true
 
@@ -61,7 +65,7 @@ resource "helm_release" "longhorn" {
   name             = "longhorn"
   repository       = "https://charts.longhorn.io"
   chart            = "longhorn"
-  version          = var.longhorn_version
+  version          = module.version_pins.longhorn_version
   namespace        = var.longhorn_namespace
   create_namespace = true
 
@@ -133,7 +137,7 @@ resource "helm_release" "rancher" {
   name             = "rancher"
   repository       = "https://releases.rancher.com/server-charts/stable"
   chart            = "rancher"
-  version          = local.rancher_version_effective
+  version          = module.version_pins.rancher_version
   namespace        = var.rancher_namespace
   create_namespace = true
 

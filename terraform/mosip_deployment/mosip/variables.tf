@@ -3,12 +3,6 @@ variable "kubeconfig_path" {
   description = "Path to kubeconfig file"
 }
 
-variable "kubernetes_engine" {
-  type        = string
-  description = "Cluster engine selector (shared with infra tfvars; unused in mosip layer)"
-  default     = "rke2"
-}
-
 # Installation metadata variables removed - these are stored in Global ConfigMap
 # created by infrastructure deployment and accessed via data source
 

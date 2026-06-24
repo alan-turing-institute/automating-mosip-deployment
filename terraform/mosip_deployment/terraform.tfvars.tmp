@@ -4,8 +4,8 @@ installation_domain = "turing-mosip.net"  # Change this to your actual domain
 mosip_version = "1.2.0"           # Change this to your desired MOSIP version
 kubeconfig_path = "/home/ubuntu/rancher/mosip/kube_config_cluster.yml"  #IMPORTANT: Use the full path to the kubeconfig file, e.g. /home/ubuntu/ and not ~/
 
-# Cluster engine (must match Ansible kubernetes_engine)
-kubernetes_engine = "rke2"  # rke2 (default) or rke1 (legacy infra chart pins)
+# Component versions: copy terraform/platform_versions.tfvars.tmp → platform_versions.tfvars
+# and apply with: terraform apply -var-file=../terraform.tfvars -var-file=../../platform_versions.tfvars
 
 # Enable modules
 ###### KEEP DOCKER OFF FOR NOW #####
@@ -371,12 +371,7 @@ websub_liveness_probe_period_seconds = 60
 websub_liveness_probe_failure_threshold = 10
 
 # Component toggles and versions
-# --- Infra chart pins (RKE2 default) ---
-# Legacy RKE1: monitoring 102.0.5+up40.1.2, istio 1.15.0, rancher obs 2.6.9 / ingress 4.0.18
-monitoring_crd_version = "103.1.1+up45.31.1"
-monitoring_version     = "103.1.0+up45.31.1"
-# Longhorn Storage
-longhorn_version = "1.5.1"         # Version of Longhorn to deploy
+# Chart pins (longhorn, monitoring, istio) come from platform_versions.tfvars — not this file.
 longhorn_namespace = "longhorn-system"  # Namespace for Longhorn deployment
 longhorn_replica_count = 1        # Number of replicas for volumes
 longhorn_guaranteed_engine_cpu = "5"    # Guaranteed CPU for engine manager
@@ -392,7 +387,7 @@ longhorn_storage_class_name = "longhorn"              # Name of the storage clas
 #longhorn_filesystem_size = "10Gi"                     # Size for filesystem PV
 
 # Istio Service Mesh and Gateway Configuration
-istio_version = "1.22.0"           # RKE2 default (use 1.15.0 when kubernetes_engine=rke1)
+# istio_version is set in terraform/platform_versions.tfvars (keep in sync with Ansible platform_versions.yml)
 proxy_protocol_enabled = false     # Set to true to enable proxy protocol for ingress gateway
 
 # IAM (Keycloak)
