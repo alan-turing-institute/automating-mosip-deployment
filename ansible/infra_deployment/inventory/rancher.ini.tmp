@@ -11,26 +11,38 @@ vm5 ansible_host=10.100.0.
 vm6 ansible_host=10.100.0.
 
 # RKE2 cluster groups
-# Colocated topology: vm1=primary CP, vm2-vm3=HA CP, vm4-vm6=worker agents
+# Default colocated topology: all 6 nodes run rke2-server (shared control plane + workloads).
+# vm1 = primary CP; vm2–vm6 = HA CP servers that also schedule pods.
+# Leave [rke2_agents] empty unless you add dedicated worker-only nodes later.
 [control_plane_primary]
 vm1 ansible_host=10.100.0.
 
 [control_plane_subsequent]
 vm2 ansible_host=10.100.0.
 vm3 ansible_host=10.100.0.
-
-[rke2_agents]
 vm4 ansible_host=10.100.0.
 vm5 ansible_host=10.100.0.
 vm6 ansible_host=10.100.0.
 
-# Optional dedicated etcd nodes (leave empty for embedded etcd)
+[rke2_agents]
+# Intentionally empty in default colocated layout (no rke2-agent-only nodes)
+
+# Optional dedicated etcd nodes (leave empty for embedded etcd on servers)
 [rke2_etcd]
 
 [rke2_cluster:children]
 control_plane_primary
 control_plane_subsequent
 rke2_agents
+
+# Nodes that run MOSIP workloads (nginx upstream / NodePort targets)
+[worker_nodes]
+vm1
+vm2
+vm3
+vm4
+vm5
+vm6
 
 [mosip_obs]
 # Single node Rancher OBS cluster
