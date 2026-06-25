@@ -1,7 +1,11 @@
 # Mandatory changes
 
-# Platform version pins: copy group_vars/platform_versions.yml.tmp → platform_versions.yml
-# Change platform_version_profile there (and terraform/platform_versions.tfvars) for install/upgrade stacks.
+# Platform Version Pins
+# Set these to match your target Kubernetes stack. All version variables live here — no separate platform_versions.yml needed.
+rke2_version: "v1.28.8+rke2r1"
+kubectl_client_version: "v1.28.15"   # informational — used to document which kubectl to install manually
+helm_client_version: "v3.16.4"       # informational — used to document which helm to install manually
+istio_version: "1.22.0"
 
 # RKE2 Configuration
 # Separate paths per cluster — do NOT use a single rke2_config_dir (group_vars override role defaults).
@@ -100,7 +104,7 @@ sysctl_params:
   fs.inotify.max_user_watches: 1048576
   net.ipv4.tcp_tw_reuse: 1
 
-# Istio Configuration (istio_version pinned in platform_versions.yml)
+# Istio Configuration (istio_version set above in Platform Version Pins)
 istio_namespace: "istio-system"          # Namespace for Istio components
 istio_operator_wait_timeout: 300         # Timeout for operator readiness check
 

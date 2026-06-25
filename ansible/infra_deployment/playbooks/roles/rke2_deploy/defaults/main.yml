@@ -7,5 +7,5 @@ rke2_primary_group: "control_plane_primary"
 rke2_kubeconfig_delegate_host: "{{ groups[rke2_primary_group][0] }}"
 rke2_default_kubeconfig_path: "/etc/rancher/rke2/rke2.yaml"
 check_existing_config: true
-# Fallback when group_vars/platform_versions.yml is missing; overridden by platform_version_profile there.
+# Fallback if not set in group_vars/all.yml; set rke2_version there to override.
 rke2_version: "v1.28.8+rke2r1"

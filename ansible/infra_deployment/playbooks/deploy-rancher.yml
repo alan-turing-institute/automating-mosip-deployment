@@ -3,7 +3,6 @@
 - name: Prepare physical VMs for RKE2
   hosts: physical_vms
   gather_facts: true
-  serial: 1
   roles:
     - rke2_prepare
 
