@@ -21,7 +21,7 @@
     cluster_dir: "{{ rancher_obs_base_dir | default('/home/ubuntu/rancher/obs') }}"
     cluster_name: "{{ rancher_obs_cluster_name | default('mosip_obs') }}"
     rke2_token_file: "{{ rancher_obs_base_dir | default('/home/ubuntu/rancher/obs') }}/rke2_token"
-    rke2_config_dir: "{{ rke2_obs_config_dir | default('/home/ubuntu/rancher/obs/rke2') }}"
+    rke2_config_dir: "{{ rke2_obs_config_dir | default('/etc/rancher/rke2') }}"
     rke2_primary_group: "mosip_obs"
     check_existing_config: "{{ rancher_obs_check_existing_config | default(true) }}"
   tasks:
@@ -43,7 +43,7 @@
     cluster_name: "{{ rancher_obs_cluster_name | default('mosip_obs') }}"
     rke2_cluster_exists: "{{ hostvars[groups['deployment'][0]]['rke2_cluster_exists'] | default(false) }}"
     rke2_cluster_token: "{{ hostvars[groups['deployment'][0]]['rke2_cluster_token'] | default('') }}"
-    rke2_config_dir: "{{ rke2_obs_config_dir | default('/home/ubuntu/rancher/obs/rke2') }}"
+    rke2_config_dir: "{{ rke2_obs_config_dir | default('/etc/rancher/rke2') }}"
     rke2_primary_group: "mosip_obs"
   tasks:
     - name: Load OBS primary-node tasks
@@ -60,7 +60,7 @@
     rke2_kubeconfig_delegate_host: "{{ groups['mosip_obs'][0] }}"
     cluster_dir: "{{ rancher_obs_base_dir | default('/home/ubuntu/rancher/obs') }}"
     cluster_name: "{{ rancher_obs_cluster_name | default('mosip_obs') }}"
-    rke2_config_dir: "{{ rke2_obs_config_dir | default('/home/ubuntu/rancher/obs/rke2') }}"
+    rke2_config_dir: "{{ rke2_obs_config_dir | default('/etc/rancher/rke2') }}"
     rke2_token_file: "{{ rancher_obs_base_dir | default('/home/ubuntu/rancher/obs') }}/rke2_token"
   tasks:
     - name: Load OBS kubeconfig sync tasks

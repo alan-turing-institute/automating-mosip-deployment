@@ -8,14 +8,8 @@ node-label:
   - rke2-upgrade=true
 disable:
   - rke2-ingress-nginx
-{% if network_mtu is defined and network_mtu | int > 0 %}
 cni:
-  - name: canal
-    conf: |
-      {
-        "mtu": {{ network_mtu }}
-      }
-{% endif %}
+  - canal
 kubelet-arg:
   - --allowed-unsafe-sysctls=net.ipv4.conf.all.src_valid_mark,net.ipv4.ip_forward
   - eviction-hard=memory.available<500Mi,nodefs.available<10%,nodefs.inodesFree<5%

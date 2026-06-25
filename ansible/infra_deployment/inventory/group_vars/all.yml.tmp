@@ -5,10 +5,10 @@
 
 # RKE2 Configuration
 # Separate paths per cluster — do NOT use a single rke2_config_dir (group_vars override role defaults).
-# Main MOSIP cluster nodes:
-rke2_main_config_dir: "/home/ubuntu/rancher/mosip/rke2"
-# OBS cluster node + deployment-node kubeconfig dir (see rancher_obs_base_dir):
-rke2_obs_config_dir: "/home/ubuntu/rancher/obs/rke2"
+# Main MOSIP cluster node config path:
+rke2_main_config_dir: "/etc/rancher/rke2"
+# OBS cluster node config path:
+rke2_obs_config_dir: "/etc/rancher/rke2"
 rke2_enable_firewall: false
 rke2_dedicated_etcd: false
 
