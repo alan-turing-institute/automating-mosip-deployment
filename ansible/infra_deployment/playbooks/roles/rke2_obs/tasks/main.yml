@@ -1,7 +1,0 @@
----
-# Invoke via deploy-rancher-obs.yml using tasks_from (check_cluster, token, install, kubeconfig).
-- name: rke2_obs role must be invoked with tasks_from
-  fail:
-    msg: >-
-      Do not run the rke2_obs role directly. Use playbooks/deploy-rancher-obs.yml,
-      which runs check_cluster, token, install, and kubeconfig on the correct hosts.
