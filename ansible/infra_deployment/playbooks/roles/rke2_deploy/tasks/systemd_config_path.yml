@@ -5,22 +5,14 @@
     state: directory
     mode: '0755'
 
-- name: Configure RKE2 server config file path
-  copy:
-    dest: /etc/rancher/rke2/rke2-server.env
-    content: |
-      RKE2_CONFIG_FILE={{ rke2_config_dir }}/config.yaml
+- name: Point RKE2 systemd service at custom config file
+  lineinfile:
+    path: "/etc/rancher/rke2/{{ rke2_systemd_service }}.env"
+    regexp: '^RKE2_CONFIG_FILE='
+    line: "RKE2_CONFIG_FILE={{ rke2_config_dir }}/config.yaml"
+    create: true
     mode: '0600'
-  when: rke2_systemd_service | default('rke2-server') == 'rke2-server'
 
-- name: Configure RKE2 agent config file path
-  copy:
-    dest: /etc/rancher/rke2/rke2-agent.env
-    content: |
-      RKE2_CONFIG_FILE={{ rke2_config_dir }}/config.yaml
-    mode: '0600'
-  when: rke2_systemd_service | default('rke2-server') == 'rke2-agent'
-
-- name: Reload systemd after RKE2 config path change
+- name: Reload systemd after RKE2 env change
   systemd:
     daemon_reload: yes

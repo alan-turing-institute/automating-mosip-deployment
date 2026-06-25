@@ -54,7 +54,6 @@
   import_tasks: systemd_config_path.yml
   vars:
     rke2_systemd_service: "{{ rke2_service_name }}"
-
 - name: Render RKE2 config for node
   template:
     src: "{{ rke2_node_template }}"
@@ -67,3 +66,4 @@
     name: "{{ rke2_service_name }}"
     enabled: yes
     state: restarted
+
