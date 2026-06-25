@@ -199,6 +199,14 @@ resource "aws_security_group" "jumpserver" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  ingress {
+    description = "ICMP — required for PMTUD (fragmentation-needed) and connectivity checks"
+    from_port   = -1
+    to_port     = -1
+    protocol    = "icmp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -282,6 +290,14 @@ resource "aws_security_group" "k8s_nodes" {
     cidr_blocks = [var.network_cidr]
   }
 
+  ingress {
+    description = "ICMP — required for PMTUD (fragmentation-needed) between nodes"
+    from_port   = -1
+    to_port     = -1
+    protocol    = "icmp"
+    cidr_blocks = [var.network_cidr, var.wireguard_cidr]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -331,6 +347,14 @@ resource "aws_security_group" "nginx" {
     to_port     = 61616
     protocol    = "tcp"
     cidr_blocks = [var.network_cidr]
+  }
+
+  ingress {
+    description = "ICMP — required for PMTUD (fragmentation-needed)"
+    from_port   = -1
+    to_port     = -1
+    protocol    = "icmp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
@@ -496,6 +520,14 @@ resource "aws_security_group" "obs" {
     cidr_blocks = [var.network_cidr]
   }
 
+  ingress {
+    description = "ICMP — required for PMTUD (fragmentation-needed) between nodes"
+    from_port   = -1
+    to_port     = -1
+    protocol    = "icmp"
+    cidr_blocks = [var.network_cidr, var.wireguard_cidr]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -537,6 +569,14 @@ resource "aws_security_group" "nginx_obs" {
     to_port     = 443
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "ICMP — required for PMTUD (fragmentation-needed)"
+    from_port   = -1
+    to_port     = -1
+    protocol    = "icmp"
+    cidr_blocks = [var.network_cidr]
   }
 
   egress {
@@ -842,6 +882,14 @@ resource "aws_security_group" "deployment_node" {
     to_port     = 22
     protocol    = "tcp"
     cidr_blocks = [var.wireguard_cidr]
+  }
+
+  ingress {
+    description = "ICMP — required for PMTUD (fragmentation-needed)"
+    from_port   = -1
+    to_port     = -1
+    protocol    = "icmp"
+    cidr_blocks = [var.network_cidr, var.wireguard_cidr]
   }
 
   egress {

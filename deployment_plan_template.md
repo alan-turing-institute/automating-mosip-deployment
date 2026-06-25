@@ -200,6 +200,7 @@ After the terraform your deployment node VM has 2nd interface added. Check deplo
           to: "10.100.0.0/16"
 
 #TO
+      mtu: 1330
       routes:
         - to: "10.100.0.0/16"
           via: "10.100.3.1"
