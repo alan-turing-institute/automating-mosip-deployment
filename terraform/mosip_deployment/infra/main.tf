@@ -52,7 +52,7 @@ module "monitoring" {
   monitoring_crd_version = var.monitoring_crd_version
   monitoring_version     = var.monitoring_version
 
-  depends_on = concat([null_resource.provider_config], var.longhorn_enable ? [module.longhorn[0]] : [])
+  depends_on = [null_resource.provider_config, module.longhorn]
 }
 
 # Global ConfigMap - Foundation for all services
@@ -87,7 +87,7 @@ resource "kubernetes_config_map_v1" "global" {
     "is_glowroot_env"           = var.is_glowroot_env
   }
 
-  depends_on = concat([null_resource.provider_config], var.longhorn_enable ? [module.longhorn[0]] : [])
+  depends_on = [null_resource.provider_config, module.longhorn]
 }
 
 # Deploy Istio Operator - This creates the CRDs that MOSIP services need
