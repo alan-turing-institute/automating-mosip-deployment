@@ -3,7 +3,7 @@
 
 output "csi_deployment_status" {
   description = "Status of CSI deployments"
-  value       = var.longhorn_enable ? module.longhorn.csi_deployment_status : null
+  value       = one(module.longhorn[*].csi_deployment_status)
 }
 
 output "istio_status" {
