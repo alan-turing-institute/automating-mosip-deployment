@@ -13,15 +13,11 @@
     cluster_dir: "{{ rancher_obs_base_dir | default('/home/ubuntu/rancher/obs') }}"
     cluster_name: "{{ rancher_obs_cluster_name | default('mosip_obs') }}"
     rke2_token_file: "{{ rancher_obs_base_dir | default('/home/ubuntu/rancher/obs') }}/rke2_token"
-  tasks:
-    - name: Check OBS cluster state on deployment node
-      ansible.builtin.import_role:
-        name: rke2_obs
-        tasks_from: check_cluster
-    - name: Prepare OBS cluster token on deployment node
-      ansible.builtin.import_role:
-        name: rke2_obs
-        tasks_from: token
+  roles:
+    - role: rke2_obs
+      tasks_from: check_cluster
+    - role: rke2_obs
+      tasks_from: token
 
 - name: Install RKE2 on OBS node
   hosts: mosip_obs
@@ -33,11 +29,9 @@
     rke2_obs_cluster_exists: "{{ hostvars[groups['deployment'][0]]['rke2_obs_cluster_exists'] | default(false) }}"
     rke2_cluster_token: "{{ hostvars[groups['deployment'][0]]['rke2_cluster_token'] }}"
     rke2_config_dir: "{{ rke2_obs_config_dir | default('/home/ubuntu/rancher/obs/rke2') }}"
-  tasks:
-    - name: Install RKE2 on OBS node
-      ansible.builtin.import_role:
-        name: rke2_obs
-        tasks_from: install
+  roles:
+    - role: rke2_obs
+      tasks_from: install
 
 - name: Finalize OBS cluster on deployment node
   hosts: deployment
@@ -49,11 +43,9 @@
     cluster_name: "{{ rancher_obs_cluster_name | default('mosip_obs') }}"
     rke2_config_dir: "{{ rke2_obs_config_dir | default('/home/ubuntu/rancher/obs/rke2') }}"
     rke2_token_file: "{{ rancher_obs_base_dir | default('/home/ubuntu/rancher/obs') }}/rke2_token"
-  tasks:
-    - name: Fetch OBS kubeconfig onto deployment node
-      ansible.builtin.import_role:
-        name: rke2_obs
-        tasks_from: kubeconfig
+  roles:
+    - role: rke2_obs
+      tasks_from: kubeconfig
 
 - name: Deploy Nginx OBS Load Balancer
   hosts: nginx_obs
