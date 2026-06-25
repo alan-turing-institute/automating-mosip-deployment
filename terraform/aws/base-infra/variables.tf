@@ -13,19 +13,19 @@ variable "network_cidr" {
   type        = string
 }
 
-variable "public_subnets" {
-  description = "Public subnet CIDR blocks"
-  type        = list(string)
+variable "public_subnet_cidr" {
+  description = "CIDR block for the single public subnet (jumpserver, nginx)"
+  type        = string
 }
 
-variable "private_subnets" {
-  description = "Private subnet CIDR blocks"
-  type        = list(string)
+variable "private_subnet_cidr" {
+  description = "CIDR block for the single private subnet (all MOSIP nodes)"
+  type        = string
 }
 
-variable "availability_zones" {
-  description = "Availability zones used for subnets"
-  type        = list(string)
+variable "availability_zone" {
+  description = "Availability zone used for both subnets"
+  type        = string
 }
 
 variable "environment" {
@@ -53,26 +53,6 @@ variable "ssh_key_name" {
       var.ssh_key_name != "replace-with-your-keypair-name"
     )
     error_message = "ssh_key_name must be set to a real AWS EC2 key pair name (not empty and not the placeholder)."
-  }
-}
-
-variable "enable_deployment_node_private_eni" {
-  description = "Create a network interface in the first private subnet and attach it to an existing deployment node EC2 instance"
-  type        = bool
-  default     = true
-}
-
-variable "deployment_node_instance_id" {
-  description = "EC2 instance ID of the pre-provisioned deployment node (required when enable_deployment_node_private_eni=true)"
-  type        = string
-  default     = ""
-
-  validation {
-    condition = (
-      !var.enable_deployment_node_private_eni ||
-      trimspace(var.deployment_node_instance_id) != ""
-    )
-    error_message = "deployment_node_instance_id must be set when enable_deployment_node_private_eni=true, or set enable_deployment_node_private_eni=false to skip."
   }
 }
 
@@ -106,13 +86,7 @@ variable "enable_dns_support" {
 }
 
 variable "enable_nat_gateway" {
-  description = "Enable NAT gateway resources"
-  type        = bool
-  default     = true
-}
-
-variable "single_nat_gateway" {
-  description = "Use one NAT gateway for all private subnets"
+  description = "Enable NAT gateway for private subnet outbound internet access"
   type        = bool
   default     = true
 }
@@ -290,4 +264,3 @@ variable "root_domain_record_type" {
     error_message = "root_domain_record_type must be A (CNAME at apex is not supported in this project)."
   }
 }
-

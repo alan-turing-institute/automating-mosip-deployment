@@ -53,45 +53,41 @@ locals {
 }
 
 resource "aws_subnet" "public" {
-  count = length(var.public_subnets)
-
   vpc_id                  = aws_vpc.main.id
-  cidr_block              = var.public_subnets[count.index]
-  availability_zone       = var.availability_zones[count.index % length(var.availability_zones)]
+  cidr_block              = var.public_subnet_cidr
+  availability_zone       = var.availability_zone
   map_public_ip_on_launch = true
 
   tags = {
-    Name        = "${var.network_name}-public-subnet-${count.index + 1}"
+    Name        = "${var.network_name}-public-subnet"
     Type        = "Public"
     Environment = var.environment
     Project     = var.project_name
-    AZ          = var.availability_zones[count.index % length(var.availability_zones)]
+    AZ          = var.availability_zone
   }
 }
 
 resource "aws_subnet" "private" {
-  count = length(var.private_subnets)
-
   vpc_id            = aws_vpc.main.id
-  cidr_block        = var.private_subnets[count.index]
-  availability_zone = var.availability_zones[count.index % length(var.availability_zones)]
+  cidr_block        = var.private_subnet_cidr
+  availability_zone = var.availability_zone
 
   tags = {
-    Name        = "${var.network_name}-private-subnet-${count.index + 1}"
+    Name        = "${var.network_name}-private-subnet"
     Type        = "Private"
     Environment = var.environment
     Project     = var.project_name
-    AZ          = var.availability_zones[count.index % length(var.availability_zones)]
+    AZ          = var.availability_zone
   }
 }
 
 resource "aws_eip" "nat" {
-  count = var.enable_nat_gateway ? (var.single_nat_gateway ? 1 : length(var.public_subnets)) : 0
+  count = var.enable_nat_gateway ? 1 : 0
 
   domain = "vpc"
 
   tags = {
-    Name        = "${var.network_name}-nat-eip-${count.index + 1}"
+    Name        = "${var.network_name}-nat-eip"
     Environment = var.environment
     Project     = var.project_name
   }
@@ -100,13 +96,13 @@ resource "aws_eip" "nat" {
 }
 
 resource "aws_nat_gateway" "main" {
-  count = var.enable_nat_gateway ? (var.single_nat_gateway ? 1 : length(var.public_subnets)) : 0
+  count = var.enable_nat_gateway ? 1 : 0
 
-  allocation_id = aws_eip.nat[count.index].id
-  subnet_id     = aws_subnet.public[count.index].id
+  allocation_id = aws_eip.nat[0].id
+  subnet_id     = aws_subnet.public.id
 
   tags = {
-    Name        = "${var.network_name}-nat-gateway-${count.index + 1}"
+    Name        = "${var.network_name}-nat-gateway"
     Environment = var.environment
     Project     = var.project_name
   }
@@ -131,24 +127,22 @@ resource "aws_route_table" "public" {
 }
 
 resource "aws_route_table_association" "public" {
-  count = length(aws_subnet.public)
-
-  subnet_id      = aws_subnet.public[count.index].id
+  subnet_id      = aws_subnet.public.id
   route_table_id = aws_route_table.public.id
 }
 
 resource "aws_route_table" "private" {
-  count = var.enable_nat_gateway ? (var.single_nat_gateway ? 1 : length(var.private_subnets)) : 0
+  count = var.enable_nat_gateway ? 1 : 0
 
   vpc_id = aws_vpc.main.id
 
   route {
     cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = var.single_nat_gateway ? aws_nat_gateway.main[0].id : aws_nat_gateway.main[count.index % length(aws_nat_gateway.main)].id
+    nat_gateway_id = aws_nat_gateway.main[0].id
   }
 
   tags = {
-    Name        = "${var.network_name}-private-rt-${count.index + 1}"
+    Name        = "${var.network_name}-private-rt"
     Type        = "Private"
     Environment = var.environment
     Project     = var.project_name
@@ -156,10 +150,10 @@ resource "aws_route_table" "private" {
 }
 
 resource "aws_route_table_association" "private" {
-  count = length(aws_subnet.private)
+  count = var.enable_nat_gateway ? 1 : 0
 
-  subnet_id      = aws_subnet.private[count.index].id
-  route_table_id = var.single_nat_gateway ? aws_route_table.private[0].id : aws_route_table.private[count.index % length(aws_route_table.private)].id
+  subnet_id      = aws_subnet.private.id
+  route_table_id = aws_route_table.private[0].id
 }
 
 resource "aws_security_group" "jumpserver" {
@@ -597,7 +591,7 @@ resource "aws_instance" "jumpserver" {
   ami                         = var.jumpserver_ami_id
   instance_type               = var.jumpserver_instance_type
   key_name                    = data.aws_key_pair.selected.key_name
-  subnet_id                   = aws_subnet.public[0].id
+  subnet_id                   = aws_subnet.public.id
   vpc_security_group_ids      = [aws_security_group.jumpserver.id]
   associate_public_ip_address = true
 
@@ -622,7 +616,7 @@ resource "aws_instance" "physical_vm" {
   ami                         = var.node_ami_id
   instance_type               = var.k8s_instance_type
   key_name                    = data.aws_key_pair.selected.key_name
-  subnet_id                   = aws_subnet.private[each.value.index % length(aws_subnet.private)].id
+  subnet_id                   = aws_subnet.private.id
   vpc_security_group_ids      = [aws_security_group.k8s_nodes.id]
   associate_public_ip_address = false
 
@@ -644,7 +638,7 @@ resource "aws_instance" "obs_node" {
   ami                         = var.node_ami_id
   instance_type               = var.obs_instance_type
   key_name                    = data.aws_key_pair.selected.key_name
-  subnet_id                   = aws_subnet.private[0].id
+  subnet_id                   = aws_subnet.private.id
   vpc_security_group_ids      = [aws_security_group.obs.id]
   associate_public_ip_address = false
 
@@ -666,7 +660,7 @@ resource "aws_instance" "nginx_node" {
   ami                         = var.node_ami_id
   instance_type               = var.nginx_instance_type
   key_name                    = data.aws_key_pair.selected.key_name
-  subnet_id                   = aws_subnet.public[0].id
+  subnet_id                   = aws_subnet.public.id
   vpc_security_group_ids      = [aws_security_group.nginx.id]
   associate_public_ip_address = true
   iam_instance_profile        = var.enable_certbot_iam_profile ? aws_iam_instance_profile.certbot_profile[0].name : null
@@ -689,7 +683,7 @@ resource "aws_instance" "nginx_obs_node" {
   ami                         = var.node_ami_id
   instance_type               = var.nginx_obs_instance_type
   key_name                    = data.aws_key_pair.selected.key_name
-  subnet_id                   = aws_subnet.private[0].id
+  subnet_id                   = aws_subnet.private.id
   vpc_security_group_ids      = [aws_security_group.nginx_obs.id]
   associate_public_ip_address = false
 
@@ -859,71 +853,4 @@ resource "aws_eip" "jumpserver" {
   }
 
   depends_on = [aws_internet_gateway.main]
-}
-
-resource "aws_security_group" "deployment_node" {
-  count = var.enable_deployment_node_private_eni ? 1 : 0
-
-  name        = "${var.project_name}-deployment-node-eni-sg"
-  description = "Security group for deployment node private subnet ENI"
-  vpc_id      = aws_vpc.main.id
-
-  ingress {
-    description = "SSH from VPC"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = [var.network_cidr]
-  }
-
-  ingress {
-    description = "SSH from WireGuard clients"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = [var.wireguard_cidr]
-  }
-
-  ingress {
-    description = "ICMP — required for PMTUD (fragmentation-needed)"
-    from_port   = -1
-    to_port     = -1
-    protocol    = "icmp"
-    cidr_blocks = [var.network_cidr, var.wireguard_cidr]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name        = "${var.project_name}-deployment-node-eni-sg"
-    Environment = var.environment
-    Project     = var.project_name
-  }
-}
-
-resource "aws_network_interface" "deployment_node" {
-  count = var.enable_deployment_node_private_eni ? 1 : 0
-
-  subnet_id       = aws_subnet.private[0].id
-  security_groups = [aws_security_group.deployment_node[0].id]
-
-  tags = {
-    Name        = "${var.network_name}-deployment-node-eni"
-    Environment = var.environment
-    Project     = var.project_name
-    Role        = "deployment_node"
-  }
-}
-
-resource "aws_network_interface_attachment" "deployment_node" {
-  count = var.enable_deployment_node_private_eni ? 1 : 0
-
-  instance_id          = var.deployment_node_instance_id
-  network_interface_id = aws_network_interface.deployment_node[0].id
-  device_index         = 1
 }
