@@ -194,7 +194,7 @@ resource "aws_security_group" "jumpserver" {
   }
 
   ingress {
-    description = "ICMP — required for PMTUD (fragmentation-needed) and connectivity checks"
+    description = "ICMP - required for PMTUD (fragmentation-needed) and connectivity checks"
     from_port   = -1
     to_port     = -1
     protocol    = "icmp"
@@ -285,7 +285,7 @@ resource "aws_security_group" "k8s_nodes" {
   }
 
   ingress {
-    description = "ICMP — required for PMTUD (fragmentation-needed) between nodes"
+    description = "ICMP - required for PMTUD (fragmentation-needed) between nodes"
     from_port   = -1
     to_port     = -1
     protocol    = "icmp"
@@ -344,7 +344,7 @@ resource "aws_security_group" "nginx" {
   }
 
   ingress {
-    description = "ICMP — required for PMTUD (fragmentation-needed)"
+    description = "ICMP - required for PMTUD (fragmentation-needed)"
     from_port   = -1
     to_port     = -1
     protocol    = "icmp"
@@ -515,7 +515,7 @@ resource "aws_security_group" "obs" {
   }
 
   ingress {
-    description = "ICMP — required for PMTUD (fragmentation-needed) between nodes"
+    description = "ICMP - required for PMTUD (fragmentation-needed) between nodes"
     from_port   = -1
     to_port     = -1
     protocol    = "icmp"
@@ -566,7 +566,7 @@ resource "aws_security_group" "nginx_obs" {
   }
 
   ingress {
-    description = "ICMP — required for PMTUD (fragmentation-needed)"
+    description = "ICMP - required for PMTUD (fragmentation-needed)"
     from_port   = -1
     to_port     = -1
     protocol    = "icmp"
