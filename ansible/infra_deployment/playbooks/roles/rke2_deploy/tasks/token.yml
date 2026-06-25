@@ -1,26 +1,26 @@
 ---
 - name: Create rancher base directory
-  file:
+  ansible.builtin.file:
     path: "{{ rancher_base_dir }}"
     state: directory
     mode: '0750'
   when: not rke2_cluster_exists | default(false)
 
 - name: Create cluster-specific directory
-  file:
+  ansible.builtin.file:
     path: "{{ cluster_dir }}"
     state: directory
     mode: '0750'
   when: not rke2_cluster_exists | default(false)
 
 - name: Check for persisted RKE2 token
-  stat:
+  ansible.builtin.stat:
     path: "{{ rke2_token_file }}"
   register: rke2_token_stat
   when: not rke2_cluster_exists | default(false)
 
 - name: Load persisted RKE2 token
-  slurp:
+  ansible.builtin.slurp:
     src: "{{ rke2_token_file }}"
   register: rke2_token_slurp
   when:
@@ -28,7 +28,7 @@
     - rke2_token_stat.stat.exists | default(false)
 
 - name: Set cluster token from file
-  set_fact:
+  ansible.builtin.set_fact:
     rke2_cluster_token: "{{ rke2_token_slurp.content | b64decode | trim }}"
   when:
     - not rke2_cluster_exists | default(false)
@@ -36,7 +36,7 @@
   no_log: true
 
 - name: Generate deterministic RKE2 cluster token
-  set_fact:
+  ansible.builtin.set_fact:
     rke2_cluster_token: "{{ cluster_name | hash('md5') | truncate(32, True, '') }}"
   when:
     - not rke2_cluster_exists | default(false)
@@ -44,7 +44,7 @@
   no_log: true
 
 - name: Persist RKE2 cluster token
-  copy:
+  ansible.builtin.copy:
     dest: "{{ rke2_token_file }}"
     content: "{{ rke2_cluster_token }}"
     mode: '0600'
@@ -53,6 +53,12 @@
     - not rke2_token_stat.stat.exists | default(false)
   no_log: true
 
+- name: Assert primary group has at least one host
+  ansible.builtin.assert:
+    that:
+      - groups.get(rke2_primary_group, []) | length > 0
+    fail_msg: "Primary group '{{ rke2_primary_group }}' is empty; cannot resolve RKE2 API host."
+
 - name: Resolve primary control plane IP
-  set_fact:
-    rke2_primary_ip: "{{ hostvars[groups['control_plane_primary'][0]]['ansible_host'] }}"
+  ansible.builtin.set_fact:
+    rke2_primary_ip: "{{ hostvars[groups[rke2_primary_group][0]]['ansible_host'] }}"

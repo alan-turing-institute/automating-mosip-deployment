@@ -27,7 +27,7 @@ rancher_import_url: ""                   # UPDATE after OBS deployment. URL for 
 cluster_name: "mosip"  # Name of the MOSIP Kubernetes cluster
 # IMPORTANT: Do not use ~ in the path, use the full path instead, e.g. "/home/ubuntu/rancher". --kubeconfig does not support ~.
 rancher_base_dir: "/home/ubuntu/rancher"  # Base directory for main rancher cluster
-check_existing_config: true   # Whether to check for existing configurations before deployment
+check_existing_config: true   # Main cluster: reuse existing kubeconfig/token when healthy; set false to force fresh sync/install path
 kubelet_max_pods: 300      # Maximum number of pods per node
 service_cluster_ip_range: "10.43.0.0/16"  # Kubernetes service IP range
 cluster_cidr: "10.42.0.0/16"             # Pod network CIDR
@@ -45,7 +45,7 @@ rancher_import_timeout: 1200             # Timeout in seconds for Rancher agent 
 rancher_obs_cluster_name: "mosip_obs"    # Name of the OBS single-node cluster
 # IMPORTANT: Do not use ~ in the path, use the full path instead, e.g. "/home/ubuntu/rancher/obs"
 rancher_obs_base_dir: "/home/ubuntu/rancher/obs"  # Base directory for OBS cluster (under main rancher directory) - will be expanded to full path
-rancher_obs_check_existing_config: true  # Whether to check for existing OBS configurations before deployment
+rancher_obs_check_existing_config: true  # OBS cluster: reuse existing kubeconfig/token when healthy; set false to force fresh sync/install path
 rancher_obs_kubernetes_version: ""       # Kubernetes version for OBS cluster (empty for default)
 rancher_obs_service_cluster_ip_range: "10.43.0.0/16"  # Service IP range for OBS cluster
 rancher_obs_cluster_cidr: "10.42.0.0/16" # Pod network CIDR for OBS cluster

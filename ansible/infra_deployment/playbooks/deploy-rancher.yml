@@ -11,11 +11,18 @@
 - name: Initialize RKE2 cluster state
   hosts: deployment
   gather_facts: true
-  roles:
-    - role: rke2_deploy
-      tasks_from: check_cluster.yml
-    - role: rke2_deploy
-      tasks_from: token.yml
+  vars:
+    rke2_primary_group: "control_plane_primary"
+    rke2_config_dir: "{{ rke2_main_config_dir | default('/home/ubuntu/rancher/mosip/rke2') }}"
+  tasks:
+    - name: Load main-cluster check_cluster tasks
+      ansible.builtin.include_role:
+        name: rke2_deploy
+        tasks_from: check_cluster.yml
+    - name: Load main-cluster token tasks
+      ansible.builtin.include_role:
+        name: rke2_deploy
+        tasks_from: token.yml
 
 # Install primary control plane
 - name: Install RKE2 primary control plane
@@ -25,11 +32,13 @@
   serial: 1
   vars:
     rke2_cluster_exists: "{{ hostvars[groups['deployment'][0]]['rke2_cluster_exists'] | default(false) }}"
-    rke2_cluster_token: "{{ hostvars[groups['deployment'][0]]['rke2_cluster_token'] }}"
+    rke2_cluster_token: "{{ hostvars[groups['deployment'][0]]['rke2_cluster_token'] | default('') }}"
     rke2_config_dir: "{{ rke2_main_config_dir | default('/home/ubuntu/rancher/mosip/rke2') }}"
-  roles:
-    - role: rke2_deploy
-      tasks_from: primary.yml
+  tasks:
+    - name: Load main-cluster primary tasks
+      ansible.builtin.include_role:
+        name: rke2_deploy
+        tasks_from: primary.yml
 
 # Install subsequent nodes
 - name: Install RKE2 subsequent nodes
@@ -39,12 +48,14 @@
   serial: 1
   vars:
     rke2_cluster_exists: "{{ hostvars[groups['deployment'][0]]['rke2_cluster_exists'] | default(false) }}"
-    rke2_cluster_token: "{{ hostvars[groups['deployment'][0]]['rke2_cluster_token'] }}"
+    rke2_cluster_token: "{{ hostvars[groups['deployment'][0]]['rke2_cluster_token'] | default('') }}"
     rke2_primary_ip: "{{ hostvars[groups['deployment'][0]]['rke2_primary_ip'] }}"
     rke2_config_dir: "{{ rke2_main_config_dir | default('/home/ubuntu/rancher/mosip/rke2') }}"
-  roles:
-    - role: rke2_deploy
-      tasks_from: subsequent.yml
+  tasks:
+    - name: Load main-cluster subsequent tasks
+      ansible.builtin.include_role:
+        name: rke2_deploy
+        tasks_from: subsequent.yml
 
 # Fetch kubeconfig and optional Rancher import
 - name: Finalize RKE2 cluster on deployment node
@@ -52,10 +63,15 @@
   gather_facts: true
   vars:
     rke2_cluster_exists: "{{ hostvars[groups['deployment'][0]]['rke2_cluster_exists'] | default(false) }}"
-    rke2_primary_ip: "{{ hostvars[groups['deployment'][0]]['rke2_primary_ip'] }}"
+    rke2_primary_ip: "{{ hostvars[groups['deployment'][0]]['rke2_primary_ip'] | default(hostvars[groups['control_plane_primary'][0]]['ansible_host']) }}"
+    rke2_kubeconfig_delegate_host: "{{ groups['control_plane_primary'][0] }}"
     rke2_config_dir: "{{ rke2_main_config_dir | default('/home/ubuntu/rancher/mosip/rke2') }}"
-  roles:
-    - role: rke2_deploy
-      tasks_from: kubeconfig.yml
-    - role: rke2_deploy
-      tasks_from: rancher_import.yml
+  tasks:
+    - name: Load main-cluster kubeconfig tasks
+      ansible.builtin.include_role:
+        name: rke2_deploy
+        tasks_from: kubeconfig.yml
+    - name: Load Rancher import tasks
+      ansible.builtin.include_role:
+        name: rke2_deploy
+        tasks_from: rancher_import.yml
