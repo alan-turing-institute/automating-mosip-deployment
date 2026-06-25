@@ -6,12 +6,6 @@ variable "kubeconfig_path" {
   description = "Path to kubeconfig file"
 }
 
-variable "platform_version_profile" {
-  description = "Version profile: k8s_1_28 or k8s_1_35. Set in terraform/platform_versions.tfvars."
-  type        = string
-  default     = "k8s_1_28"
-}
-
 variable "installation_name" {
   type        = string
   description = "Name of the MOSIP installation"
@@ -47,9 +41,9 @@ variable "longhorn_namespace" {
 }
 
 variable "longhorn_version" {
-  description = "Override Longhorn chart version (empty = profile default from platform_version_profile)."
+  description = "Longhorn chart version."
   type        = string
-  default     = ""
+  default     = "1.5.1"
 }
 
 variable "longhorn_replica_count" {
@@ -126,15 +120,15 @@ variable "monitoring_namespace" {
 }
 
 variable "monitoring_crd_version" {
-  description = "Override rancher-monitoring-crd chart (empty = profile default)."
+  description = "rancher-monitoring-crd chart version."
   type        = string
-  default     = ""
+  default     = "103.1.1+up45.31.1"
 }
 
 variable "monitoring_version" {
-  description = "Override rancher-monitoring chart (empty = profile default)."
+  description = "rancher-monitoring chart version."
   type        = string
-  default     = ""
+  default     = "103.1.0+up45.31.1"
 }
 
 # Istio Variables
@@ -146,8 +140,8 @@ variable "enable_istio" {
 
 variable "istio_version" {
   type        = string
-  description = "Override Istio version (empty = profile default from platform_version_profile)."
-  default     = ""
+  description = "Istio version."
+  default     = "1.22.0"
 }
 
 variable "istio_namespace" {

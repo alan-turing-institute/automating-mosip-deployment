@@ -2,6 +2,7 @@
 rancher_hostname = "rancher.turing-mosip.net"  # Change this to rancher DNS
 kubeconfig_path = "/home/ubuntu/rancher/obs/kube_config_cluster.yml"  #IMPORTANT: Use the full path to the kubeconfig file, e.g. /home/ubuntu/ and not ~/
 
-# Platform chart versions: copy terraform/platform_versions.tfvars.tmp → platform_versions.tfvars
-# Apply with: terraform apply -var-file=terraform.tfvars -var-file=../platform_versions.tfvars
-# Keep platform_version_profile in sync with ansible/group_vars/platform_versions.yml
+# OBS chart versions (independent from MOSIP stack)
+rancher_version = "2.8.3"
+ingress_nginx_version = "4.10.0"
+longhorn_version = "1.5.1"

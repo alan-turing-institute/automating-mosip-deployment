@@ -1,13 +1,3 @@
-module "version_pins" {
-  source = "../shared/version_pins"
-
-  platform_version_profile = var.platform_version_profile
-  longhorn_version         = var.longhorn_version
-  monitoring_crd_version   = var.monitoring_crd_version
-  monitoring_version       = var.monitoring_version
-  istio_version            = var.istio_version
-}
-
 # Check prerequisites
 resource "null_resource" "prerequisites" {
   provisioner "local-exec" {
@@ -37,7 +27,7 @@ module "longhorn" {
   source = "../modules/longhorn"
 
   namespace                                          = var.longhorn_namespace
-  chart_version                                     = module.version_pins.longhorn_version
+  chart_version                                     = var.longhorn_version
   replica_count                                     = var.longhorn_replica_count
   guaranteed_engine_cpu                             = var.longhorn_guaranteed_engine_cpu
   guaranteed_replica_cpu                            = var.longhorn_guaranteed_replica_cpu
@@ -59,8 +49,8 @@ module "monitoring" {
   source = "../modules/monitoring"
   
   monitoring_namespace   = var.monitoring_namespace
-  monitoring_crd_version = module.version_pins.monitoring_crd_version
-  monitoring_version     = module.version_pins.monitoring_version
+  monitoring_crd_version = var.monitoring_crd_version
+  monitoring_version     = var.monitoring_version
 
   depends_on = concat([null_resource.provider_config], var.longhorn_enable ? [module.longhorn[0]] : [])
 }
@@ -106,7 +96,7 @@ module "istio" {
   
   enable_istio = var.enable_istio
   namespace = var.istio_namespace
-  istio_version = module.version_pins.istio_version
+  istio_version = var.istio_version
   proxy_protocol_enabled = var.proxy_protocol_enabled
 
   depends_on = [kubernetes_config_map_v1.global, module.monitoring]

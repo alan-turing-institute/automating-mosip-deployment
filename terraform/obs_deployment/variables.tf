@@ -3,12 +3,6 @@ variable "kubeconfig_path" {
   type        = string
 }
 
-variable "platform_version_profile" {
-  description = "Version profile: k8s_1_28 or k8s_1_35. Set in terraform/platform_versions.tfvars."
-  type        = string
-  default     = "k8s_1_28"
-}
-
 variable "ingress_nginx_namespace" {
   description = "Namespace for ingress-nginx"
   type        = string
@@ -16,15 +10,15 @@ variable "ingress_nginx_namespace" {
 }
 
 variable "rancher_version" {
-  description = "Override Rancher chart version (empty = profile default from platform_version_profile)."
+  description = "Rancher chart version."
   type        = string
-  default     = ""
+  default     = "2.8.3"
 }
 
 variable "ingress_nginx_version" {
-  description = "Override ingress-nginx chart version (empty = profile default)."
+  description = "Ingress NGINX chart version."
   type        = string
-  default     = ""
+  default     = "4.10.0"
 }
 
 variable "rancher_namespace" {
@@ -57,9 +51,9 @@ variable "longhorn_namespace" {
 }
 
 variable "longhorn_version" {
-  description = "Override Longhorn chart version (empty = profile default)."
+  description = "Longhorn chart version."
   type        = string
-  default     = ""
+  default     = "1.5.1"
 }
 
 variable "filesystem_pv_size" {

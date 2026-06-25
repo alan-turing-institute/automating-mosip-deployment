@@ -4,8 +4,11 @@ installation_domain = "turing-mosip.net"  # Change this to your actual domain
 mosip_version = "1.2.0"           # Change this to your desired MOSIP version
 kubeconfig_path = "/home/ubuntu/rancher/mosip/kube_config_cluster.yml"  #IMPORTANT: Use the full path to the kubeconfig file, e.g. /home/ubuntu/ and not ~/
 
-# Component versions: copy terraform/platform_versions.tfvars.tmp → platform_versions.tfvars
-# and apply with: terraform apply -var-file=../terraform.tfvars -var-file=../../platform_versions.tfvars
+# MOSIP infra chart versions (independent from OBS stack)
+longhorn_version = "1.5.1"
+monitoring_crd_version = "103.1.1+up45.31.1"
+monitoring_version = "103.1.0+up45.31.1"
+istio_version = "1.22.0"
 
 # Enable modules
 ###### KEEP DOCKER OFF FOR NOW #####
