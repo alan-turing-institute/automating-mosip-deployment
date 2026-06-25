@@ -68,10 +68,15 @@
     - not (rke2_cluster_exists | default(false))
     - rke2_primary_service_active | default(false)
 
-- name: Wait for RKE2 kubeconfig on primary
-  ansible.builtin.wait_for:
-    path: "{{ rke2_config_dir }}/rke2.yaml"
-    timeout: 300
+- name: Wait for RKE2 kubeconfig on primary at custom or default path
+  ansible.builtin.shell: >-
+    test -f "{{ rke2_config_dir }}/rke2.yaml" ||
+    test -f "{{ rke2_default_kubeconfig_path }}"
+  register: rke2_kubeconfig_ready
+  changed_when: false
+  retries: 30
+  delay: 10
+  until: rke2_kubeconfig_ready.rc == 0
   when: not (rke2_cluster_exists | default(false))
 
 - name: Wait for Kubernetes API on primary
