@@ -19,6 +19,40 @@
   register: rke2_token_stat
   when: not rke2_cluster_exists | default(false)
 
+- name: Assert primary group has at least one host
+  ansible.builtin.assert:
+    that:
+      - groups.get(rke2_primary_group, []) | length > 0
+    fail_msg: "Primary group '{{ rke2_primary_group }}' is empty; cannot resolve RKE2 API host."
+
+- name: Check for existing RKE2 server token on primary node
+  ansible.builtin.stat:
+    path: /var/lib/rancher/rke2/server/token
+  register: rke2_primary_token_stat
+  delegate_to: "{{ groups[rke2_primary_group][0] }}"
+  become: true
+  failed_when: false
+  when: not rke2_cluster_exists | default(false)
+
+- name: Read existing RKE2 server token from primary node
+  ansible.builtin.slurp:
+    src: /var/lib/rancher/rke2/server/token
+  register: rke2_primary_token_slurp
+  delegate_to: "{{ groups[rke2_primary_group][0] }}"
+  become: true
+  when:
+    - not rke2_cluster_exists | default(false)
+    - rke2_primary_token_stat.stat.exists | default(false)
+
+- name: Set token recovered from primary node
+  ansible.builtin.set_fact:
+    rke2_primary_recovered_token: "{{ rke2_primary_token_slurp.content | b64decode | trim }}"
+  when:
+    - not rke2_cluster_exists | default(false)
+    - rke2_primary_token_stat.stat.exists | default(false)
+    - rke2_primary_token_slurp.content is defined
+  no_log: true
+
 - name: Load persisted RKE2 token
   ansible.builtin.slurp:
     src: "{{ rke2_token_file }}"
@@ -35,12 +69,32 @@
     - rke2_token_stat.stat.exists | default(false)
   no_log: true
 
+- name: Prefer token recovered from running cluster when available
+  ansible.builtin.set_fact:
+    rke2_cluster_token: "{{ rke2_primary_recovered_token }}"
+  when:
+    - not rke2_cluster_exists | default(false)
+    - rke2_primary_recovered_token is defined
+    - rke2_primary_recovered_token | length > 0
+  no_log: true
+
+- name: Warn when persisted token differs from node token
+  ansible.builtin.debug:
+    msg: >-
+      Persisted deployment-node token differs from primary-node token.
+      Using token recovered from primary node to avoid bootstrap token mismatch.
+  when:
+    - not rke2_cluster_exists | default(false)
+    - rke2_token_stat.stat.exists | default(false)
+    - rke2_primary_recovered_token is defined
+    - (rke2_token_slurp.content | b64decode | trim) != rke2_primary_recovered_token
+
 - name: Generate deterministic RKE2 cluster token
   ansible.builtin.set_fact:
     rke2_cluster_token: "{{ cluster_name | hash('md5') | truncate(32, True, '') }}"
   when:
     - not rke2_cluster_exists | default(false)
-    - not rke2_token_stat.stat.exists | default(false)
+    - rke2_cluster_token is not defined or rke2_cluster_token | length == 0
   no_log: true
 
 - name: Persist RKE2 cluster token
@@ -50,14 +104,9 @@
     mode: '0600'
   when:
     - not rke2_cluster_exists | default(false)
-    - not rke2_token_stat.stat.exists | default(false)
+    - rke2_cluster_token is defined
+    - rke2_cluster_token | length > 0
   no_log: true
-
-- name: Assert primary group has at least one host
-  ansible.builtin.assert:
-    that:
-      - groups.get(rke2_primary_group, []) | length > 0
-    fail_msg: "Primary group '{{ rke2_primary_group }}' is empty; cannot resolve RKE2 API host."
 
 - name: Resolve primary control plane IP
   ansible.builtin.set_fact:
