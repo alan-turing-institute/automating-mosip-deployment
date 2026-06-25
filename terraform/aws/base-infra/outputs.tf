@@ -97,6 +97,16 @@ output "route53_records_created" {
   value       = var.enable_route53_records ? { for key, record in aws_route53_record.cluster_dns : key => record.fqdn } : {}
 }
 
+output "deployment_node_private_eni_id" {
+  description = "Network interface ID attached to the deployment node when enable_deployment_node_private_eni=true"
+  value       = var.enable_deployment_node_private_eni ? aws_network_interface.deployment_node[0].id : null
+}
+
+output "deployment_node_private_ip" {
+  description = "Private IP of the deployment node ENI on the private subnet when enabled"
+  value       = var.enable_deployment_node_private_eni ? aws_network_interface.deployment_node[0].private_ip : null
+}
+
 output "certbot_instance_profile_name" {
   description = "Certbot IAM instance profile attached to nginx node when enabled"
   value       = var.enable_certbot_iam_profile ? aws_iam_instance_profile.certbot_profile[0].name : null

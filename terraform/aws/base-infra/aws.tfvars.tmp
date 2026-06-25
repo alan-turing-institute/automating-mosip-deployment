@@ -8,6 +8,12 @@ aws_region = "eu-west-1"
 # Example: ssh_key_name = "mosip-dev-keypair"
 ssh_key_name = ""
 
+# Deployment node private network attachment (second NIC on MOSIP private subnet).
+# Required when enable_deployment_node_private_eni=true: set deployment_node_instance_id to your
+# existing deployment node EC2 instance ID. Otherwise set enable_deployment_node_private_eni=false.
+enable_deployment_node_private_eni = true
+deployment_node_instance_id        = ""
+
 # Optional Route53 automation
 enable_route53_records = false
 cluster_env_domain     = "turing-mosip.net"

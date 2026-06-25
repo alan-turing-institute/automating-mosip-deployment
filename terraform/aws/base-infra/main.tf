@@ -840,6 +840,73 @@ resource "aws_route53_record" "cluster_dns" {
   records = each.value.records
 }
 
+resource "aws_security_group" "deployment_node" {
+  count = var.enable_deployment_node_private_eni ? 1 : 0
+
+  name        = "${var.project_name}-deployment-node-eni-sg"
+  description = "Security group for deployment node private subnet ENI"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    description = "SSH from VPC"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = [var.network_cidr]
+  }
+
+  ingress {
+    description = "SSH from WireGuard clients"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = [var.wireguard_cidr]
+  }
+
+  ingress {
+    description = "ICMP - required for PMTUD (fragmentation-needed)"
+    from_port   = -1
+    to_port     = -1
+    protocol    = "icmp"
+    cidr_blocks = [var.network_cidr, var.wireguard_cidr]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name        = "${var.project_name}-deployment-node-eni-sg"
+    Environment = var.environment
+    Project     = var.project_name
+  }
+}
+
+resource "aws_network_interface" "deployment_node" {
+  count = var.enable_deployment_node_private_eni ? 1 : 0
+
+  subnet_id       = aws_subnet.private.id
+  security_groups = [aws_security_group.deployment_node[0].id]
+
+  tags = {
+    Name        = "${var.network_name}-deployment-node-eni"
+    Environment = var.environment
+    Project     = var.project_name
+    Role        = "deployment_node"
+  }
+}
+
+resource "aws_network_interface_attachment" "deployment_node" {
+  count = var.enable_deployment_node_private_eni ? 1 : 0
+
+  instance_id          = var.deployment_node_instance_id
+  network_interface_id = aws_network_interface.deployment_node[0].id
+  device_index         = 1
+}
+
 resource "aws_eip" "jumpserver" {
   count = var.create_jumpserver_eip ? 1 : 0
 
