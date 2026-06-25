@@ -15,9 +15,9 @@
     rke2_token_file: "{{ rancher_obs_base_dir | default('/home/ubuntu/rancher/obs') }}/rke2_token"
   roles:
     - role: rke2_obs
-      tasks_from: check_cluster.yml
+      tasks_from: check_cluster
     - role: rke2_obs
-      tasks_from: token.yml
+      tasks_from: token
 
 - name: Install RKE2 on OBS node
   hosts: mosip_obs
@@ -31,7 +31,7 @@
     rke2_config_dir: "{{ rke2_obs_config_dir | default('/home/ubuntu/rancher/obs/rke2') }}"
   roles:
     - role: rke2_obs
-      tasks_from: install.yml
+      tasks_from: install
 
 - name: Finalize OBS cluster on deployment node
   hosts: deployment
@@ -45,7 +45,7 @@
     rke2_token_file: "{{ rancher_obs_base_dir | default('/home/ubuntu/rancher/obs') }}/rke2_token"
   roles:
     - role: rke2_obs
-      tasks_from: kubeconfig.yml
+      tasks_from: kubeconfig
 
 - name: Deploy Nginx OBS Load Balancer
   hosts: nginx_obs

@@ -1,13 +1,7 @@
 ---
-# OBS cluster bootstrap is split across deployment and OBS nodes.
-# Use deploy-rancher-obs.yml (tasks_from) — do not invoke this role directly on mosip_obs only.
-- name: Verify OBS node is defined
+# Invoke via deploy-rancher-obs.yml using tasks_from (check_cluster, token, install, kubeconfig).
+- name: rke2_obs role must be invoked with tasks_from
   fail:
-    msg: "mosip_obs group must contain at least one node"
-  when: groups['mosip_obs'] | length == 0
-  run_once: true
-
-- import_tasks: check_cluster.yml
-- import_tasks: token.yml
-- import_tasks: install.yml
-- import_tasks: kubeconfig.yml
+    msg: >-
+      Do not run the rke2_obs role directly. Use playbooks/deploy-rancher-obs.yml,
+      which runs check_cluster, token, install, and kubeconfig on the correct hosts.
