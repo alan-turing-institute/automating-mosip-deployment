@@ -26,7 +26,7 @@ nginx_public_domain_names: "api.{{ mosip_domain }} prereg.{{ mosip_domain }} res
 
 # Rancher cluster configuration
 rancher_cluster_nodes: "{{ groups['worker_nodes'] }}"
-rancher_node_ips: "{{ rancher_cluster_nodes | map('extract', hostvars, ['node_ip']) | join(',') }}"
+rancher_node_ips: "{{ rancher_cluster_nodes | map('extract', hostvars, 'ansible_host') | join(',') }}"
 
 # Firewall configuration
 enable_firewall_rules: false
