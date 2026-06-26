@@ -46,11 +46,11 @@ vm6
 
 [mosip_obs]
 # Single node Rancher OBS cluster
-obs-node-1 ansible_host=10.100.1.
+obs-node-1 ansible_host=10.100.3.
 
 [nginx]
 # Add your nginx nodes here
-nginx-node-1 ansible_host=10.100.3.
+nginx-node-1 ansible_host=10.100.1.
 
 [nginx_obs]
 # Add your OBS nginx nodes here
