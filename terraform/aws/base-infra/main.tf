@@ -53,12 +53,13 @@ locals {
 }
 
 resource "aws_subnet" "public" {
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = var.public_subnet_cidr
-  availability_zone = var.availability_zone
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = var.public_subnet_cidr
+  availability_zone       = var.availability_zone
+  map_public_ip_on_launch = true
 
   tags = {
-    Name        = "${var.network_name}-nat-subnet"
+    Name        = "${var.network_name}-public-subnet"
     Type        = "Public"
     Environment = var.environment
     Project     = var.project_name
@@ -590,7 +591,7 @@ resource "aws_instance" "jumpserver" {
   ami                         = var.jumpserver_ami_id
   instance_type               = var.jumpserver_instance_type
   key_name                    = data.aws_key_pair.selected.key_name
-  subnet_id                   = aws_subnet.private.id
+  subnet_id                   = aws_subnet.public.id
   vpc_security_group_ids      = [aws_security_group.jumpserver.id]
   associate_public_ip_address = true
 
@@ -659,7 +660,7 @@ resource "aws_instance" "nginx_node" {
   ami                         = var.node_ami_id
   instance_type               = var.nginx_instance_type
   key_name                    = data.aws_key_pair.selected.key_name
-  subnet_id                   = aws_subnet.private.id
+  subnet_id                   = aws_subnet.public.id
   vpc_security_group_ids      = [aws_security_group.nginx.id]
   associate_public_ip_address = true
   iam_instance_profile        = var.enable_certbot_iam_profile ? aws_iam_instance_profile.certbot_profile[0].name : null
