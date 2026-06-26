@@ -249,34 +249,70 @@ resource "helm_release" "config_server" {
   version    = var.chart_version
   timeout    = 1800  # 30 minutes
 
+  # Composite profile — MOSIP default; spring_compositeRepos[0] is the mosip-config git repo
   set {
-    name  = "gitRepo.uri"
+    name  = "spring_profiles.enabled"
+    value = "true"
+  }
+
+  set {
+    name  = "spring_profiles.spring_compositeRepos[0].type"
+    value = "git"
+  }
+
+  set {
+    name  = "spring_profiles.spring_compositeRepos[0].uri"
     value = var.git_repo_uri
   }
 
   set {
-    name  = "gitRepo.version"
+    name  = "spring_profiles.spring_compositeRepos[0].version"
     value = var.git_repo_version
   }
 
   set {
-    name  = "gitRepo.searchPaths"
+    name  = "spring_profiles.spring_compositeRepos[0].searchFolders"
     value = var.git_search_folders
   }
 
   set {
-    name  = "gitRepo.private"
+    name  = "spring_profiles.spring_compositeRepos[0].private"
     value = tostring(var.git_private)
   }
 
   set {
-    name  = "gitRepo.username"
+    name  = "spring_profiles.spring_compositeRepos[0].username"
     value = var.git_username
   }
 
   set_sensitive {
-    name  = "gitRepo.token"
+    name  = "spring_profiles.spring_compositeRepos[0].token"
     value = var.git_token
+  }
+
+  set {
+    name  = "spring_profiles.spring_compositeRepos[0].spring_cloud_config_server_git_cloneOnStart"
+    value = "true"
+  }
+
+  set {
+    name  = "spring_profiles.spring_compositeRepos[0].spring_cloud_config_server_git_force_pull"
+    value = "true"
+  }
+
+  set {
+    name  = "spring_profiles.spring_compositeRepos[0].spring_cloud_config_server_git_refreshRate"
+    value = "5"
+  }
+
+  set {
+    name  = "spring_profiles.spring_fail_on_composite_error"
+    value = "false"
+  }
+
+  set {
+    name  = "localRepo.enabled"
+    value = "false"
   }
 
   # Startup Probe Configuration
