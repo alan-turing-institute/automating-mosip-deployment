@@ -5,10 +5,12 @@ primary:
     max_wal_senders=20
     max_replication_slots=10
   resources:
-    limits: {}
+    limits:
+      cpu: 1500m
+      memory: 2000Mi
     requests:
-      cpu: 3000m
-      memory: 3000Mi
+      cpu: 1500m
+      memory: 2000Mi
 
 audit:
   logHostname: true
@@ -21,4 +23,20 @@ audit:
   logTimezone: ""
 
 image:
-  debug: true 
+  debug: true
+
+# Creates postgres-setup-config ConfigMap in the postgres namespace.
+# config-server copies this to its own namespace and uses it to inject
+# MOSIP_DATABASE_HOSTNAME_OVERRIDE and MOSIP_DATABASE_PORT_OVERRIDE.
+extraDeploy:
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: postgres-setup-config
+      namespace: '{{ .Release.Namespace }}'
+      labels:
+        app.kubernetes.io/instance: '{{ .Release.Name }}'
+        app.kubernetes.io/managed-by: '{{ .Release.Service }}'
+    data:
+      mosip-database-hostname-override: "postgres-postgresql.postgres"
+      mosip-database-port-override: "5432"

@@ -30,13 +30,14 @@ resource "kubernetes_namespace_v1" "config_server" {
 # Copy ConfigMaps from other namespaces
 resource "kubernetes_config_map_v1" "config_server_cm" {
   depends_on = [kubernetes_namespace_v1.config_server]
-  
+
   for_each = {
-    "global"                    = { namespace = "default" }
-    "keycloak-host"             = { namespace = "keycloak" }
+    "global"                          = { namespace = "default" }
+    "keycloak-host"                   = { namespace = "keycloak" }
     "activemq-activemq-artemis-share" = { namespace = "activemq" }
-    "s3"                        = { namespace = "s3" }
-    "msg-gateway"               = { namespace = "msg-gateways" }
+    "s3"                              = { namespace = "s3" }
+    "msg-gateway"                     = { namespace = "msg-gateways" }
+    "postgres-setup-config"           = { namespace = "postgres" }
   }
   
   metadata {
@@ -52,11 +53,12 @@ resource "kubernetes_config_map_v1" "config_server_cm" {
 # Data source for ConfigMaps
 data "kubernetes_config_map_v1" "source_configmaps" {
   for_each = {
-    "global"                    = { namespace = "default" }
-    "keycloak-host"             = { namespace = "keycloak" }
+    "global"                          = { namespace = "default" }
+    "keycloak-host"                   = { namespace = "keycloak" }
     "activemq-activemq-artemis-share" = { namespace = "activemq" }
-    "s3"                        = { namespace = "s3" }
-    "msg-gateway"               = { namespace = "msg-gateways" }
+    "s3"                              = { namespace = "s3" }
+    "msg-gateway"                     = { namespace = "msg-gateways" }
+    "postgres-setup-config"           = { namespace = "postgres" }
   }
   
   metadata {
