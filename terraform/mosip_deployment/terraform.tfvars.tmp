@@ -447,9 +447,9 @@ kafka_zookeeper_replica_count = 5
 # ClamAV Configuration
 clamav_helm_chart_version = "3.1.0"
 clamav_replica_count = 1
-clamav_image_repository = "clamav/clamav"
-clamav_image_tag = "latest"
-clamav_image_pull_policy = "Always"
+clamav_image_repository = "mosipid/clamav"
+clamav_image_tag = "1.3.0_base"
+clamav_image_pull_policy = "IfNotPresent"
 
 # MSG Gateway Configuration
 smtp_host          = "mock-smtp.mock-smtp"
