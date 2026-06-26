@@ -31,22 +31,6 @@ resource "kubernetes_namespace_v1" "keycloak" {
   }
 }
 
-# Create Keycloak host ConfigMap
-resource "kubernetes_config_map_v1" "keycloak_host" {
-  metadata {
-    name      = "keycloak-host"
-    namespace = kubernetes_namespace_v1.keycloak.metadata[0].name
-  }
-
-  data = {
-    "keycloak-internal-host"       = "keycloak.${kubernetes_namespace_v1.keycloak.metadata[0].name}"
-    "keycloak-internal-url"        = "http://keycloak.${kubernetes_namespace_v1.keycloak.metadata[0].name}"
-    "keycloak-external-host"       = local.iam_host
-    "keycloak-external-url"        = "https://${local.iam_host}"
-    "keycloak-internal-service-url" = "http://keycloak.${kubernetes_namespace_v1.keycloak.metadata[0].name}/auth/"
-  }
-}
-
 # Deploy Keycloak using Helm
 resource "helm_release" "keycloak" {
   name       = "keycloak"
@@ -237,10 +221,21 @@ resource "helm_release" "keycloak_init" {
 #    file("${path.module}/import-init-values.yaml")
 #  ]
 
+  # Host configuration — keycloak-init uses these to create the keycloak-host ConfigMap
+  set {
+    name  = "keycloakExternalHost"
+    value = local.iam_host
+  }
+
+  set {
+    name  = "keycloakInternalHost"
+    value = "keycloak.${var.namespace}"
+  }
+
   # Frontend URL Configuration
   set {
     name  = "keycloak.realms.mosip.realm_config.attributes.frontendUrl"
-    value = "https://${data.kubernetes_config_map_v1.global.data["mosip-iam-external-host"]}/auth"
+    value = "https://${local.iam_host}/auth"
   }
 
 

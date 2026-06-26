@@ -46,8 +46,8 @@ project_name = "mosip"
 # Network
 network_name        = "mosip-boxes"
 network_cidr        = "10.100.0.0/16"
-public_subnet_cidr  = "10.100.1.0/24" # NAT Gateway only — no EC2 instances
-private_subnet_cidr = "10.100.3.0/24" # All VMs: jumpserver, nginx, k8s nodes, obs
+public_subnet_cidr  = "10.100.1.0/24" # jumpserver + nginx (EIP-accessible, internet inbound)
+private_subnet_cidr = "10.100.3.0/24" # all k8s nodes, obs nodes, deployment node ENI
 wireguard_cidr      = "10.13.13.0/24" # WireGuard client tunnel subnet (must match wg Interface Address range)
 #availability_zone  = "ap-south-1a"
 availability_zone   = "eu-west-1a"
