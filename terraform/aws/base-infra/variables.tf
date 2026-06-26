@@ -14,7 +14,7 @@ variable "network_cidr" {
 }
 
 variable "public_subnet_cidr" {
-  description = "CIDR block for the single public subnet (jumpserver, nginx)"
+  description = "CIDR block for the NAT Gateway subnet (no EC2 instances — exists solely to give the NAT GW an IGW route)"
   type        = string
 }
 
