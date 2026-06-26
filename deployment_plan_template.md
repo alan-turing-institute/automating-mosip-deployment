@@ -185,7 +185,46 @@ terraform output -json > aws-base-outputs.json
 ```
 
 #### Access to MOSIP network
-After the terraform your deployment node VM has 2nd interface added. Check deployment node netplan `sudo vim /etc/netplan/50-cloud-init.yaml` and make sure 10.100.3.0/24 is using the new interface.
+After the terraform your deployment node VM has 2nd interface added.
+Update deployment node netplan `sudo vim /etc/netplan/50-cloud-init.yaml` as per below example. Once completed run, `sudo netplan apply`
+
+```bash
+# Change 2nd interface use-routes: false and remove existing routes and add one 10.100.0.0/16
+# AWS push config like this
+    enX1:
+      match:
+        macaddress: "0a:83:6b:95:10:ed"
+      dhcp4: true
+      dhcp4-overrides:
+        use-routes: true
+        route-metric: 200
+      dhcp6: false
+      set-name: "enX1"
+      routes:
+      - table: 101
+        to: "0.0.0.0/0"
+        via: "10.100.3.1"
+      - scope: "link"
+        table: 101
+        to: "10.100.3.0/24"
+      routing-policy:
+      - table: 101
+        from: "10.100.3.104"
+
+# Change use-routes and routes options only
+    enX1:
+      match:
+        macaddress: "0a:83:6b:95:10:ed"
+      dhcp4: true
+      dhcp4-overrides:
+        use-routes: false
+        route-metric: 200
+      dhcp6: false
+      set-name: "enX1"
+      routes:
+      - to: "10.100.0.0/16"
+        via: "10.100.3.1"
+```
 
 #### Map AWS outputs to Ansible / Terraform templates
 

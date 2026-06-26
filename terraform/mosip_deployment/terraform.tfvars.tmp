@@ -413,7 +413,7 @@ iam_smtp_username = ""      # Optional, only if smtp_auth is true
 iam_smtp_password = ""      # Optional, only if smtp_auth is true
 
 # Postgres Database
-postgres_version = "12.11.1"       # Version of Postgres Helm chart to deploy
+postgres_version = "13.1.5"       # Version of Postgres Helm chart to deploy
 postgres_namespace = "postgres"     # Namespace for Postgres deployment
 postgres_init_version = "1.3.0"   # Version of Postgres Init Helm chart
 
@@ -425,7 +425,7 @@ softhsm_chart_version = "1.4.1-rc.1"  # Version of SoftHSM Helm chart to deploy
 softhsm_namespace = "softhsm"     # Namespace for SoftHSM deployment
 
 # MinIO Object Store
-minio_chart_version = "10.1.6"   # Version of MinIO Helm chart to deploy
+minio_chart_version = "15.0.6"   # Version of MinIO Helm chart to deploy
 minio_namespace = "minio"        # Namespace for MinIO deployment
 
 # S3 Credentials Configuration
@@ -476,7 +476,7 @@ conf_secrets_chart_version = "1.3.1-rc.1"
 config_server_namespace = "config-server"
 config_server_chart_version = "1.3.1-rc.1"
 config_server_git_repo_uri = "https://github.com/mosip/mosip-config"
-config_server_git_repo_version = "v1.2.0.1"
+config_server_git_repo_version = "v1.3.1-rc.1"
 config_server_git_search_folders = ""
 config_server_git_private = false
 config_server_git_username = ""
@@ -664,12 +664,12 @@ pms_helm_timeout_seconds = 1200
 
 # Mock ABIS settings
 mock_abis_namespace = "abis"
-mock_abis_helm_chart_version = "1.3.1-rc.1"
+mock_abis_helm_chart_version = "v1.3.1-rc.1"
 mock_abis_istio_injection_label = "enabled"
 mock_abis_helm_timeout_seconds = 1200
 
 # Mock MV settings
-mock_mv_helm_chart_version = "1.3.1-rc.1"
+mock_mv_helm_chart_version = "v1.3.1-rc.1"
 mock_mv_istio_injection_label = "enabled"
 mock_mv_startup_probe_initial_delay = 90
 mock_mv_startup_probe_timeout = 180
