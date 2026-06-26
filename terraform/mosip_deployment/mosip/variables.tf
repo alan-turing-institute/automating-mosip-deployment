@@ -205,6 +205,12 @@ variable "minio_chart_version" {
   default     = "10.1.6"
 }
 
+variable "minio_image_tag" {
+  description = "MinIO image tag (mosipid/minio)"
+  type        = string
+  default     = "2025.2.28-debian-12-r1"
+}
+
 variable "minio_namespace" {
   description = "Namespace for MinIO deployment"
   type        = string

@@ -41,16 +41,20 @@ resource "helm_release" "minio" {
     file("${path.module}/values.yaml")
   ]
 
-  # Override MinIO subchart image repository to use mosipid for Bitnami images
-  # Set both paths to ensure compatibility with different chart versions
   set {
     name  = "image.repository"
     value = "${var.bitnami_image_repository}/minio"
   }
 
   set {
-    name  = "minio.image.repository"
-    value = "${var.bitnami_image_repository}/minio"
+    name  = "image.tag"
+    value = var.image_tag
+  }
+
+  # Required because mosipid/minio is not a standard Bitnami registry image
+  set {
+    name  = "global.security.allowInsecureImages"
+    value = "true"
   }
 
   depends_on = [kubernetes_namespace.minio]

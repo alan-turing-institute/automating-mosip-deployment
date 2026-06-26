@@ -1,4 +1,11 @@
-# MinIO Helm chart values
-# These values are based on the default configuration from the shell script installation
+metrics:
+  serviceMonitor:
+    enabled: true
 
-# No specific values needed as we're using defaults from the mosip/minio chart 
+extraEnvVars:
+  - name: MINIO_PROMETHEUS_URL
+    value: "http://rancher-monitoring-prometheus.cattle-monitoring-system:9090"
+  - name: MINIO_PROMETHEUS_JOB_ID
+    value: "minio"
+
+resourcesPreset: "none"

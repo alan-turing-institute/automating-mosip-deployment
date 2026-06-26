@@ -1,7 +1,7 @@
 # Required variables
 installation_name = "dev1-mosip" # Shown at landing page
 installation_domain = "turing-mosip.net"  # Change this to your actual domain
-mosip_version = "1.2.0"           # Change this to your desired MOSIP version
+mosip_version = "1.2.1.1"           # Change this to your desired MOSIP version
 kubeconfig_path = "/home/ubuntu/rancher/mosip/kube_config_cluster.yml"  #IMPORTANT: Use the full path to the kubeconfig file, e.g. /home/ubuntu/ and not ~/
 
 # MOSIP infra chart versions (independent from OBS stack)
@@ -425,8 +425,9 @@ softhsm_chart_version = "1.4.1-rc.1"  # Version of SoftHSM Helm chart to deploy
 softhsm_namespace = "softhsm"     # Namespace for SoftHSM deployment
 
 # MinIO Object Store
-minio_chart_version = "15.0.6"   # Version of MinIO Helm chart to deploy
-minio_namespace = "minio"        # Namespace for MinIO deployment
+minio_chart_version = "15.0.6"              # Version of MinIO Helm chart to deploy
+minio_image_tag     = "2025.2.28-debian-12-r1"  # mosipid/minio image tag (matches MOSIP_orig install.sh)
+minio_namespace = "minio"                    # Namespace for MinIO deployment
 
 # S3 Credentials Configuration
 create_s3_namespace = true      # Set to true to create S3 namespace with credentials

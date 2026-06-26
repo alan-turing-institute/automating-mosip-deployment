@@ -117,7 +117,8 @@ module "minio" {
 
   # Bitnami image repository configuration
   bitnami_image_repository = var.bitnami_image_repository
-  enable_istio            = var.enable_istio
+  image_tag                = var.minio_image_tag
+  enable_istio             = var.enable_istio
 
   depends_on = [time_sleep.phase_1_complete]
 }

@@ -69,4 +69,10 @@ variable "bitnami_image_repository" {
   description = "Docker image repository prefix for Bitnami charts (e.g., 'bitnami', 'bitnamilegacy', or 'mosipid')"
   type        = string
   default     = "mosipid"
+}
+
+variable "image_tag" {
+  description = "MinIO image tag"
+  type        = string
+  default     = "2025.2.28-debian-12-r1"
 } 
