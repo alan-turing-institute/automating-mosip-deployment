@@ -185,26 +185,7 @@ terraform output -json > aws-base-outputs.json
 ```
 
 #### Access to MOSIP network
-After the terraform your deployment node VM has 2nd interface added. Check deployment node netplan `sudo vim /etc/netplan/50-cloud-init.yaml` and update routes for 2nd interface, usually ens6 and change `routes:` from e.g.
-```
-#FROM
-      routes:
-        - table: 101
-          to: "10.100.0.0/16"
-          via: "10.100.3.1"
-        - scope: link
-          table: 101
-          to: "10.100.3.0/24"
-      routing-policy:
-        - table: 101
-          to: "10.100.0.0/16"
-
-#TO
-      mtu: 1330
-      routes:
-        - to: "10.100.0.0/16"
-          via: "10.100.3.1"
-```
+After the terraform your deployment node VM has 2nd interface added. Check deployment node netplan `sudo vim /etc/netplan/50-cloud-init.yaml` and make sure 10.100.3.0/24 is using the new interface.
 
 #### Map AWS outputs to Ansible / Terraform templates
 
@@ -290,7 +271,7 @@ Wildcard PEM for observation and MOSIP Nginx (can be one cert if same domain):
 
 ```bash
 # AWS Route53
-sudo cp -r ~/.aws/credentials /root #Copy AWS credentials to root user
+sudo cp -r ~/.aws /root #Copy AWS credentials to root user
 sudo certbot -v certonly --dns-route53 --agree-tos --preferred-challenges=dns -d *.{MOSIP_DOMAIN} -d {MOSIP_DOMAIN}
 
 # Manual DNS

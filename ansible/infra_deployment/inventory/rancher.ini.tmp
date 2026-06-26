@@ -4,11 +4,11 @@ deployment-node ansible_connection=local
 [physical_vms]
 # Physical VMs where nodes are running
 vm1 ansible_host=10.100.3.
-vm2 ansible_host=10.100.4.
+vm2 ansible_host=10.100.3.
 vm3 ansible_host=10.100.3.
-vm4 ansible_host=10.100.4.
+vm4 ansible_host=10.100.3.
 vm5 ansible_host=10.100.3.
-vm6 ansible_host=10.100.4.
+vm6 ansible_host=10.100.3.
 
 # RKE2 cluster groups
 # Default colocated topology: all 6 nodes run rke2-server (shared control plane + workloads).
@@ -18,11 +18,11 @@ vm6 ansible_host=10.100.4.
 vm1 ansible_host=10.100.3.
 
 [control_plane_subsequent]
-vm2 ansible_host=10.100.4.
+vm2 ansible_host=10.100.3.
 vm3 ansible_host=10.100.3.
-vm4 ansible_host=10.100.4.
+vm4 ansible_host=10.100.3.
 vm5 ansible_host=10.100.3.
-vm6 ansible_host=10.100.4.
+vm6 ansible_host=10.100.3.
 
 [rke2_agents]
 # Intentionally empty in default colocated layout (no rke2-agent-only nodes)
