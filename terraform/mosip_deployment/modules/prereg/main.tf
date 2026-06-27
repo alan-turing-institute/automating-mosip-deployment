@@ -79,7 +79,7 @@ resource "helm_release" "prereg_gateway" {
   timeout    = var.helm_timeout_seconds
 
   set {
-    name  = "istio.hosts[0]"
+    name  = "istio.host"
     value = local.prereg_host
   }
 
