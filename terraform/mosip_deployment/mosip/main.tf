@@ -733,7 +733,7 @@ module "prereg" {
   liveness_probe_period_seconds         = var.prereg_liveness_probe_period_seconds
   liveness_probe_failure_threshold       = var.prereg_liveness_probe_failure_threshold
 
-  depends_on = [module.datashare]
+  depends_on = [module.datashare, module.masterdata_loader]
 }
 
 # Wait for Phase 6 completion
