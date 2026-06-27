@@ -130,7 +130,7 @@ resource "kubernetes_manifest" "idle_timeout_filter" {
             value = {
               name = "envoy.filters.network.tcp_proxy"
               typed_config = {
-                "@type"        = "type.googleapis.com/envoy.config.filter.network.tcp_proxy.v2.TcpProxy"
+                "@type"        = "type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy"
                 idle_timeout = "0s"
               }
             }
@@ -248,9 +248,9 @@ resource "helm_release" "kernel_keygen" {
     kubernetes_config_map_v1.softhsm_share
   ]
 }
-resource "time_sleep" "wait_5_min" {
+resource "time_sleep" "wait_2_min" {
   depends_on = [helm_release.kernel_keygen]
-  create_duration = "300s"
+  create_duration = "120s"
 }
 
 
