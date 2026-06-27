@@ -650,6 +650,49 @@ variable "config_server_git_token" {
   sensitive   = true
 }
 
+# Config Server extraEnvVars overrides
+variable "config_server_uin_min_threshold" {
+  description = "Minimum unused UIN pool threshold override"
+  type        = string
+  default     = "10000"
+}
+
+variable "config_server_vid_min_threshold" {
+  description = "Minimum unused VID pool threshold override"
+  type        = string
+  default     = "10000"
+}
+
+variable "config_server_auth_audience_idrepo" {
+  description = "Allowed audience list for AUTH_SERVER_ADMIN_ALLOWED_AUDIENCE_IDREPO"
+  type        = string
+  default     = "mosip-regproc-client,mosip-prereg-client,mosip-admin-client,mosip-crereq-client,mosip-creser-client,mosip-datsha-client,mosip-ida-client,mosip-resident-client,mosip-reg-client,mpartner-default-print,mosip-idrepo-client,mpartner-default-auth,mosip-syncdata-client,mosip-masterdata-client,mosip-pms-client,mosip-hotlist-client,opencrvs-partner,mpartner-default-digitalcard,mpartner-default-mobile,mosip-signup-client,mosip-testrig-client"
+}
+
+variable "config_server_auth_audience_kernel" {
+  description = "Allowed audience list for AUTH_SERVER_ADMIN_ALLOWED_AUDIENCE_KERNEL"
+  type        = string
+  default     = "mosip-toolkit-android-client,mosip-toolkit-client,mosip-regproc-client,mosip-prereg-client,mosip-admin-client,mosip-crereq-client,mosip-creser-client,mosip-datsha-client,mosip-ida-client,mosip-resident-client,mosip-reg-client,mpartner-default-print,mosip-idrepo-client,mpartner-default-auth,mosip-syncdata-client,mosip-masterdata-client,mosip-pms-client,mosip-hotlist-client,mobileid_newlogic,opencrvs-partner,mosip-deployment-client,mpartner-default-digitalcard,mpartner-default-mobile,mosip-signup-client,mosip-testrig-client"
+}
+
+variable "config_server_credential_convention_id_enabled" {
+  description = "Enable convention-based ID for credential requests"
+  type        = string
+  default     = "true"
+}
+
+variable "config_server_captcha_enable" {
+  description = "Enable captcha for pre-registration"
+  type        = string
+  default     = "false"
+}
+
+variable "config_server_esignet_captcha_required" {
+  description = "eSignet captcha required override (empty = use config)"
+  type        = string
+  default     = ""
+}
+
 # Config Server Probe Configuration
 variable "config_server_startup_probe_enabled" {
   description = "Enable startup probe for config-server"
@@ -786,6 +829,18 @@ variable "resident_captcha_secret_key" {
   description = "Recaptcha admin secret key for Resident domain"
   type        = string
   default     = ""
+}
+
+variable "captcha_helm_chart_version" {
+  description = "Helm chart version for captcha"
+  type        = string
+  default     = "0.1.1"
+}
+
+variable "captcha_metrics_service_monitor_enabled" {
+  description = "Enable Prometheus ServiceMonitor for captcha"
+  type        = bool
+  default     = true
 }
 
 # Artifactory Variables
@@ -1120,11 +1175,6 @@ variable "mock_smtp_helm_version" {
   default     = "1.0.0"
 }
 
-variable "mock_smtp_host" {
-  type        = string
-  description = "SMTP host value"
-}
-
 # Mock-SMTP Probe Configuration Variables
 variable "mock_smtp_startup_probe_enabled" {
   description = "Enable startup probe for mock-smtp"
@@ -1412,6 +1462,18 @@ variable "masterdata_loader_mosip_data_github_branch" {
   description = "MOSIP data Github branch for masterdata loader"
   type        = string
   default     = "v1.2.0.1"
+}
+
+variable "masterdata_loader_mosip_data_github_repo" {
+  description = "MOSIP data Github repository URL for masterdata loader"
+  type        = string
+  default     = "https://github.com/mosip/mosip-data"
+}
+
+variable "masterdata_loader_mosip_data_xls_folder_path" {
+  description = "Path to the XLS folder within the mosip-data repo"
+  type        = string
+  default     = "/home/mosip/mosip-data/mosip_master/xlsx"
 }
 
 # Masterdata-Loader Probe Configuration Variables
@@ -2634,6 +2696,12 @@ variable "admin_helm_chart_version" {
   default     = "12.0.1"
 }
 
+variable "admin_ui_chart_version" {
+  description = "Helm chart version for admin-ui (separate from admin-service/admin-hotlist)"
+  type        = string
+  default     = "12.0.1"
+}
+
 # Admin Probe Configuration Variables
 variable "admin_startup_probe_enabled" {
   description = "Enable startup probe for admin (admin-hotlist, admin-ui)"
@@ -3186,6 +3254,12 @@ variable "partner_onboarder_s3_bucket_name" {
   description = "S3/MinIO bucket name for partner onboarder"
   type        = string
   default     = "mosip-partner-onboarder"
+}
+
+variable "partner_onboarder_push_reports_to_s3" {
+  description = "Push onboarding reports to S3/MinIO"
+  type        = bool
+  default     = true
 }
 
 # Partner-Onboarder Probe Configuration Variables

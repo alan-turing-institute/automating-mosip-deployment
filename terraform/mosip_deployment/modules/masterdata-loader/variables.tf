@@ -10,6 +10,18 @@ variable "mosip_data_github_branch" {
   default     = "v1.2.0.1"
 }
 
+variable "mosip_data_github_repo" {
+  description = "MOSIP data Github repository URL"
+  type        = string
+  default     = "https://github.com/mosip/mosip-data"
+}
+
+variable "mosip_data_xls_folder_path" {
+  description = "Path to the XLS folder within the mosip-data repo"
+  type        = string
+  default     = "/home/mosip/mosip-data/mosip_master/xlsx"
+}
+
 variable "helm_timeout_seconds" {
   description = "Timeout for Helm operations in seconds"
   type        = number

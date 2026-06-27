@@ -4,11 +4,6 @@ variable "helm_version" {
   default     = "1.0.0"
 }
 
-variable "mock_smtp_host" {
-  type        = string
-  description = "SMTP host value"
-}
-
 variable "helm_timeout_seconds" {
   description = "Timeout for Helm operations in seconds"
   type        = number

@@ -33,6 +33,12 @@ variable "enable_insecure" {
   default     = false
 }
 
+variable "push_reports_to_s3" {
+  description = "Push onboarding reports to S3/MinIO"
+  type        = bool
+  default     = true
+}
+
 variable "module_ida_enabled" {
   description = "Enable IDA module"
   type        = bool

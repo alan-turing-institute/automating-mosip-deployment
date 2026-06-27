@@ -358,6 +358,11 @@ resource "helm_release" "masterdata" {
     value = "https://${data.kubernetes_config_map.source_configmaps["global"].data["mosip-admin-host"]}"
   }
 
+  set {
+    name  = "enable_insecure"
+    value = var.enable_insecure
+  }
+
   # Startup Probe Configuration
   set {
     name  = "startupProbe.enabled"
@@ -446,6 +451,11 @@ resource "helm_release" "otpmanager" {
   version    = local.common_helm_config.version
   namespace  = local.common_helm_config.namespace
   timeout    = local.common_helm_config.timeout
+
+  set {
+    name  = "enable_insecure"
+    value = var.enable_insecure
+  }
 
   # Startup Probe Configuration
   set {
@@ -536,6 +546,11 @@ resource "helm_release" "pridgenerator" {
   namespace  = local.common_helm_config.namespace
   timeout    = local.common_helm_config.timeout
 
+  set {
+    name  = "enable_insecure"
+    value = var.enable_insecure
+  }
+
   # Startup Probe Configuration
   set {
     name  = "startupProbe.enabled"
@@ -624,6 +639,11 @@ resource "helm_release" "ridgenerator" {
   version    = local.common_helm_config.version
   namespace  = local.common_helm_config.namespace
   timeout    = local.common_helm_config.timeout
+
+  set {
+    name  = "enable_insecure"
+    value = var.enable_insecure
+  }
 
   # Startup Probe Configuration
   set {
@@ -714,6 +734,11 @@ resource "helm_release" "syncdata" {
   namespace  = local.common_helm_config.namespace
   timeout    = local.common_helm_config.timeout
 
+  set {
+    name  = "enable_insecure"
+    value = var.enable_insecure
+  }
+
   # Startup Probe Configuration
   set {
     name  = "startupProbe.enabled"
@@ -802,6 +827,11 @@ resource "helm_release" "notifier" {
   version    = local.common_helm_config.version
   namespace  = local.common_helm_config.namespace
   timeout    = local.common_helm_config.timeout
+
+  set {
+    name  = "enable_insecure"
+    value = var.enable_insecure
+  }
 
   # Startup Probe Configuration
   set {

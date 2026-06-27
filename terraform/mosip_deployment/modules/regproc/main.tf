@@ -1532,45 +1532,33 @@ resource "helm_release" "regproc_reprocess" {
 
 
 ## Install regproc-landingzone
-# Currently NOT IN USE - ITS PUSHED FROM DEV image with errors
-#resource "helm_release" "regproc_landingzone" {
-#  name       = "regproc-landingzone"
-#  chart      = "mosip/regproc-landingzone"
-#  version    = "12.0.2" # No longer 12.0.1 in helm repo
-#  namespace  = kubernetes_namespace.regproc.metadata[0].name
-#  depends_on = [
-#    kubernetes_config_map_v1.global,
-#    kubernetes_config_map_v1.artifactory_share,
-#    kubernetes_config_map_v1.config_server_share,
-#    helm_release.regproc_salt,
-#    helm_release.regproc_group1,
-#    helm_release.regproc_group2,
-#    helm_release.regproc_group3,
-#    helm_release.regproc_group4,
-#    helm_release.regproc_group5,
-#    helm_release.regproc_group6,
-#    helm_release.regproc_group7
-#  ]
-#
-#  # TODO: Disable startup probe as a workaround for the crash
-#  set {
-#    name  = "startupProbe.enabled"
-#    value = false
-#  }
-#  set {
-#    name  = "readinessProbe.enabled"
-#    value = false
-#  }
-#
-##  set {
-##    name  = "startupProbe.timeoutSeconds"
-##    value = "180"
-##  }
-##
-##  set {
-##    name  = "startupProbe.initialDelaySeconds"
-##    value = "600"
-##  }
-#
-#  timeout = var.helm_timeout_seconds
-#} 
+resource "helm_release" "regproc_landingzone" {
+  name       = "regproc-landingzone"
+  chart      = "mosip/regproc-landingzone"
+  version    = "12.0.2" # No longer 12.0.1 in helm repo
+  namespace  = kubernetes_namespace.regproc.metadata[0].name
+  depends_on = [
+    kubernetes_config_map_v1.global,
+    kubernetes_config_map_v1.artifactory_share,
+    kubernetes_config_map_v1.config_server_share,
+    helm_release.regproc_salt,
+    helm_release.regproc_group1,
+    helm_release.regproc_group2,
+    helm_release.regproc_group3,
+    helm_release.regproc_group4,
+    helm_release.regproc_group5,
+    helm_release.regproc_group6,
+    helm_release.regproc_group7
+  ]
+
+  set {
+    name  = "startupProbe.enabled"
+    value = "false"
+  }
+  set {
+    name  = "readinessProbe.enabled"
+    value = "false"
+  }
+
+  timeout = var.helm_timeout_seconds
+}

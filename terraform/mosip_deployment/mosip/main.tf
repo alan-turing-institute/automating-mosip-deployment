@@ -266,12 +266,15 @@ module "captcha" {
   count  = var.enable_captcha ? 1 : 0
   source = "../modules/captcha"
 
-  namespace = var.captcha_namespace
-  kubeconfig_path = var.kubeconfig_path
-  prereg_captcha_site_key = var.prereg_captcha_site_key
-  prereg_captcha_secret_key = var.prereg_captcha_secret_key
-  resident_captcha_site_key = var.resident_captcha_site_key
-  resident_captcha_secret_key = var.resident_captcha_secret_key
+  namespace                       = var.captcha_namespace
+  kubeconfig_path                 = var.kubeconfig_path
+  helm_chart_version              = var.captcha_helm_chart_version
+  helm_timeout_seconds            = var.global_helm_timeout_seconds
+  metrics_service_monitor_enabled = var.captcha_metrics_service_monitor_enabled
+  prereg_captcha_site_key         = var.prereg_captcha_site_key
+  prereg_captcha_secret_key       = var.prereg_captcha_secret_key
+  resident_captcha_site_key       = var.resident_captcha_site_key
+  resident_captcha_secret_key     = var.resident_captcha_secret_key
 
   depends_on = [time_sleep.phase_1_complete]
 }
@@ -311,6 +314,15 @@ module "config_server" {
   git_username       = var.config_server_git_username
   git_token          = var.config_server_git_token
   helm_timeout_seconds = var.global_helm_timeout_seconds
+
+  # extraEnvVars overrides
+  config_server_uin_min_threshold                = var.config_server_uin_min_threshold
+  config_server_vid_min_threshold                = var.config_server_vid_min_threshold
+  config_server_auth_audience_idrepo             = var.config_server_auth_audience_idrepo
+  config_server_auth_audience_kernel             = var.config_server_auth_audience_kernel
+  config_server_credential_convention_id_enabled = var.config_server_credential_convention_id_enabled
+  config_server_captcha_enable                   = var.config_server_captcha_enable
+  config_server_esignet_captcha_required         = var.config_server_esignet_captcha_required
 
   # Startup Probe Configuration
   startup_probe_enabled                = var.config_server_startup_probe_enabled
@@ -450,8 +462,7 @@ module "mock_smtp" {
   count  = var.mock_smtp_enabled ? 1 : 0
   source = "../modules/mock-smtp"
 
-  mock_smtp_host    = var.mock_smtp_host
-  helm_version = var.mock_smtp_helm_version
+  helm_version         = var.mock_smtp_helm_version
   helm_timeout_seconds = var.global_helm_timeout_seconds
 
   # Startup Probe Configuration
@@ -542,9 +553,11 @@ module "masterdata_loader" {
   source = "../modules/masterdata-loader"
   count  = var.masterdata_loader_enabled ? 1 : 0
 
-  helm_chart_version      = var.masterdata_loader_helm_chart_version
-  mosip_data_github_branch = var.masterdata_loader_mosip_data_github_branch
-  helm_timeout_seconds = var.global_helm_timeout_seconds
+  helm_chart_version         = var.masterdata_loader_helm_chart_version
+  mosip_data_github_branch   = var.masterdata_loader_mosip_data_github_branch
+  mosip_data_github_repo     = var.masterdata_loader_mosip_data_github_repo
+  mosip_data_xls_folder_path = var.masterdata_loader_mosip_data_xls_folder_path
+  helm_timeout_seconds       = var.global_helm_timeout_seconds
 
   # Startup Probe Configuration
   startup_probe_enabled                = var.masterdata_loader_startup_probe_enabled
@@ -913,9 +926,10 @@ module "admin" {
   source = "../modules/admin"
   count  = var.admin_enabled ? 1 : 0
 
-  namespace         = var.admin_namespace
-  helm_chart_version = var.admin_helm_chart_version
-  helm_timeout_seconds = var.global_helm_timeout_seconds
+  namespace              = var.admin_namespace
+  helm_chart_version     = var.admin_helm_chart_version
+  admin_ui_chart_version = var.admin_ui_chart_version
+  helm_timeout_seconds   = var.global_helm_timeout_seconds
 
   # Startup Probe Configuration
   startup_probe_enabled                = var.admin_startup_probe_enabled
@@ -1081,9 +1095,10 @@ module "partner_onboarder" {
   source = "../modules/partner-onboarder"
   count  = var.partner_onboarder_enabled ? 1 : 0
 
-  namespace         = var.partner_onboarder_namespace
-  helm_chart_version = var.partner_onboarder_helm_chart_version
-  s3_bucket_name    = var.partner_onboarder_s3_bucket_name
+  namespace            = var.partner_onboarder_namespace
+  helm_chart_version   = var.partner_onboarder_helm_chart_version
+  s3_bucket_name       = var.partner_onboarder_s3_bucket_name
+  push_reports_to_s3   = var.partner_onboarder_push_reports_to_s3
   helm_timeout_seconds = var.global_helm_timeout_seconds
 
   # Startup Probe Configuration

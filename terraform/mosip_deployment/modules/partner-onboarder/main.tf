@@ -261,6 +261,16 @@ resource "helm_release" "partner_onboarder" {
     value = data.kubernetes_config_map.s3.data["s3-user-key"]
   }
 
+  set {
+    name  = "onboarding.secrets.s3.s3-user-secret"
+    value = data.kubernetes_secret.s3.data["s3-user-secret"]
+  }
+
+  set {
+    name  = "onboarding.variables.push_reports_to_s3"
+    value = tostring(var.push_reports_to_s3)
+  }
+
   # Insecure mode configuration
   set {
     name  = "onboarding.configmaps.onboarding.ENABLE_INSECURE"

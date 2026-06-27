@@ -138,4 +138,47 @@ variable "liveness_probe_period_seconds" {
 variable "liveness_probe_failure_threshold" {
   description = "Failure threshold for liveness probe"
   type        = number
-} 
+}
+
+# extraEnvVars — SPRING_CLOUD_CONFIG_SERVER_OVERRIDES_* sent to all config clients
+variable "config_server_uin_min_threshold" {
+  description = "Minimum unused UIN pool threshold override"
+  type        = string
+  default     = "10000"
+}
+
+variable "config_server_vid_min_threshold" {
+  description = "Minimum unused VID pool threshold override"
+  type        = string
+  default     = "10000"
+}
+
+variable "config_server_auth_audience_idrepo" {
+  description = "Allowed audience list for AUTH_SERVER_ADMIN_ALLOWED_AUDIENCE_IDREPO"
+  type        = string
+  default     = "mosip-regproc-client,mosip-prereg-client,mosip-admin-client,mosip-crereq-client,mosip-creser-client,mosip-datsha-client,mosip-ida-client,mosip-resident-client,mosip-reg-client,mpartner-default-print,mosip-idrepo-client,mpartner-default-auth,mosip-syncdata-client,mosip-masterdata-client,mosip-pms-client,mosip-hotlist-client,opencrvs-partner,mpartner-default-digitalcard,mpartner-default-mobile,mosip-signup-client,mosip-testrig-client"
+}
+
+variable "config_server_auth_audience_kernel" {
+  description = "Allowed audience list for AUTH_SERVER_ADMIN_ALLOWED_AUDIENCE_KERNEL"
+  type        = string
+  default     = "mosip-toolkit-android-client,mosip-toolkit-client,mosip-regproc-client,mosip-prereg-client,mosip-admin-client,mosip-crereq-client,mosip-creser-client,mosip-datsha-client,mosip-ida-client,mosip-resident-client,mosip-reg-client,mpartner-default-print,mosip-idrepo-client,mpartner-default-auth,mosip-syncdata-client,mosip-masterdata-client,mosip-pms-client,mosip-hotlist-client,mobileid_newlogic,opencrvs-partner,mosip-deployment-client,mpartner-default-digitalcard,mpartner-default-mobile,mosip-signup-client,mosip-testrig-client"
+}
+
+variable "config_server_credential_convention_id_enabled" {
+  description = "Enable convention-based ID for credential requests"
+  type        = string
+  default     = "true"
+}
+
+variable "config_server_captcha_enable" {
+  description = "Enable captcha for pre-registration (false = disabled)"
+  type        = string
+  default     = "false"
+}
+
+variable "config_server_esignet_captcha_required" {
+  description = "eSignet captcha required override (empty = use config)"
+  type        = string
+  default     = ""
+}

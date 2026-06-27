@@ -57,6 +57,16 @@ resource "helm_release" "masterdata_loader" {
   }
 
   set {
+    name  = "mosipDataGithubRepo"
+    value = var.mosip_data_github_repo
+  }
+
+  set {
+    name  = "mosipDataXlsfolderPath"
+    value = var.mosip_data_xls_folder_path
+  }
+
+  set {
     name  = "startupProbe.enabled"
     value = tostring(var.startup_probe_enabled)
   }

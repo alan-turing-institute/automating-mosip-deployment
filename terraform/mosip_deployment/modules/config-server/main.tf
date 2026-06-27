@@ -315,6 +315,116 @@ resource "helm_release" "config_server" {
     value = "false"
   }
 
+  # extraEnvVars — Spring Cloud Config Server overrides propagated to all config clients
+  set {
+    name  = "extraEnvVars[0].name"
+    value = "SPRING_CLOUD_CONFIG_SERVER_OVERRIDES_MOSIP_KERNEL_UIN_MIN_UNUSED_THRESHOLD_OVERRIDE"
+  }
+  set {
+    name  = "extraEnvVars[0].value"
+    value = var.config_server_uin_min_threshold
+  }
+  set {
+    name  = "extraEnvVars[0].enabled"
+    value = "true"
+  }
+  set {
+    name  = "extraEnvVars[1].name"
+    value = "SPRING_CLOUD_CONFIG_SERVER_OVERRIDES_AUTH_SERVER_ADMIN_ALLOWED_AUDIENCE_IDREPO_OVERRIDE"
+  }
+  set {
+    name  = "extraEnvVars[1].value"
+    value = var.config_server_auth_audience_idrepo
+  }
+  set {
+    name  = "extraEnvVars[1].enabled"
+    value = "true"
+  }
+  set {
+    name  = "extraEnvVars[2].name"
+    value = "SPRING_CLOUD_CONFIG_SERVER_OVERRIDES_MOSIP_IDREPO_CREDENTIAL_REQUEST_ENABLE_CONVENTION_BASED_ID_IDREPO_OVERRIDE"
+  }
+  set {
+    name  = "extraEnvVars[2].value"
+    value = var.config_server_credential_convention_id_enabled
+  }
+  set {
+    name  = "extraEnvVars[2].enabled"
+    value = "true"
+  }
+  set {
+    name  = "extraEnvVars[3].name"
+    value = "SPRING_CLOUD_CONFIG_SERVER_OVERRIDES_AUTH_SERVER_ADMIN_ALLOWED_AUDIENCE_KERNEL_OVERRIDE"
+  }
+  set {
+    name  = "extraEnvVars[3].value"
+    value = var.config_server_auth_audience_kernel
+  }
+  set {
+    name  = "extraEnvVars[3].enabled"
+    value = "true"
+  }
+  set {
+    name  = "extraEnvVars[4].name"
+    value = "SPRING_CLOUD_CONFIG_SERVER_OVERRIDES_MOSIP_KERNEL_VID_MIN_UNUSED_THRESHOLD_OVERRIDE"
+  }
+  set {
+    name  = "extraEnvVars[4].value"
+    value = var.config_server_vid_min_threshold
+  }
+  set {
+    name  = "extraEnvVars[4].enabled"
+    value = "true"
+  }
+  set {
+    name  = "extraEnvVars[5].name"
+    value = "SPRING_CLOUD_CONFIG_SERVER_OVERRIDES_MOSIP_PREREGISTRATION_CAPTCHA_ENABLE_OVERRIDE"
+  }
+  set {
+    name  = "extraEnvVars[5].value"
+    value = var.config_server_captcha_enable
+  }
+  set {
+    name  = "extraEnvVars[5].enabled"
+    value = "true"
+  }
+  set {
+    name  = "extraEnvVars[6].name"
+    value = "SPRING_CLOUD_CONFIG_SERVER_OVERRIDES_MOSIP_ESIGNET_CAPTCHA_REQUIRED_ESIGNET_OVERRIDE"
+  }
+  set {
+    name  = "extraEnvVars[6].value"
+    value = var.config_server_esignet_captcha_required
+  }
+  set {
+    name  = "extraEnvVars[6].enabled"
+    value = "true"
+  }
+  set {
+    name  = "extraEnvVars[7].name"
+    value = "SPRING_CLOUD_CONFIG_SERVER_OVERRIDES_MOSIP_DATABASE_HOSTNAME_OVERRIDE"
+  }
+  set {
+    name  = "extraEnvVars[7].value"
+    value = "postgres-postgresql.postgres"
+  }
+  set {
+    name  = "extraEnvVars[7].enabled"
+    value = "true"
+  }
+  set {
+    name  = "extraEnvVars[8].name"
+    value = "SPRING_CLOUD_CONFIG_SERVER_OVERRIDES_MOSIP_DATABASE_PORT_OVERRIDE"
+  }
+  set {
+    name  = "extraEnvVars[8].value"
+    value = "5432"
+  }
+  set {
+    name  = "extraEnvVars[8].enabled"
+    value = "true"
+  }
+
   # Startup Probe Configuration
   set {
     name  = "startupProbe.enabled"

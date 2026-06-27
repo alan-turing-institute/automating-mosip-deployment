@@ -84,6 +84,21 @@ resource "helm_release" "prereg_gateway" {
   }
 
   set {
+    name  = "istio.name"
+    value = "prereg-gateway"
+  }
+
+  set {
+    name  = "istio.ingressController"
+    value = "ingressgateway"
+  }
+
+  set {
+    name  = "istio.serviceHost"
+    value = local.prereg_host
+  }
+
+  set {
     name  = "startupProbe.enabled"
     value = tostring(var.startup_probe_enabled)
   }

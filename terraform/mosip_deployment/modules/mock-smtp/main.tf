@@ -36,7 +36,7 @@ resource "helm_release" "mock_smtp" {
 
   set {
     name  = "istio.hosts[0]"
-    value = var.mock_smtp_host
+    value = data.kubernetes_config_map.global.data["mosip-smtp-host"]
   }
 
   set {

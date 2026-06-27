@@ -2,7 +2,7 @@ resource "kubernetes_namespace" "mosip_file_server" {
   metadata {
     name = var.namespace
     labels = {
-      "istio-injection" = var.istio_injection_label
+      "istio-injection" = "disabled"
     }
   }
 }

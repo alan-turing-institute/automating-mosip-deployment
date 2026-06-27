@@ -376,7 +376,7 @@ resource "helm_release" "admin_service" {
 resource "helm_release" "admin_ui" {
   name       = "admin-ui"
   chart      = "mosip/admin-ui"
-  version    = var.helm_chart_version
+  version    = var.admin_ui_chart_version
   namespace  = kubernetes_namespace.admin.metadata[0].name
   depends_on = [
     kubernetes_config_map_v1.global,
