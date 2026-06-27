@@ -5,9 +5,39 @@ variable "namespace" {
 }
 
 variable "helm_chart_version" {
-  description = "Helm chart version for kernel components"
+  description = "Helm chart version for kernel components (idgenerator, pridgenerator, ridgenerator, notifier)"
   type        = string
   default     = "12.0.1"
+}
+
+variable "authmanager_chart_version" {
+  description = "Helm chart version for authmanager (differs from generic kernel version)"
+  type        = string
+  default     = "1.3.1"
+}
+
+variable "auditmanager_chart_version" {
+  description = "Helm chart version for auditmanager (differs from generic kernel version)"
+  type        = string
+  default     = "1.3.2-rc.1"
+}
+
+variable "masterdata_chart_version" {
+  description = "Helm chart version for masterdata (differs from generic kernel version)"
+  type        = string
+  default     = "1.3.1"
+}
+
+variable "otpmanager_chart_version" {
+  description = "Helm chart version for otpmanager (differs from generic kernel version)"
+  type        = string
+  default     = "1.3.0"
+}
+
+variable "syncdata_chart_version" {
+  description = "Helm chart version for syncdata (differs from generic kernel version)"
+  type        = string
+  default     = "1.3.1"
 }
 
 variable "enable_insecure" {

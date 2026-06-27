@@ -559,8 +559,13 @@ mock_smtp_helm_version = "1.0.0"
 
 # Kernel Configuration
 kernel_namespace               = "kernel"
-kernel_helm_chart_version      = "1.3.1-rc.1"
-kernel_enable_insecure         = false
+kernel_helm_chart_version          = "1.3.1-rc.1"   # idgenerator, pridgenerator, ridgenerator, notifier
+kernel_authmanager_chart_version   = "1.3.1"
+kernel_auditmanager_chart_version  = "1.3.2-rc.1"
+kernel_masterdata_chart_version    = "1.3.1"
+kernel_otpmanager_chart_version    = "1.3.0"
+kernel_syncdata_chart_version      = "1.3.1"
+kernel_enable_insecure             = false
 kernel_helm_timeout_seconds    = 1200
 
 # Kernel Probe Configuration (for all components except idgenerator)

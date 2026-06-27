@@ -1279,9 +1279,39 @@ variable "kernel_namespace" {
 }
 
 variable "kernel_helm_chart_version" {
-  description = "Helm chart version for kernel components"
+  description = "Helm chart version for kernel components (idgenerator, pridgenerator, ridgenerator, notifier)"
   type        = string
   default     = "12.0.1"
+}
+
+variable "kernel_authmanager_chart_version" {
+  description = "Helm chart version for kernel authmanager"
+  type        = string
+  default     = "1.3.1"
+}
+
+variable "kernel_auditmanager_chart_version" {
+  description = "Helm chart version for kernel auditmanager"
+  type        = string
+  default     = "1.3.2-rc.1"
+}
+
+variable "kernel_masterdata_chart_version" {
+  description = "Helm chart version for kernel masterdata"
+  type        = string
+  default     = "1.3.1"
+}
+
+variable "kernel_otpmanager_chart_version" {
+  description = "Helm chart version for kernel otpmanager"
+  type        = string
+  default     = "1.3.0"
+}
+
+variable "kernel_syncdata_chart_version" {
+  description = "Helm chart version for kernel syncdata"
+  type        = string
+  default     = "1.3.1"
 }
 
 variable "kernel_enable_insecure" {

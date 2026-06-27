@@ -505,6 +505,11 @@ module "kernel" {
 
   namespace                   = var.kernel_namespace
   helm_chart_version         = var.kernel_helm_chart_version
+  authmanager_chart_version  = var.kernel_authmanager_chart_version
+  auditmanager_chart_version = var.kernel_auditmanager_chart_version
+  masterdata_chart_version   = var.kernel_masterdata_chart_version
+  otpmanager_chart_version   = var.kernel_otpmanager_chart_version
+  syncdata_chart_version     = var.kernel_syncdata_chart_version
   enable_insecure            = var.kernel_enable_insecure
   helm_timeout_seconds       = var.global_helm_timeout_seconds
 

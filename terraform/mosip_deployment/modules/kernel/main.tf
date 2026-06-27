@@ -159,7 +159,7 @@ resource "helm_release" "authmanager" {
   name       = "authmanager"
   chart      = "authmanager"
   repository = local.common_helm_config.repository
-  version    = local.common_helm_config.version
+  version    = var.authmanager_chart_version
   namespace  = local.common_helm_config.namespace
   timeout    = local.common_helm_config.timeout
 
@@ -253,7 +253,7 @@ resource "helm_release" "auditmanager" {
   name       = "auditmanager"
   chart      = "auditmanager"
   repository = local.common_helm_config.repository
-  version    = local.common_helm_config.version
+  version    = var.auditmanager_chart_version
   namespace  = local.common_helm_config.namespace
   timeout    = local.common_helm_config.timeout
 
@@ -349,7 +349,7 @@ resource "helm_release" "masterdata" {
   name       = "masterdata"
   chart      = "masterdata"
   repository = local.common_helm_config.repository
-  version    = local.common_helm_config.version
+  version    = var.masterdata_chart_version
   namespace  = local.common_helm_config.namespace
   timeout    = local.common_helm_config.timeout
 
@@ -448,7 +448,7 @@ resource "helm_release" "otpmanager" {
   name       = "otpmanager"
   chart      = "otpmanager"
   repository = local.common_helm_config.repository
-  version    = local.common_helm_config.version
+  version    = var.otpmanager_chart_version
   namespace  = local.common_helm_config.namespace
   timeout    = local.common_helm_config.timeout
 
@@ -730,7 +730,7 @@ resource "helm_release" "syncdata" {
   name       = "syncdata"
   chart      = "syncdata"
   repository = local.common_helm_config.repository
-  version    = local.common_helm_config.version
+  version    = var.syncdata_chart_version
   namespace  = local.common_helm_config.namespace
   timeout    = local.common_helm_config.timeout
 
