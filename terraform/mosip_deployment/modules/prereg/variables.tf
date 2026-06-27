@@ -5,7 +5,7 @@ variable "namespace" {
 }
 
 variable "helm_chart_version" {
-  description = "Default prereg helm chart version (application, datasync, batchjob, captcha)"
+  description = "Default prereg helm chart version (application, datasync, batchjob, ui)"
   type        = string
   default     = "1.3.0"
 }
