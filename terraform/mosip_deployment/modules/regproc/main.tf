@@ -71,6 +71,11 @@ resource "helm_release" "regproc_group1" {
   chart      = "mosip/regproc-group1"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.regproc.metadata[0].name
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
@@ -175,6 +180,11 @@ resource "helm_release" "regproc_group2" {
   chart      = "mosip/regproc-group2"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.regproc.metadata[0].name
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
@@ -268,6 +278,11 @@ resource "helm_release" "regproc_group3" {
   chart      = "mosip/regproc-group3"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.regproc.metadata[0].name
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
@@ -362,6 +377,11 @@ resource "helm_release" "regproc_group4" {
   chart      = "mosip/regproc-group4"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.regproc.metadata[0].name
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
@@ -456,6 +476,11 @@ resource "helm_release" "regproc_group5" {
   chart      = "mosip/regproc-group5"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.regproc.metadata[0].name
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
@@ -550,6 +575,11 @@ resource "helm_release" "regproc_group6" {
   chart      = "mosip/regproc-group6"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.regproc.metadata[0].name
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
@@ -644,6 +674,11 @@ resource "helm_release" "regproc_group7" {
   chart      = "mosip/regproc-group7"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.regproc.metadata[0].name
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
@@ -738,6 +773,11 @@ resource "helm_release" "regproc_salt" {
   chart      = "mosip/regproc-salt"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.regproc.metadata[0].name
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
@@ -831,6 +871,11 @@ resource "helm_release" "regproc_workflow" {
   chart      = "mosip/regproc-workflow"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.regproc.metadata[0].name
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
@@ -932,6 +977,11 @@ resource "helm_release" "regproc_status" {
   chart      = "mosip/regproc-status"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.regproc.metadata[0].name
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
@@ -1032,6 +1082,11 @@ resource "helm_release" "regproc_camel" {
   chart      = "mosip/regproc-camel"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.regproc.metadata[0].name
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
@@ -1133,6 +1188,11 @@ resource "helm_release" "regproc_pktserver" {
   chart      = "mosip/regproc-pktserver"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.regproc.metadata[0].name
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
@@ -1233,6 +1293,11 @@ resource "helm_release" "regproc_trans" {
   chart      = "mosip/regproc-trans"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.regproc.metadata[0].name
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
@@ -1334,6 +1399,11 @@ resource "helm_release" "regproc_notifier" {
   chart      = "mosip/regproc-notifier"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.regproc.metadata[0].name
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
@@ -1435,6 +1505,11 @@ resource "helm_release" "regproc_reprocess" {
   chart      = "mosip/regproc-reprocess"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.regproc.metadata[0].name
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
@@ -1537,6 +1612,11 @@ resource "helm_release" "regproc_landingzone" {
   chart      = "mosip/regproc-landingzone"
   version    = "12.0.2" # No longer 12.0.1 in helm repo
   namespace  = kubernetes_namespace.regproc.metadata[0].name
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,

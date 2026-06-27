@@ -87,6 +87,11 @@ resource "helm_release" "ida_keygen" {
   chart      = "mosip/keygen"
   version    = var.keygen_chart_version
   namespace  = kubernetes_namespace.ida.metadata[0].name
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
@@ -188,6 +193,11 @@ resource "helm_release" "ida_auth" {
   chart      = "mosip/ida-auth"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.ida.metadata[0].name
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
@@ -285,6 +295,11 @@ resource "helm_release" "ida_internal" {
   chart      = "mosip/ida-internal"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.ida.metadata[0].name
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
@@ -382,6 +397,11 @@ resource "helm_release" "ida_otp" {
   chart      = "mosip/ida-otp"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.ida.metadata[0].name
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,

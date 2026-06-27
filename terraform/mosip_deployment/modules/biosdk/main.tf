@@ -69,6 +69,11 @@ resource "helm_release" "biosdk_service" {
   repository = "mosip"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.biosdk.metadata[0].name
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   timeout    = var.helm_timeout_seconds
 
   set {

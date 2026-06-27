@@ -377,8 +377,8 @@ websub_liveness_probe_failure_threshold = 10
 # Chart pins (longhorn, monitoring, istio) come from platform_versions.tfvars — not this file.
 longhorn_namespace = "longhorn-system"  # Namespace for Longhorn deployment
 longhorn_replica_count = 1        # Number of replicas for volumes
-longhorn_guaranteed_engine_cpu = "5"    # Guaranteed CPU for engine manager
-longhorn_guaranteed_replica_cpu = "5"    # Guaranteed CPU for replica manager
+longhorn_guaranteed_engine_cpu = "2"    # Guaranteed CPU for engine manager (% of node CPU → instance-manager requests)
+longhorn_guaranteed_replica_cpu = "2"    # Guaranteed CPU for replica manager (% of node CPU → instance-manager requests)
 longhorn_storage_minimal_available_percentage = "25"    # Minimal available percentage for storage
 longhorn_storage_over_provisioning_percentage = "200"   # Storage over-provisioning percentage
 longhorn_storage_reserved_percentage = "25"            # Reserved storage percentage

@@ -50,6 +50,56 @@ resource "helm_release" "rancher_monitoring" {
     value = "false"
   }
 
+  set {
+    name  = "prometheus.prometheusSpec.resources.requests.cpu"
+    value = "100m"
+  }
+
+  set {
+    name  = "prometheus.prometheusSpec.resources.requests.memory"
+    value = "512Mi"
+  }
+
+  set {
+    name  = "alertmanager.alertmanagerSpec.resources.requests.cpu"
+    value = "50m"
+  }
+
+  set {
+    name  = "alertmanager.alertmanagerSpec.resources.requests.memory"
+    value = "64Mi"
+  }
+
+  set {
+    name  = "grafana.resources.requests.cpu"
+    value = "50m"
+  }
+
+  set {
+    name  = "grafana.resources.requests.memory"
+    value = "128Mi"
+  }
+
+  set {
+    name  = "prometheusOperator.resources.requests.cpu"
+    value = "50m"
+  }
+
+  set {
+    name  = "prometheusOperator.resources.requests.memory"
+    value = "64Mi"
+  }
+
+  set {
+    name  = "kube-state-metrics.resources.requests.cpu"
+    value = "50m"
+  }
+
+  set {
+    name  = "prometheus-node-exporter.resources.requests.cpu"
+    value = "50m"
+  }
+
   depends_on = [
     helm_release.rancher_monitoring_crd,time_sleep.wait_for_crds
   ]

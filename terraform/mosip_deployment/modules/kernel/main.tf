@@ -64,6 +64,11 @@ locals {
 }
 
 resource "helm_release" "idgenerator" {
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [kubernetes_config_map_v1.kernel_configmaps]
   
   name       = "idgenerator"
@@ -154,6 +159,11 @@ resource "helm_release" "idgenerator" {
 }
 # Deploy kernel components using Helm
 resource "helm_release" "authmanager" {
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [kubernetes_config_map_v1.kernel_configmaps, helm_release.idgenerator]
   
   name       = "authmanager"
@@ -248,6 +258,11 @@ resource "helm_release" "authmanager" {
 }
 
 resource "helm_release" "auditmanager" {
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [kubernetes_config_map_v1.kernel_configmaps, helm_release.idgenerator]
   
   name       = "auditmanager"
@@ -344,6 +359,11 @@ resource "helm_release" "auditmanager" {
 
 
 resource "helm_release" "masterdata" {
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [kubernetes_config_map_v1.kernel_configmaps, helm_release.idgenerator]
   
   name       = "masterdata"
@@ -443,6 +463,11 @@ resource "helm_release" "masterdata" {
 }
 
 resource "helm_release" "otpmanager" {
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [kubernetes_config_map_v1.kernel_configmaps, helm_release.idgenerator]
   
   name       = "otpmanager"
@@ -537,6 +562,11 @@ resource "helm_release" "otpmanager" {
 }
 
 resource "helm_release" "pridgenerator" {
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [kubernetes_config_map_v1.kernel_configmaps, helm_release.idgenerator]
   
   name       = "pridgenerator"
@@ -631,6 +661,11 @@ resource "helm_release" "pridgenerator" {
 }
 
 resource "helm_release" "ridgenerator" {
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [kubernetes_config_map_v1.kernel_configmaps, helm_release.idgenerator]
   
   name       = "ridgenerator"
@@ -725,6 +760,11 @@ resource "helm_release" "ridgenerator" {
 }
 
 resource "helm_release" "syncdata" {
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [kubernetes_config_map_v1.kernel_configmaps, helm_release.idgenerator]
   
   name       = "syncdata"
@@ -819,6 +859,11 @@ resource "helm_release" "syncdata" {
 }
 
 resource "helm_release" "notifier" {
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [kubernetes_config_map_v1.kernel_configmaps, helm_release.idgenerator]
   
   name       = "notifier"

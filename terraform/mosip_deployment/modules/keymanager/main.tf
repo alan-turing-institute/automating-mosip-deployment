@@ -337,6 +337,11 @@ resource "helm_release" "keymanager" {
     value = tostring(var.liveness_probe_failure_threshold)
   }
 
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   timeout = var.helm_timeout_seconds
   wait    = true
 

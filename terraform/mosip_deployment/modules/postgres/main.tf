@@ -34,6 +34,11 @@ resource "helm_release" "postgres" {
   repository = "https://charts.bitnami.com/bitnami"
   chart      = "postgresql"
   version    = var.chart_version
+  set {
+    name  = "primary.resources.requests.cpu"
+    value = "100m"
+  }
+
   timeout    = var.helm_timeout_seconds
 
   values = [
