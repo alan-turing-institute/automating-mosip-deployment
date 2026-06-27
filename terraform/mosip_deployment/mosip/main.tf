@@ -991,9 +991,10 @@ module "ida" {
   source = "../modules/ida"
   count  = var.ida_enabled ? 1 : 0
 
-  namespace         = var.ida_namespace
-  helm_chart_version = var.ida_helm_chart_version
-  enable_insecure   = var.ida_enable_insecure
+  namespace            = var.ida_namespace
+  helm_chart_version   = var.ida_helm_chart_version
+  keygen_chart_version = var.ida_keygen_chart_version
+  enable_insecure      = var.ida_enable_insecure
   helm_timeout_seconds = var.global_helm_timeout_seconds
 
   # Startup Probe Configuration

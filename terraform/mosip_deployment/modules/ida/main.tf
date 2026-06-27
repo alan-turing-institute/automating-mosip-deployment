@@ -85,7 +85,7 @@ resource "kubernetes_config_map_v1" "softhsm_ida_share" {
 resource "helm_release" "ida_keygen" {
   name       = "ida-keygen"
   chart      = "mosip/keygen"
-  version    = var.helm_chart_version
+  version    = var.keygen_chart_version
   namespace  = kubernetes_namespace.ida.metadata[0].name
   depends_on = [
     kubernetes_config_map_v1.global,

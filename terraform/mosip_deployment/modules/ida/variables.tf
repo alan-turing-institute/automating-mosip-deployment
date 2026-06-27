@@ -10,6 +10,12 @@ variable "helm_chart_version" {
   default     = "12.0.1"
 }
 
+variable "keygen_chart_version" {
+  description = "Helm chart version for ida keygen (mosip/keygen chart, versioned independently from ida)"
+  type        = string
+  default     = "1.4.1-rc.1"
+}
+
 variable "enable_insecure" {
   description = "Flag to enable insecure mode for development environments"
   type        = bool

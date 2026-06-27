@@ -2932,6 +2932,12 @@ variable "ida_helm_chart_version" {
   default     = "12.0.1"
 }
 
+variable "ida_keygen_chart_version" {
+  description = "Helm chart version for ida keygen (mosip/keygen chart, versioned independently from ida)"
+  type        = string
+  default     = "1.4.1-rc.1"
+}
+
 # IDA Probe Configuration Variables
 variable "ida_startup_probe_enabled" {
   description = "Enable startup probe for ida"

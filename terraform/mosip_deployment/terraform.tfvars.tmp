@@ -757,7 +757,8 @@ admin_helm_timeout      = 1200
 
 # IDA Configuration
 ida_namespace         = "ida"
-ida_helm_chart_version = "1.3.1-rc.1"
+ida_helm_chart_version   = "1.3.1-rc.1"
+ida_keygen_chart_version = "1.4.1-rc.1"
 ida_enable_insecure   = false
 ida_helm_timeout      = 1200
 
