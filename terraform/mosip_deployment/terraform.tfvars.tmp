@@ -70,7 +70,7 @@ module_wait_seconds = 60                   # Wait time between sequential module
 # ActiveMQ Probe Configuration
 activemq_startup_probe_enabled = true
 activemq_startup_probe_timeout_seconds = 10
-activemq_startup_probe_initial_delay_seconds = 180
+activemq_startup_probe_initial_delay_seconds = 90
 activemq_startup_probe_period_seconds = 60
 activemq_startup_probe_failure_threshold = 10
 activemq_readiness_probe_enabled = true
@@ -87,7 +87,7 @@ activemq_liveness_probe_failure_threshold = 10
 # Kafka Probe Configuration
 kafka_startup_probe_enabled = true
 kafka_startup_probe_timeout_seconds = 10
-kafka_startup_probe_initial_delay_seconds = 180
+kafka_startup_probe_initial_delay_seconds = 90
 kafka_startup_probe_period_seconds = 60
 kafka_startup_probe_failure_threshold = 10
 kafka_readiness_probe_enabled = true
@@ -104,7 +104,7 @@ kafka_liveness_probe_failure_threshold = 10
 # Admin Probe Configuration (for admin-hotlist and admin-ui)
 admin_startup_probe_enabled = true
 admin_startup_probe_timeout_seconds = 10
-admin_startup_probe_initial_delay_seconds = 1200
+admin_startup_probe_initial_delay_seconds = 90
 admin_startup_probe_period_seconds = 60
 admin_startup_probe_failure_threshold = 10
 admin_readiness_probe_enabled = true
@@ -121,7 +121,7 @@ admin_liveness_probe_failure_threshold = 10
 # Admin-Service Probe Configuration (separate control - all probes disabled by default)
 admin_service_startup_probe_enabled = false
 admin_service_startup_probe_timeout_seconds = 10
-admin_service_startup_probe_initial_delay_seconds = 180
+admin_service_startup_probe_initial_delay_seconds = 90
 admin_service_startup_probe_period_seconds = 60
 admin_service_startup_probe_failure_threshold = 10
 admin_service_readiness_probe_enabled = false
@@ -138,7 +138,7 @@ admin_service_liveness_probe_failure_threshold = 10
 # IDA Probe Configuration
 ida_startup_probe_enabled = true
 ida_startup_probe_timeout_seconds = 10
-ida_startup_probe_initial_delay_seconds = 1200
+ida_startup_probe_initial_delay_seconds = 90
 ida_startup_probe_period_seconds = 60
 ida_startup_probe_failure_threshold = 10
 ida_readiness_probe_enabled = true
@@ -223,7 +223,7 @@ mock_abis_liveness_probe_failure_threshold = 10
 # Mock-SMTP Probe Configuration
 mock_smtp_startup_probe_enabled = true
 mock_smtp_startup_probe_timeout_seconds = 10
-mock_smtp_startup_probe_initial_delay_seconds = 180
+mock_smtp_startup_probe_initial_delay_seconds = 90
 mock_smtp_startup_probe_period_seconds = 60
 mock_smtp_startup_probe_failure_threshold = 10
 mock_smtp_readiness_probe_enabled = true
@@ -257,7 +257,7 @@ packetmanager_liveness_probe_failure_threshold = 10
 # Partner-Onboarder Probe Configuration
 partner_onboarder_startup_probe_enabled = true
 partner_onboarder_startup_probe_timeout_seconds = 10
-partner_onboarder_startup_probe_initial_delay_seconds = 1200
+partner_onboarder_startup_probe_initial_delay_seconds = 90
 partner_onboarder_startup_probe_period_seconds = 60
 partner_onboarder_startup_probe_failure_threshold = 10
 partner_onboarder_readiness_probe_enabled = true
@@ -308,7 +308,7 @@ prereg_liveness_probe_failure_threshold = 10
 # Print Probe Configuration
 print_startup_probe_enabled = true
 print_startup_probe_timeout_seconds = 10
-print_startup_probe_initial_delay_seconds = 1200
+print_startup_probe_initial_delay_seconds = 90
 print_startup_probe_period_seconds = 60
 print_startup_probe_failure_threshold = 10
 print_readiness_probe_enabled = true
@@ -325,7 +325,7 @@ print_liveness_probe_failure_threshold = 10
 # Regclient Probe Configuration
 regclient_startup_probe_enabled = true
 regclient_startup_probe_timeout_seconds = 10
-regclient_startup_probe_initial_delay_seconds = 900
+regclient_startup_probe_initial_delay_seconds = 90
 regclient_startup_probe_period_seconds = 60
 regclient_startup_probe_failure_threshold = 10
 regclient_readiness_probe_enabled = true
@@ -342,7 +342,7 @@ regclient_liveness_probe_failure_threshold = 10
 # Resident Probe Configuration
 resident_startup_probe_enabled = true
 resident_startup_probe_timeout_seconds = 10
-resident_startup_probe_initial_delay_seconds = 1200
+resident_startup_probe_initial_delay_seconds = 90
 resident_startup_probe_period_seconds = 60
 resident_startup_probe_failure_threshold = 10
 resident_readiness_probe_enabled = true
@@ -486,7 +486,7 @@ config_server_git_token = ""
 # Config Server Probe Configuration
 config_server_startup_probe_enabled = true
 config_server_startup_probe_timeout_seconds = 10
-config_server_startup_probe_initial_delay_seconds = 1200
+config_server_startup_probe_initial_delay_seconds = 90
 config_server_startup_probe_period_seconds = 60
 config_server_startup_probe_failure_threshold = 10
 config_server_readiness_probe_enabled = false
@@ -520,7 +520,7 @@ artifactory_chart_version = "1.3.2-rc.1"
 # Artifactory Probe Configuration
 artifactory_startup_probe_enabled = true
 artifactory_startup_probe_timeout_seconds = 10
-artifactory_startup_probe_initial_delay_seconds = 120
+artifactory_startup_probe_initial_delay_seconds = 90
 artifactory_startup_probe_period_seconds = 60
 artifactory_startup_probe_failure_threshold = 10
 artifactory_readiness_probe_enabled = true
@@ -573,7 +573,7 @@ kernel_liveness_probe_failure_threshold = 10
 # Kernel IDGenerator Probe Configuration (separate control)
 kernel_idgenerator_startup_probe_enabled = false
 kernel_idgenerator_startup_probe_timeout_seconds = 10
-kernel_idgenerator_startup_probe_initial_delay_seconds = 180
+kernel_idgenerator_startup_probe_initial_delay_seconds = 90
 kernel_idgenerator_startup_probe_period_seconds = 60
 kernel_idgenerator_startup_probe_failure_threshold = 10
 kernel_idgenerator_readiness_probe_enabled = false
@@ -684,7 +684,7 @@ regproc_helm_timeout      = 1200
 # Regproc Probe Configuration (for all components except group2 and notifier)
 regproc_startup_probe_enabled = true
 regproc_startup_probe_timeout_seconds = 10
-regproc_startup_probe_initial_delay_seconds = 180
+regproc_startup_probe_initial_delay_seconds = 90
 regproc_startup_probe_period_seconds = 60
 regproc_startup_probe_failure_threshold = 10
 regproc_readiness_probe_enabled = true
@@ -701,7 +701,7 @@ regproc_liveness_probe_failure_threshold = 10
 # Regproc Group2 Probe Configuration (separate control)
 regproc_group2_startup_probe_enabled = false
 regproc_group2_startup_probe_timeout_seconds = 10
-regproc_group2_startup_probe_initial_delay_seconds = 180
+regproc_group2_startup_probe_initial_delay_seconds = 90
 regproc_group2_startup_probe_period_seconds = 60
 regproc_group2_startup_probe_failure_threshold = 10
 regproc_group2_readiness_probe_enabled = false
@@ -718,7 +718,7 @@ regproc_group2_liveness_probe_failure_threshold = 10
 # Regproc Notifier Probe Configuration (separate control)
 regproc_notifier_startup_probe_enabled = false
 regproc_notifier_startup_probe_timeout_seconds = 10
-regproc_notifier_startup_probe_initial_delay_seconds = 180
+regproc_notifier_startup_probe_initial_delay_seconds = 90
 regproc_notifier_startup_probe_period_seconds = 60
 regproc_notifier_startup_probe_failure_threshold = 10
 regproc_notifier_readiness_probe_enabled = false
