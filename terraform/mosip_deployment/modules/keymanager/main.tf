@@ -248,7 +248,7 @@ resource "helm_release" "kernel_keygen" {
     kubernetes_config_map_v1.softhsm_share
   ]
 }
-resource "time_sleep" "wait_2_min" {
+resource "time_sleep" "wait_5_min" {
   depends_on = [helm_release.kernel_keygen]
   create_duration = "120s"
 }
