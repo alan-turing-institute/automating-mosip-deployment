@@ -43,9 +43,10 @@ resource "helm_release" "clamav" {
   depends_on = [kubernetes_namespace.clamav]
 } 
 resource "kubernetes_limit_range" "default" {
+  count = var.enable_clamav ? 1 : 0
   metadata {
     name      = "default-limits"
-    namespace = kubernetes_namespace.clamav.metadata[0].name
+    namespace = kubernetes_namespace.clamav[count.index].metadata[0].name
   }
   spec {
     limit {

@@ -236,9 +236,10 @@ resource "helm_release" "istio_addons" {
   depends_on = [helm_release.kafka_ui]
 } 
 resource "kubernetes_limit_range" "default" {
+  count = var.enable_deployment ? 1 : 0
   metadata {
     name      = "default-limits"
-    namespace = kubernetes_namespace.kafka.metadata[0].name
+    namespace = kubernetes_namespace.kafka[count.index].metadata[0].name
   }
   spec {
     limit {

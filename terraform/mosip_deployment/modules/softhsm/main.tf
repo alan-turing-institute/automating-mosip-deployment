@@ -60,9 +60,10 @@ resource "helm_release" "softhsm_ida" {
   depends_on = [kubernetes_namespace.softhsm]
 } 
 resource "kubernetes_limit_range" "default" {
+  count = var.enable_softhsm ? 1 : 0
   metadata {
     name      = "default-limits"
-    namespace = kubernetes_namespace.softhsm.metadata[0].name
+    namespace = kubernetes_namespace.softhsm[count.index].metadata[0].name
   }
   spec {
     limit {
