@@ -72,7 +72,7 @@ locals {
 # Install prereg components using Helm
 resource "helm_release" "prereg_gateway" {
   name       = "prereg-gateway"
-  chart      = "prereg-gateway"
+  chart      = "istio-addons"
   repository = "mosip"
   version    = var.prereg_gateway_chart_version
   namespace  = kubernetes_namespace.prereg.metadata[0].name
