@@ -45,11 +45,13 @@ data "kubernetes_secret" "db_common_secrets" {
 
 # Deploy masterdata-loader helm chart
 resource "helm_release" "masterdata_loader" {
-  name       = "masterdata-loader"
-  chart      = "mosip/masterdata-loader"
-  version    = var.helm_chart_version
-  namespace  = kubernetes_namespace.masterdata_loader.metadata[0].name
-  timeout    = var.helm_timeout_seconds
+  name           = "masterdata-loader"
+  chart          = "mosip/masterdata-loader"
+  version        = var.helm_chart_version
+  namespace      = kubernetes_namespace.masterdata_loader.metadata[0].name
+  timeout        = var.helm_timeout_seconds
+  wait           = true
+  wait_for_jobs  = true
 
   set {
     name  = "mosipDataGithubBranch"

@@ -604,7 +604,7 @@ kernel_idgenerator_liveness_probe_failure_threshold = 10
 
 # Masterdata Loader
 masterdata_loader_helm_chart_version = "1.3.0"
-masterdata_loader_mosip_data_github_branch   = "v1.2.0.1"
+masterdata_loader_mosip_data_github_branch   = "v1.3.2-rc.1"
 masterdata_loader_mosip_data_github_repo     = "https://github.com/mosip/mosip-data"
 masterdata_loader_mosip_data_xls_folder_path = "/home/mosip/mosip-data/mosip_master/xlsx"
 
