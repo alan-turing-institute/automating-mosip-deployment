@@ -447,3 +447,19 @@ resource "helm_release" "config_server" {
     value = tostring(var.liveness_probe_failure_threshold)
   }
 } 
+resource "kubernetes_limit_range" "default" {
+  metadata {
+    name      = "default-limits"
+    namespace = kubernetes_namespace_v1.config_server.metadata[0].name
+  }
+  spec {
+    limit {
+      type = "Container"
+      default_request = {
+        cpu    = "100m"
+        memory = "256Mi"
+      }
+    }
+  }
+  depends_on = [kubernetes_namespace_v1.config_server]
+}

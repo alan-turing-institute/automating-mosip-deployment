@@ -147,3 +147,19 @@ resource "helm_release" "masterdata_loader" {
     kubernetes_secret.db_common_secrets
   ]
 } 
+resource "kubernetes_limit_range" "default" {
+  metadata {
+    name      = "default-limits"
+    namespace = kubernetes_namespace.masterdata_loader.metadata[0].name
+  }
+  spec {
+    limit {
+      type = "Container"
+      default_request = {
+        cpu    = "100m"
+        memory = "256Mi"
+      }
+    }
+  }
+  depends_on = [kubernetes_namespace.masterdata_loader]
+}

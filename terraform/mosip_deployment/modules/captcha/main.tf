@@ -44,3 +44,19 @@ resource "helm_release" "captcha" {
 
   depends_on = [kubernetes_secret_v1.mosip_captcha]
 }
+resource "kubernetes_limit_range" "default" {
+  metadata {
+    name      = "default-limits"
+    namespace = kubernetes_namespace_v1.captcha.metadata[0].name
+  }
+  spec {
+    limit {
+      type = "Container"
+      default_request = {
+        cpu    = "100m"
+        memory = "256Mi"
+      }
+    }
+  }
+  depends_on = [kubernetes_namespace_v1.captcha]
+}
