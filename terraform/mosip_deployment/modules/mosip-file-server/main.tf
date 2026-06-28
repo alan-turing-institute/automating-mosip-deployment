@@ -31,6 +31,19 @@ data "kubernetes_secret" "keycloak_client_secrets" {
   }
 }
 
+# Copy keycloak-client-secrets into mosip-file-server namespace (pod mounts it directly)
+resource "kubernetes_secret" "keycloak_client_secrets" {
+  metadata {
+    name      = "keycloak-client-secrets"
+    namespace = kubernetes_namespace.mosip_file_server.metadata[0].name
+  }
+
+  data = data.kubernetes_secret.keycloak_client_secrets.data
+  type = data.kubernetes_secret.keycloak_client_secrets.type
+
+  depends_on = [kubernetes_namespace.mosip_file_server]
+}
+
 # Copy config-server-share configmap into mosip-file-server namespace
 resource "kubernetes_config_map_v1" "config_server_share" {
   metadata {
@@ -83,7 +96,7 @@ resource "helm_release" "mosip_file_server" {
   depends_on = [
     kubernetes_namespace.mosip_file_server,
     kubernetes_config_map_v1.config_server_share,
-    data.kubernetes_secret.keycloak_client_secrets
+    kubernetes_secret.keycloak_client_secrets
   ]
 }
 
