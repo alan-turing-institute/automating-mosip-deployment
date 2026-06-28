@@ -325,19 +325,15 @@ print_liveness_probe_failure_threshold = 10
 # Regclient Probe Configuration
 regclient_startup_probe_enabled = true
 regclient_startup_probe_timeout_seconds = 10
-regclient_startup_probe_initial_delay_seconds = 90
+regclient_startup_probe_initial_delay_seconds = 600
 regclient_startup_probe_period_seconds = 60
-regclient_startup_probe_failure_threshold = 10
+regclient_startup_probe_failure_threshold = 60  # 60 min max for jar download + JRE unpack + jarsigner + zip
 regclient_readiness_probe_enabled = true
 regclient_readiness_probe_timeout_seconds = 10
 regclient_readiness_probe_initial_delay_seconds = 0
 regclient_readiness_probe_period_seconds = 60
 regclient_readiness_probe_failure_threshold = 10
-regclient_liveness_probe_enabled = true
-regclient_liveness_probe_timeout_seconds = 10
-regclient_liveness_probe_initial_delay_seconds = 0
-regclient_liveness_probe_period_seconds = 60
-regclient_liveness_probe_failure_threshold = 10
+regclient_liveness_probe_enabled = false  # static file server — if nginx crashes the container exits; no hang detection needed
 
 # Resident Probe Configuration
 resident_startup_probe_enabled = true
