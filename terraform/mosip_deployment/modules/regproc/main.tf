@@ -1610,11 +1610,27 @@ resource "helm_release" "regproc_reprocess" {
 resource "helm_release" "regproc_landingzone" {
   name       = "regproc-landingzone"
   chart      = "mosip/regproc-landingzone"
-  version    = "12.0.2" # No longer 12.0.1 in helm repo
+  version    = var.helm_chart_version
   namespace  = kubernetes_namespace.regproc.metadata[0].name
+
   set {
     name  = "resources.requests.cpu"
     value = "100m"
+  }
+
+  set {
+    name  = "startupProbe.enabled"
+    value = "false"
+  }
+
+  set {
+    name  = "readinessProbe.enabled"
+    value = "false"
+  }
+
+  set {
+    name  = "livenessProbe.enabled"
+    value = "false"
   }
 
   depends_on = [
@@ -1630,15 +1646,6 @@ resource "helm_release" "regproc_landingzone" {
     helm_release.regproc_group6,
     helm_release.regproc_group7
   ]
-
-  set {
-    name  = "startupProbe.enabled"
-    value = "false"
-  }
-  set {
-    name  = "readinessProbe.enabled"
-    value = "false"
-  }
 
   timeout = var.helm_timeout_seconds
 }
