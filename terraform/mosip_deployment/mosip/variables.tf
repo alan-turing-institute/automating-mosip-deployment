@@ -693,6 +693,12 @@ variable "config_server_esignet_captcha_required" {
   default     = ""
 }
 
+variable "config_server_resident_oidc_clientid" {
+  description = "Resident OIDC client ID served via config-server override (empty = dummy initial, set after eSignet OIDC onboarding)"
+  type        = string
+  default     = ""
+}
+
 # Config Server Probe Configuration
 variable "config_server_startup_probe_enabled" {
   description = "Enable startup probe for config-server"

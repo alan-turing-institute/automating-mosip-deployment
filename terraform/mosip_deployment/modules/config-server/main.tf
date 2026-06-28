@@ -365,6 +365,11 @@ resource "helm_release" "config_server" {
           value   = "5432"
           enabled = true
         },
+        {
+          name    = "SPRING_CLOUD_CONFIG_SERVER_OVERRIDES_resident-oidc-clientid"
+          value   = var.resident_oidc_clientid
+          enabled = true
+        },
       ]
     })
   ]

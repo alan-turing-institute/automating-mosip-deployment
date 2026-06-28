@@ -323,6 +323,7 @@ module "config_server" {
   config_server_credential_convention_id_enabled = var.config_server_credential_convention_id_enabled
   config_server_captcha_enable                   = var.config_server_captcha_enable
   config_server_esignet_captcha_required         = var.config_server_esignet_captcha_required
+  resident_oidc_clientid                         = var.config_server_resident_oidc_clientid
 
   # Startup Probe Configuration
   startup_probe_enabled                = var.config_server_startup_probe_enabled

@@ -182,3 +182,9 @@ variable "config_server_esignet_captcha_required" {
   type        = string
   default     = ""
 }
+
+variable "resident_oidc_clientid" {
+  description = "Resident OIDC client ID served via config-server override (empty string = dummy initial value, set after eSignet OIDC onboarding)"
+  type        = string
+  default     = ""
+}
