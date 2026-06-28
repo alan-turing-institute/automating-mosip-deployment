@@ -776,7 +776,7 @@ resident_enable_insecure = false
 
 # Regclient Configuration
 regclient_namespace = "regclient"
-regclient_helm_chart_version = "12.0.3"
+regclient_helm_chart_version = "1.3.0-beta.2"
 
 # Partner Onboarder Configuration
 partner_onboarder_namespace         = "onboarder"
