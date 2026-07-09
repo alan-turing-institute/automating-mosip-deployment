@@ -76,6 +76,7 @@ resource "helm_release" "idgenerator" {
   repository = local.common_helm_config.repository
   version    = local.common_helm_config.version
   namespace  = local.common_helm_config.namespace
+  wait       = true
   timeout    = local.common_helm_config.timeout
 
   # Configure probes to handle duplicate UIN constraint errors during pool population
@@ -171,6 +172,7 @@ resource "helm_release" "authmanager" {
   repository = local.common_helm_config.repository
   version    = var.authmanager_chart_version
   namespace  = local.common_helm_config.namespace
+  wait = true
   timeout    = local.common_helm_config.timeout
 
   set {
@@ -270,6 +272,7 @@ resource "helm_release" "auditmanager" {
   repository = local.common_helm_config.repository
   version    = var.auditmanager_chart_version
   namespace  = local.common_helm_config.namespace
+  wait = true
   timeout    = local.common_helm_config.timeout
 
   set {
@@ -371,6 +374,7 @@ resource "helm_release" "masterdata" {
   repository = local.common_helm_config.repository
   version    = var.masterdata_chart_version
   namespace  = local.common_helm_config.namespace
+  wait = true
   timeout    = local.common_helm_config.timeout
 
   set {
@@ -475,6 +479,7 @@ resource "helm_release" "otpmanager" {
   repository = local.common_helm_config.repository
   version    = var.otpmanager_chart_version
   namespace  = local.common_helm_config.namespace
+  wait = true
   timeout    = local.common_helm_config.timeout
 
   set {
@@ -574,6 +579,7 @@ resource "helm_release" "pridgenerator" {
   repository = local.common_helm_config.repository
   version    = local.common_helm_config.version
   namespace  = local.common_helm_config.namespace
+  wait = true
   timeout    = local.common_helm_config.timeout
 
   set {
@@ -673,6 +679,7 @@ resource "helm_release" "ridgenerator" {
   repository = local.common_helm_config.repository
   version    = local.common_helm_config.version
   namespace  = local.common_helm_config.namespace
+  wait = true
   timeout    = local.common_helm_config.timeout
 
   set {
@@ -772,6 +779,7 @@ resource "helm_release" "syncdata" {
   repository = local.common_helm_config.repository
   version    = var.syncdata_chart_version
   namespace  = local.common_helm_config.namespace
+  wait = true
   timeout    = local.common_helm_config.timeout
 
   set {
@@ -871,6 +879,7 @@ resource "helm_release" "notifier" {
   repository = local.common_helm_config.repository
   version    = local.common_helm_config.version
   namespace  = local.common_helm_config.namespace
+  wait = true
   timeout    = local.common_helm_config.timeout
 
   set {

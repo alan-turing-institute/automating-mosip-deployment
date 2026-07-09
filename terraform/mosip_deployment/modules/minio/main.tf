@@ -33,6 +33,7 @@ resource "helm_release" "minio" {
 
   name       = "minio"
   namespace  = kubernetes_namespace.minio.metadata[0].name
+  wait       = true
   repository = "mosip"
   chart      = "minio"
   version    = var.chart_version

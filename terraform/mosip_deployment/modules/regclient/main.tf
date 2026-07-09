@@ -43,6 +43,7 @@ resource "helm_release" "regclient" {
   repository = "mosip"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.regclient.metadata[0].name
+  wait = true
   timeout    = var.helm_timeout_seconds
 
   set {

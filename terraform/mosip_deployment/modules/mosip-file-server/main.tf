@@ -63,6 +63,7 @@ resource "helm_release" "mosip_file_server" {
   repository = "mosip"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.mosip_file_server.metadata[0].name
+  wait = true
   timeout    = var.helm_timeout_seconds
 
   # mosipfileserver.host -> FILESERVER_HOST (mosip-api-host)

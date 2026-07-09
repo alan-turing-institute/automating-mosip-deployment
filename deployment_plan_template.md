@@ -4,11 +4,11 @@
 
 ## Introduction
 
-This document is the working deployment plan for installing MOSIP 1.2.0.2 with the Turing automation framework. Replace placeholder values (domain, IPs, paths) with your environment details.
+This document is the working deployment plan for installing MOSIP 1.2.1.1 with the Turing automation framework. Replace placeholder values (domain, IPs, paths) with your environment details.
 
 The repository is an automation framework for the MOSIP deployment process. It uses the same MOSIP Helm charts and chart repositories as the official MOSIP deployment flow. It does not modify MOSIP application code, patch MOSIP modules, or replace MOSIP's own chart logic. The purpose of this framework is to make the official deployment process more repeatable, easier to verify, and easier to re-run when a step needs to be repeated.
 
-## How this guide is organized
+## How this guide is organised
 
 Follow these phases in order:
 
@@ -39,7 +39,7 @@ You may power off the deployment node after installation and use it again for da
 ### Step 1 — Create the deployment node VM
 
 | Item | Value |
-|------|--------|
+| --- | --- |
 | OS | **Ubuntu 26.04 LTS** |
 | Purpose | Operator workstation for Ansible, Terraform, Helm, `kubectl`, certificates, inventory |
 | Size | 2 vCPU, 4 GB RAM, 20 GB storage |
@@ -149,11 +149,11 @@ Configure inventories and Terraform variables in Phase 2/3 once you know your do
 
 ## Phase 2 — Choose your infrastructure path
 
-| | Option A — AWS | Option B — On-prem |
-|---|----------------|---------------------|
+|  | Option A — AWS | Option B — On-prem |
+| --- | --- | --- |
 | Who creates VMs | Terraform `aws/base-infra` (except deployment node) | You (OpenStack, VMware, bare metal, etc.) |
 | DNS | Optional Route53 automation in Terraform | Manual (or your DNS team) |
-| Deployment node network | Add 2nd NIC / route into VPC private network | Same internal network as cluster VMs |
+| Deployment node network | Added to private VPC during the deployment | Same internal network as cluster VMs |
 | Then | Continue to [Phase 3](#phase-3--shared-deployment-sequence) | Continue to [Phase 3](#phase-3--shared-deployment-sequence) |
 
 Define **`{MOSIP_DOMAIN}`** once (e.g. `mosip.example.com` or `sandbox.example.org`) and use it throughout both paths.
@@ -172,6 +172,24 @@ You need working aws credentials on deployment node.
 mkdir ~/.aws
 vim ~/.aws/credentials #Copy your temporary access code from AWS Console under [default]
 ```
+
+#### Optional AWS DNS and certbot automation
+
+In `terraform/aws/base-infra/aws.tfvars`:
+
+- **DNS:** `enable_route53_records = true`, `cluster_env_domain`, `route53_zone_id`
+- **Certbot IAM:** `enable_certbot_iam_profile = true` (requires IAM permissions; set `false` if your identity cannot create IAM resources)
+- **Root domain:** `enable_root_domain_record = true`, `root_domain_record_type = "A"`
+
+When DNS automation is enabled, Route53 records include A records for `api`, `api-internal`, OBS hosts, and CNAMEs for MOSIP service hostnames (see previous MOSIP DNS table for the full list).
+
+**Without certbot IAM profile** — issue certs manually on the deployment node:
+
+```bash
+sudo certbot -v certonly --dns-route53 --agree-tos --preferred-challenges=dns \
+  -d *.{MOSIP_DOMAIN} -d {MOSIP_DOMAIN}
+```
+Provide `fullchain.pem` and `privkey.pem` before Nginx/OBS stages.
 
 #### Terraform apply
 
@@ -231,7 +249,7 @@ Update deployment node netplan `sudo vim /etc/netplan/50-cloud-init.yaml` as per
 Use `aws-base-outputs.json` to populate existing files:
 
 | Target file | Field(s) to set | AWS output source |
-|-------------|-----------------|-------------------|
+| --- | --- | --- |
 | `ansible/wireguard/inventory/hosts.ini` | `ansible_host`, `wireguard_endpoint` | jumpserver private/public IP |
 | `ansible/infra_deployment/inventory/rancher.ini` | `physical_vms`, RKE2 groups, `mosip_obs`, `nginx`, `nginx_obs` | `physical_vm_private_ips`, node IPs, `obs_private_ip`, nginx IPs |
 | `ansible/infra_deployment/inventory/group_vars/all.yml` | `mosip_domain`, `nginx_obs_public_domain_names`, `rancher_import_url` (later) | your domain; Rancher URL after OBS stage |
@@ -239,25 +257,6 @@ Use `aws-base-outputs.json` to populate existing files:
 | `terraform/mosip_deployment/terraform.tfvars` | `installation_domain`, `kubeconfig_path` | `{MOSIP_DOMAIN}`, main kubeconfig path |
 
 **After AWS apply:** confirm the deployment node can `ssh ubuntu@<private-ip>` to every node. If not, fix Step 2 (second interface / routing) before Phase 3.
-
-#### Optional AWS DNS and certbot automation
-
-In `terraform/aws/base-infra/aws.tfvars`:
-
-- **DNS:** `enable_route53_records = true`, `cluster_env_domain`, `route53_zone_id`
-- **Certbot IAM:** `enable_certbot_iam_profile = true` (requires IAM permissions; set `false` if your identity cannot create IAM resources)
-- **Root domain:** `enable_root_domain_record = true`, `root_domain_record_type = "A"`
-
-When DNS automation is enabled, Route53 records include A records for `api`, `api-internal`, OBS hosts, and CNAMEs for MOSIP service hostnames (see previous MOSIP DNS table for the full list).
-
-**Without certbot IAM profile** — issue certs manually on the deployment node:
-
-```bash
-sudo certbot -v certonly --dns-route53 --agree-tos --preferred-challenges=dns \
-  -d *.{MOSIP_DOMAIN} -d {MOSIP_DOMAIN}
-```
-
-Provide `fullchain.pem` and `privkey.pem` before Nginx/OBS stages.
 
 ---
 
@@ -271,7 +270,7 @@ Configure DNS for `{MOSIP_DOMAIN}`. Replace IPs with your infrastructure:
 
 
 | **Record Type** | **Domain Name** | **IP/DNS** | **Purpose** |
-| --------------- | --------------- | ---------- | ----------- |
+| --- | --- | --- | --- |
 | A Record | rancher.{MOSIP_DOMAIN} | `<OBS_NGINX_PRIVATE_IP>` | Rancher dashboard |
 | A Record | keycloak.{MOSIP_DOMAIN} | `<OBS_NGINX_PRIVATE_IP>` | Keycloak (cluster admin IAM) |
 | A Record | api-internal.{MOSIP_DOMAIN} | `<MOSIP_NGINX_PRIVATE_IP>` | Internal APIs (WireGuard) |
@@ -296,8 +295,8 @@ Configure DNS for `{MOSIP_DOMAIN}`. Replace IPs with your infrastructure:
 
 1. **Internal network:** all VMs (including deployment node) on the same private network where possible.
 2. **Two public IPs:**
-   - **Public API IP** → MOSIP Nginx (`443/tcp`) — api, prereg, resident, idp
-   - **WireGuard IP** → WireGuard bastion (`51820/udp`)
+  - **Public API IP** → MOSIP Nginx (`443/tcp`) — api, prereg, resident, idp
+  - **WireGuard IP** → WireGuard bastion (`51820/udp`)
 
 #### Certificates
 
@@ -321,10 +320,10 @@ With manual DNS, you may need two TXT records with different values — both are
 
 #### VMs to create
 
-Cluster nodes: Ubuntu 22.04 or 24.04 LTS per [official MOSIP docs](https://docs.mosip.io/1.2.0/setup/deploymentnew/v3-installation/1.2.0.2/pre-requisites) until 26.04 is validated for cluster nodes.
+Cluster nodes: Ubuntu 24.04 LTS per [official MOSIP docs](https://docs.mosip.io/1.2.0/setup/deploymentnew/v3-installation/1.2.0.2/pre-requisites) until 26.04 is validated for cluster nodes.
 
 | VM | Count | vCPU | RAM | Disk | Network |
-|----|-------|------|-----|------|---------|
+| --- | --- | --- | --- | --- | --- |
 | deployment-node | 1 | 2 | 4 GB | 20 GB | Internal (+ admin access as needed) — **Phase 1** |
 | wg-bastion | 1 | 2 | 4 GB | 8 GB | Internal + WireGuard public IP |
 | mosip-nginx | 1 | 2 | 4 GB | 16 GB | Internal + public API IP |
@@ -513,7 +512,7 @@ helm upgrade regproc-reprocess mosip/regproc-reprocess -n regproc --reuse-values
 
 ### Chart repository or network timeouts
 
-Examples: `could not download chart`, `context deadline exceeded`, `failed get OpenAPI spec`.
+Examples: `could not download chart`, `context deadline exceeded`, `failed get OpenAPI spec`. Most likely your deployment node is undersized and `terraform` sub-processes are crashing. It could also be network routing problem. Investigate them in that order.
 
 Check from the deployment node:
 
@@ -524,5 +523,3 @@ kubectl get pods -A
 ```
 
 Re-run the same `terraform apply` when connectivity is restored.
-
-For layer-specific failure maps, see [TROUBLESHOOTING.mdc](../../.cursor/rules/TROUBLESHOOTING.mdc) in the repository root.

@@ -76,6 +76,7 @@ resource "helm_release" "prereg_gateway" {
   repository = "mosip"
   version    = var.prereg_gateway_chart_version
   namespace  = kubernetes_namespace.prereg.metadata[0].name
+  wait = true
   timeout    = var.helm_timeout_seconds
 
   set {
@@ -186,6 +187,7 @@ resource "helm_release" "prereg_application" {
   repository = "mosip"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.prereg.metadata[0].name
+  wait = true
   timeout    = var.helm_timeout_seconds
 
   set {
@@ -275,6 +277,7 @@ resource "helm_release" "prereg_booking" {
   repository = "mosip"
   version    = var.prereg_booking_chart_version
   namespace  = kubernetes_namespace.prereg.metadata[0].name
+  wait = true
   timeout    = var.helm_timeout_seconds
 
   set {
@@ -364,6 +367,7 @@ resource "helm_release" "prereg_datasync" {
   repository = "mosip"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.prereg.metadata[0].name
+  wait = true
   timeout    = var.helm_timeout_seconds
 
   set {
@@ -453,6 +457,7 @@ resource "helm_release" "prereg_batchjob" {
   repository = "mosip"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.prereg.metadata[0].name
+  wait = true
   timeout    = var.helm_timeout_seconds
 
   set {
@@ -542,6 +547,7 @@ resource "helm_release" "prereg_ui" {
   repository = "mosip"
   version    = var.prereg_ui_chart_version
   namespace  = kubernetes_namespace.prereg.metadata[0].name
+  wait = true
   timeout    = var.helm_timeout_seconds
 
   set {

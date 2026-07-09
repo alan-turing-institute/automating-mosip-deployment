@@ -69,6 +69,7 @@ resource "helm_release" "packetmanager" {
   repository = "mosip"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.packetmanager.metadata[0].name
+  wait = true
   set {
     name  = "resources.requests.cpu"
     value = "100m"

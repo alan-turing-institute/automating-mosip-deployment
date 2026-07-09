@@ -19,6 +19,7 @@ resource "helm_release" "artifactory" {
   chart      = "mosip/artifactory"
   version    = var.chart_version
   namespace  = kubernetes_namespace_v1.artifactory.metadata[0].name
+  wait = true
 
   # Startup Probe Configuration
   set {

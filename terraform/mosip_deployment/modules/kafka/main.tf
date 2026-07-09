@@ -222,6 +222,7 @@ resource "helm_release" "istio_addons" {
 
   name      = "istio-addons"
   namespace = kubernetes_namespace.kafka[0].metadata[0].name
+  wait      = true
   chart     = "${path.module}/chart/istio-addons"
   timeout   = var.helm_timeout_seconds
 

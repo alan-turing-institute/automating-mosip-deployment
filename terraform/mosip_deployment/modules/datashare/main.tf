@@ -69,6 +69,7 @@ resource "helm_release" "datashare" {
   repository = "mosip"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.datashare.metadata[0].name
+  wait       = true
   timeout    = var.helm_timeout_seconds
 
   # Startup Probe Configuration

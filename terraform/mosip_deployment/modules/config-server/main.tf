@@ -244,6 +244,7 @@ resource "helm_release" "config_server" {
   
   name       = "config-server"
   namespace  = kubernetes_namespace_v1.config_server.metadata[0].name
+  wait       = true
   repository = "https://mosip.github.io/mosip-helm"
   chart      = "config-server"
   version    = var.chart_version

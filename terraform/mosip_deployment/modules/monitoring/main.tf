@@ -20,6 +20,7 @@ resource "helm_release" "rancher_monitoring_crd" {
   repository       = "https://charts.rancher.io"
   chart            = "rancher-monitoring-crd"
   namespace        = "cattle-monitoring-system"
+  wait             = true
   version          = var.monitoring_crd_version
   create_namespace = true
   timeout          = var.helm_timeout_seconds
@@ -42,6 +43,7 @@ resource "helm_release" "rancher_monitoring" {
   repository = "https://charts.rancher.io"
   chart      = "rancher-monitoring"
   namespace  = "cattle-monitoring-system"
+  wait = true
   version    = var.monitoring_version
   timeout    = var.helm_timeout_seconds
 

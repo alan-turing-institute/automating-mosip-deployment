@@ -190,6 +190,7 @@ resource "helm_release" "admin_hotlist" {
   chart      = "mosip/admin-hotlist"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.admin.metadata[0].name
+  wait       = true
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
@@ -379,6 +380,7 @@ resource "helm_release" "admin_ui" {
   chart      = "mosip/admin-ui"
   version    = var.admin_ui_chart_version
   namespace  = kubernetes_namespace.admin.metadata[0].name
+  wait = true
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,

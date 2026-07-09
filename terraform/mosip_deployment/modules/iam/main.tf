@@ -35,6 +35,7 @@ resource "kubernetes_namespace_v1" "keycloak" {
 resource "helm_release" "keycloak" {
   name       = "keycloak"
   namespace  = kubernetes_namespace_v1.keycloak.metadata[0].name
+  wait       = true
   repository = "https://mosip.github.io/mosip-helm"
   chart      = "keycloak"
   version    = var.chart_version
@@ -213,6 +214,7 @@ resource "helm_release" "keycloak_init" {
   depends_on = [helm_release.keycloak]
   name       = "keycloak-init"
   namespace  = kubernetes_namespace_v1.keycloak.metadata[0].name
+  wait = true
   repository = "https://mosip.github.io/mosip-helm"
   chart      = "keycloak-init"
   version    = var.init_chart_version

@@ -77,6 +77,7 @@ resource "helm_release" "pms_partner" {
   repository = "mosip"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.pms.metadata[0].name
+  wait = true
   timeout    = var.helm_timeout_seconds
 
   set {
@@ -177,6 +178,7 @@ resource "helm_release" "pms_policy" {
   repository = "mosip"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.pms.metadata[0].name
+  wait = true
   timeout    = var.helm_timeout_seconds
 
   set {
@@ -277,6 +279,7 @@ resource "helm_release" "pmp_ui" {
   repository = "mosip"
   version    = var.pmp_ui_chart_version
   namespace  = kubernetes_namespace.pms.metadata[0].name
+  wait = true
   timeout    = var.helm_timeout_seconds
 
   set {
@@ -379,6 +382,7 @@ resource "helm_release" "pmp_revamp_ui" {
   repository = "mosip"
   version    = var.pmp_revamp_ui_chart_version
   namespace  = kubernetes_namespace.pms.metadata[0].name
+  wait = true
   timeout    = var.helm_timeout_seconds
 
   set {

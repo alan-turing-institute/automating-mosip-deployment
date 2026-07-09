@@ -28,6 +28,7 @@ resource "helm_release" "clamav" {
   chart           = "clamav"
   repository      = "https://wiremind.github.io/wiremind-helm-charts"
   namespace       = kubernetes_namespace.clamav[0].metadata[0].name
+  wait            = true
   version         = var.helm_chart_version
   set {
     name  = "resources.requests.cpu"

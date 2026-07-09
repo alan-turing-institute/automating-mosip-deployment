@@ -71,6 +71,7 @@ resource "helm_release" "mock_abis" {
   repository = "mosip"
   version    = var.mock_abis_helm_chart_version
   namespace  = kubernetes_namespace.abis.metadata[0].name
+  wait       = true
   timeout    = var.helm_timeout_seconds
 
   set {
@@ -163,6 +164,7 @@ resource "helm_release" "mock_mv" {
   repository = "mosip"
   version    = var.mock_mv_helm_chart_version
   namespace  = kubernetes_namespace.abis.metadata[0].name
+  wait       = true
   timeout    = var.helm_timeout_seconds
 
   set {

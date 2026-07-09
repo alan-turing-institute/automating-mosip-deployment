@@ -31,6 +31,7 @@ resource "helm_release" "mock_smtp" {
   name             = "mock-smtp"
   chart            = "mosip/mock-smtp"
   namespace        = kubernetes_namespace.mock_smtp.metadata[0].name
+  wait             = true
   version          = var.helm_version
   create_namespace = false
 

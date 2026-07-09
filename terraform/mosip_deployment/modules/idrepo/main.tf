@@ -162,6 +162,7 @@ resource "helm_release" "credential" {
   repository = "mosip"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.idrepo.metadata[0].name
+  wait       = true
   set {
     name  = "resources.requests.cpu"
     value = "100m"
@@ -256,6 +257,7 @@ resource "helm_release" "credentialrequest" {
   repository = "mosip"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.idrepo.metadata[0].name
+  wait = true
   set {
     name  = "resources.requests.cpu"
     value = "100m"
@@ -350,6 +352,7 @@ resource "helm_release" "identity" {
   repository = "mosip"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.idrepo.metadata[0].name
+  wait = true
   set {
     name  = "resources.requests.cpu"
     value = "100m"
@@ -444,6 +447,7 @@ resource "helm_release" "vid" {
   repository = "mosip"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.idrepo.metadata[0].name
+  wait = true
   set {
     name  = "resources.requests.cpu"
     value = "100m"
