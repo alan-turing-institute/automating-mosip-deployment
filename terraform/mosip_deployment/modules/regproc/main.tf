@@ -769,10 +769,12 @@ resource "helm_release" "regproc_group7" {
 
 # Install regproc-salt
 resource "helm_release" "regproc_salt" {
-  name       = "regproc-salt"
-  chart      = "mosip/regproc-salt"
-  version    = var.helm_chart_version
-  namespace  = kubernetes_namespace.regproc.metadata[0].name
+  name          = "regproc-salt"
+  chart         = "mosip/regproc-salt"
+  version       = var.helm_chart_version
+  namespace     = kubernetes_namespace.regproc.metadata[0].name
+  wait          = true
+  wait_for_jobs = true
   set {
     name  = "resources.requests.cpu"
     value = "100m"

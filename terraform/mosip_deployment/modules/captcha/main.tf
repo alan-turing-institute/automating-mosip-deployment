@@ -35,6 +35,7 @@ resource "helm_release" "captcha" {
   chart      = "mosip/captcha"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace_v1.captcha.metadata[0].name
+  wait       = true
   timeout    = var.helm_timeout_seconds
 
   set {

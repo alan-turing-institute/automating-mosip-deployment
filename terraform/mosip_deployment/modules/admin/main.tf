@@ -281,6 +281,7 @@ resource "helm_release" "admin_service" {
   chart      = "mosip/admin-service"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.admin.metadata[0].name
+  wait       = true
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,

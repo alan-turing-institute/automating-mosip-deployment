@@ -28,6 +28,7 @@ resource "helm_release" "conf_secrets" {
   repository = "https://mosip.github.io/mosip-helm"
   chart      = "conf-secrets"
   version    = var.chart_version
+  wait       = true
   timeout    = var.helm_timeout_seconds
 }
 

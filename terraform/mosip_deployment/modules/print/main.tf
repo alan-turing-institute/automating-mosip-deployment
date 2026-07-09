@@ -69,6 +69,7 @@ resource "helm_release" "print_service" {
   chart      = "mosip/print-service"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.print.metadata[0].name
+  wait       = true
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,

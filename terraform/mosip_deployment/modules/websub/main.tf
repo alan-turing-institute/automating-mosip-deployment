@@ -141,6 +141,7 @@ resource "helm_release" "websub" {
   repository = "mosip"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.websub.metadata[0].name
+  wait       = true
   timeout    = var.helm_timeout_seconds
 
   set {

@@ -140,10 +140,12 @@ resource "null_resource" "partner_onboarder_jobs_cleanup" {
 
 # Install partner-onboarder
 resource "helm_release" "partner_onboarder" {
-  name      = "partner-onboarder"
-  chart     = "mosip/partner-onboarder"
-  version   = var.helm_chart_version
-  namespace = kubernetes_namespace.partner_onboarder.metadata[0].name
+  name          = "partner-onboarder"
+  chart         = "mosip/partner-onboarder"
+  version       = var.helm_chart_version
+  namespace     = kubernetes_namespace.partner_onboarder.metadata[0].name
+  wait          = true
+  wait_for_jobs = true
 
   # Ensure immutable resources like Jobs are recreated on changes
   force_update = true

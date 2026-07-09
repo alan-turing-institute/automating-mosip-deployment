@@ -1098,38 +1098,10 @@ module "resident" {
   depends_on = [time_sleep.phase_9_complete]
 }
 
-module "partner_onboarder" {
-  source = "../modules/partner-onboarder"
-  count  = var.partner_onboarder_enabled ? 1 : 0
-
-  namespace            = var.partner_onboarder_namespace
-  helm_chart_version   = var.partner_onboarder_helm_chart_version
-  s3_bucket_name       = var.partner_onboarder_s3_bucket_name
-  push_reports_to_s3   = var.partner_onboarder_push_reports_to_s3
-  helm_timeout_seconds = var.global_helm_timeout_seconds
-
-  # Startup Probe Configuration
-  startup_probe_enabled                = var.partner_onboarder_startup_probe_enabled
-  startup_probe_timeout_seconds        = var.partner_onboarder_startup_probe_timeout_seconds
-  startup_probe_initial_delay_seconds   = var.partner_onboarder_startup_probe_initial_delay_seconds
-  startup_probe_period_seconds         = var.partner_onboarder_startup_probe_period_seconds
-  startup_probe_failure_threshold      = var.partner_onboarder_startup_probe_failure_threshold
-
-  # Readiness Probe Configuration
-  readiness_probe_enabled                = var.partner_onboarder_readiness_probe_enabled
-  readiness_probe_timeout_seconds        = var.partner_onboarder_readiness_probe_timeout_seconds
-  readiness_probe_initial_delay_seconds   = var.partner_onboarder_readiness_probe_initial_delay_seconds
-  readiness_probe_period_seconds          = var.partner_onboarder_readiness_probe_period_seconds
-  readiness_probe_failure_threshold      = var.partner_onboarder_readiness_probe_failure_threshold
-
-  # Liveness Probe Configuration
-  liveness_probe_enabled                = var.partner_onboarder_liveness_probe_enabled
-  liveness_probe_timeout_seconds        = var.partner_onboarder_liveness_probe_timeout_seconds
-  liveness_probe_initial_delay_seconds    = var.partner_onboarder_liveness_probe_initial_delay_seconds
-  liveness_probe_period_seconds         = var.partner_onboarder_liveness_probe_period_seconds
-  liveness_probe_failure_threshold       = var.partner_onboarder_liveness_probe_failure_threshold
-
-  depends_on = [module.resident]
+# Wait for Phase 10 completion before running partner onboarding checks
+resource "time_sleep" "phase_10_complete" {
+  depends_on = [module.resident, module.regclient, module.mosip_file_server]
+  create_duration = var.module_wait_seconds > 0 ? "${var.module_wait_seconds}s" : "0s"
 }
 
 module "regclient" {
@@ -1173,4 +1145,44 @@ module "mosip_file_server" {
   helm_timeout_seconds = var.global_helm_timeout_seconds
 
   depends_on = [time_sleep.phase_9_complete]
+}
+
+# ============================================================================
+# PHASE 11: Ecosystem Validation (Partner Onboarding Checks)
+# ============================================================================
+# This phase runs at the very end, after all MOSIP services are deployed,
+# to validate the ecosystem with partner onboarding and API endpoint checks.
+
+module "partner_onboarder" {
+  source = "../modules/partner-onboarder"
+  count  = var.partner_onboarder_enabled ? 1 : 0
+
+  namespace            = var.partner_onboarder_namespace
+  helm_chart_version   = var.partner_onboarder_helm_chart_version
+  s3_bucket_name       = var.partner_onboarder_s3_bucket_name
+  push_reports_to_s3   = var.partner_onboarder_push_reports_to_s3
+  helm_timeout_seconds = var.global_helm_timeout_seconds
+
+  # Startup Probe Configuration
+  startup_probe_enabled                = var.partner_onboarder_startup_probe_enabled
+  startup_probe_timeout_seconds        = var.partner_onboarder_startup_probe_timeout_seconds
+  startup_probe_initial_delay_seconds   = var.partner_onboarder_startup_probe_initial_delay_seconds
+  startup_probe_period_seconds         = var.partner_onboarder_startup_probe_period_seconds
+  startup_probe_failure_threshold      = var.partner_onboarder_startup_probe_failure_threshold
+
+  # Readiness Probe Configuration
+  readiness_probe_enabled                = var.partner_onboarder_readiness_probe_enabled
+  readiness_probe_timeout_seconds        = var.partner_onboarder_readiness_probe_timeout_seconds
+  readiness_probe_initial_delay_seconds   = var.partner_onboarder_readiness_probe_initial_delay_seconds
+  readiness_probe_period_seconds          = var.partner_onboarder_readiness_probe_period_seconds
+  readiness_probe_failure_threshold      = var.partner_onboarder_readiness_probe_failure_threshold
+
+  # Liveness Probe Configuration
+  liveness_probe_enabled                = var.partner_onboarder_liveness_probe_enabled
+  liveness_probe_timeout_seconds        = var.partner_onboarder_liveness_probe_timeout_seconds
+  liveness_probe_initial_delay_seconds    = var.partner_onboarder_liveness_probe_initial_delay_seconds
+  liveness_probe_period_seconds         = var.partner_onboarder_liveness_probe_period_seconds
+  liveness_probe_failure_threshold       = var.partner_onboarder_liveness_probe_failure_threshold
+
+  depends_on = [time_sleep.phase_10_complete]
 }

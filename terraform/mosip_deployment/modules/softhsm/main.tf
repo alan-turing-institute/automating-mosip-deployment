@@ -36,6 +36,7 @@ resource "helm_release" "softhsm_kernel" {
   repository = "https://mosip.github.io/mosip-helm"
   chart      = "softhsm"
   version    = var.chart_version
+  wait       = true
 
   values = [
     file("${path.module}/values.yaml")
@@ -52,6 +53,7 @@ resource "helm_release" "softhsm_ida" {
   repository = "https://mosip.github.io/mosip-helm"
   chart      = "softhsm"
   version    = var.chart_version
+  wait       = true
 
   values = [
     file("${path.module}/values.yaml")

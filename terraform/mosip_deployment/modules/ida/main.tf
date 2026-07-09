@@ -83,10 +83,12 @@ resource "kubernetes_config_map_v1" "softhsm_ida_share" {
 
 # Install ida-keygen
 resource "helm_release" "ida_keygen" {
-  name       = "ida-keygen"
-  chart      = "mosip/keygen"
-  version    = var.keygen_chart_version
-  namespace  = kubernetes_namespace.ida.metadata[0].name
+  name          = "ida-keygen"
+  chart         = "mosip/keygen"
+  version       = var.keygen_chart_version
+  namespace     = kubernetes_namespace.ida.metadata[0].name
+  wait          = true
+  wait_for_jobs = true
   set {
     name  = "resources.requests.cpu"
     value = "100m"

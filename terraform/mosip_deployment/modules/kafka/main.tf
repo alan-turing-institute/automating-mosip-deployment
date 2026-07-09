@@ -17,6 +17,7 @@ resource "helm_release" "kafka" {
   repository = "https://charts.bitnami.com/bitnami"
   chart      = "kafka"
   version    = var.kafka_chart_version
+  wait       = true
   timeout    = var.helm_timeout_seconds
 
   values = [
@@ -128,6 +129,7 @@ resource "helm_release" "kafka_ui" {
   repository = "https://provectus.github.io/kafka-ui-charts"
   chart      = "kafka-ui"
   version    = var.kafka_ui_chart_version
+  wait       = true
   timeout    = var.helm_timeout_seconds
 
   values = [

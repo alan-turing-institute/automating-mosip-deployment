@@ -34,6 +34,7 @@ resource "helm_release" "postgres" {
   repository = "https://charts.bitnami.com/bitnami"
   chart      = "postgresql"
   version    = var.chart_version
+  wait       = true
   set {
     name  = "primary.resources.requests.cpu"
     value = "100m"
@@ -61,6 +62,7 @@ resource "helm_release" "postgres_init" {
   repository = "https://mosip.github.io/mosip-helm"
   chart      = "postgres-init"
   version    = var.init_chart_version
+  wait       = true
   timeout    = var.helm_timeout_seconds
 
   values = [
