@@ -248,12 +248,6 @@ variable "subdomain_internal" {
   ]
 }
 
-variable "enable_certbot_iam_profile" {
-  description = "Enable certbot Route53 IAM role/profile attachment on nginx node"
-  type        = bool
-  default     = false
-}
-
 variable "subdomain_obs_a_records" {
   description = "OBS A record subdomains pointing to nginx_obs private IP"
   type        = list(string)

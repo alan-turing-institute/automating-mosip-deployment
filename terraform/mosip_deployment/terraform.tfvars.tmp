@@ -370,7 +370,7 @@ websub_liveness_probe_period_seconds = 60
 websub_liveness_probe_failure_threshold = 10
 
 # Component toggles and versions
-# Chart pins (longhorn, monitoring, istio) come from platform_versions.tfvars — not this file.
+# Chart pins (longhorn_version, istio_version, monitoring versions) are set near the top of this file.
 longhorn_namespace = "longhorn-system"  # Namespace for Longhorn deployment
 longhorn_replica_count = 1        # Number of replicas for volumes
 longhorn_guaranteed_engine_cpu = "2"    # Guaranteed CPU for engine manager (% of node CPU → instance-manager requests)
@@ -386,7 +386,7 @@ longhorn_storage_class_name = "longhorn"              # Name of the storage clas
 #longhorn_filesystem_size = "10Gi"                     # Size for filesystem PV
 
 # Istio Service Mesh and Gateway Configuration
-# istio_version is set in terraform/platform_versions.tfvars (keep in sync with Ansible platform_versions.yml)
+# istio_version is set near the top of this file (keep in sync with Ansible group_vars/all.yml.tmp)
 proxy_protocol_enabled = false     # Set to true to enable proxy protocol for ingress gateway
 
 # IAM (Keycloak)

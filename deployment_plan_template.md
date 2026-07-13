@@ -45,6 +45,8 @@ You may power off the deployment node after installation and use it again for da
 | Size | 2 vCPU, 4 GB RAM, 20 GB storage |
 | Not included in | AWS base Terraform (you provision this VM yourself in both AWS and on-prem flows) |
 
+The deployment node can run a newer OS than the cluster nodes because it is a pure operator workstation — it never runs RKE2 or MOSIP workloads, only Ansible/Terraform/Helm/kubectl. Cluster nodes stay on Ubuntu 24.04 (see [Phase 2, Option B — VMs to create](#vms-to-create)) until 26.04 is validated against RKE2 and the MOSIP Helm charts.
+
 Before continuing, decide how you will connect this VM to the MOSIP network (Step 2).
 
 ### Step 2 — Connect the deployment node to the MOSIP network
@@ -55,7 +57,7 @@ The deployment node must reach every target VM by **private IP** and SSH. How yo
 
 1. You will run AWS base Terraform (Phase 2) to create the VPC, subnets, and MOSIP infrastructure VMs.
 2. The deployment node is **not** created by that Terraform module — provision it separately (same cloud account or your admin network).
-3. After the terraform deployment, the 2nd interface is added to your deployment node.
+3. After running AWS base Terraform (see below), a second network interface is attached to the deployment node automatically; you must then configure it — see [Phase 2 → Access to MOSIP network](#access-to-mosip-network).
 4. From the deployment node, verify SSH to private IPs of all provisioned nodes before starting Ansible.
 
 Use private IPs from `terraform output` when filling Ansible inventories after AWS apply.
@@ -66,7 +68,7 @@ Use private IPs from `terraform output` when filling Ansible inventories after A
 2. Place the deployment node on the **same internal/private network** as those VMs.
 3. If the deployment node also needs access from a separate admin network, configure routing so admin SSH works without breaking reachability to MOSIP private IPs.
 
-**Multi-interface example** (both options — admin network + MOSIP network):
+**Multi-interface example** (both options — admin network + MOSIP network). Interface names (`ens3`, `ens4`) are illustrative — run `ip -br link` on the deployment node to find your actual interface names before editing netplan:
 
 ```yaml
 network:
@@ -87,7 +89,7 @@ Adjust interface names and use static IPs where your platform requires them. If 
 
 ### Step 3 — Configure SSH access from the deployment node
 
-Copy your SSH private key to the deployment node so Ansible can reach all other hosts without prompts:
+Copy your SSH private key to the deployment node so Ansible can reach all other hosts without prompts. `<key-to-connect-to-deployment-node>` and `<ssh-private-key>` are normally **the same key**: the one key pair used to provision every VM in AWS Terraform (`ssh_key_name` in `terraform/aws/aws.tfvars` — see [Terraform apply](#terraform-apply) below) is what you use to reach the deployment node itself, and it is then copied onto the deployment node so Ansible can use it against every other host too:
 
 ```bash
 scp -i <key-to-connect-to-deployment-node> <ssh-private-key> ubuntu@<deployment-node-ip>:~/.ssh/id_ed25519
@@ -151,7 +153,7 @@ Configure inventories and Terraform variables in Phase 2/3 once you know your do
 
 |  | Option A — AWS | Option B — On-prem |
 | --- | --- | --- |
-| Who creates VMs | Terraform `aws/base-infra` (except deployment node) | You (OpenStack, VMware, bare metal, etc.) |
+| Who creates VMs | Terraform `terraform/aws` (except deployment node) | You (OpenStack, VMware, bare metal, etc.) |
 | DNS | Optional Route53 automation in Terraform | Manual (or your DNS team) |
 | Deployment node network | Added to private VPC during the deployment | Same internal network as cluster VMs |
 | Then | Continue to [Phase 3](#phase-3--shared-deployment-sequence) | Continue to [Phase 3](#phase-3--shared-deployment-sequence) |
@@ -164,7 +166,7 @@ Define **`{MOSIP_DOMAIN}`** once (e.g. `mosip.example.com` or `sandbox.example.o
 
 Run this stage only for AWS deployments. Terraform here is **declarative infrastructure only** — host configuration and RKE2 bootstrap remain in Ansible (Phase 3).
 
-**Optional:** enable Route53 DNS in `aws.tfvars` — see [Optional AWS DNS](#optional-aws-dns-and-certbot-automation).
+**Optional:** enable Route53 DNS in `aws.tfvars` — see [Optional AWS DNS](#optional-aws-dns-and-certbot).
 
 #### Configure AWS credentials
 You need working aws credentials on deployment node.
@@ -173,17 +175,16 @@ mkdir ~/.aws
 vim ~/.aws/credentials #Copy your temporary access code from AWS Console under [default]
 ```
 
-#### Optional AWS DNS and certbot automation
+#### Optional AWS DNS and certbot
 
-In `terraform/aws/base-infra/aws.tfvars`:
+In `terraform/aws/aws.tfvars`:
 
 - **DNS:** `enable_route53_records = true`, `cluster_env_domain`, `route53_zone_id`
-- **Certbot IAM:** `enable_certbot_iam_profile = true` (requires IAM permissions; set `false` if your identity cannot create IAM resources)
 - **Root domain:** `enable_root_domain_record = true`, `root_domain_record_type = "A"`
 
 When DNS automation is enabled, Route53 records include A records for `api`, `api-internal`, OBS hosts, and CNAMEs for MOSIP service hostnames (see previous MOSIP DNS table for the full list).
 
-**Without certbot IAM profile** — issue certs manually on the deployment node:
+Terraform does **not** provision any IAM role/profile for certbot — issue certificates manually on the deployment node using the Route53 DNS plugin against the AWS credentials already configured above:
 
 ```bash
 sudo certbot -v certonly --dns-route53 --agree-tos --preferred-challenges=dns \
@@ -194,7 +195,7 @@ Provide `fullchain.pem` and `privkey.pem` before Nginx/OBS stages.
 #### Terraform apply
 
 ```bash
-cd ~/automating-mosip-deployment/terraform/aws/base-infra
+cd ~/automating-mosip-deployment/terraform/aws
 cp aws.tfvars.tmp aws.tfvars # Min changes ssh_key_name.
 terraform init
 terraform plan -var-file=aws.tfvars
@@ -203,15 +204,17 @@ terraform output -json > aws-base-outputs.json
 ```
 
 #### Access to MOSIP network
-After the terraform your deployment node VM has 2nd interface added.
-Update deployment node netplan `sudo vim /etc/netplan/50-cloud-init.yaml` as per below example. Once completed run, `sudo netplan apply`
+After the terraform apply, your deployment node VM has a 2nd interface added. AWS DHCP assigns it an IP automatically — you do not need to configure the address itself. What you need to fix is the **gateway/routing**: cloud-init's default config routes all traffic (`0.0.0.0/0`) through this new interface via a separate policy-routing table, which conflicts with your admin/primary interface's default route.
+
+Find the new interface's MAC address first — run `ip -br link` (or check the AWS console → Network interfaces) and identify the interface that already has a DHCP-assigned IP but isn't your original admin interface.
+
+Update deployment node netplan `sudo vim /etc/netplan/50-cloud-init.yaml`. AWS cloud-init writes the interface's config automatically after the second NIC is attached — it will look like the **"Before"** block below, with full-tunnel `use-routes: true` and a policy-routing table. Edit it down to the **"After"** block: set `use-routes: false` and replace the routes list with a single route scoped to the MOSIP private CIDR, so only MOSIP-private traffic uses this interface's gateway. Once edited, run `sudo netplan apply`.
 
 ```bash
-# Change 2nd interface use-routes: false and remove existing routes and add one 10.100.0.0/16
-# AWS push config like this
+# Before — AWS cloud-init default (routes everything through this interface, table 101)
     enX1:
       match:
-        macaddress: "0a:83:6b:95:10:ed"
+        macaddress: "0a:83:6b:95:10:ed"  # replace with your interface's actual MAC
       dhcp4: true
       dhcp4-overrides:
         use-routes: true
@@ -229,10 +232,10 @@ Update deployment node netplan `sudo vim /etc/netplan/50-cloud-init.yaml` as per
       - table: 101
         from: "10.100.3.104"
 
-# Change use-routes and routes options only
+# After — edited to only route the MOSIP private CIDR over this interface
     enX1:
       match:
-        macaddress: "0a:83:6b:95:10:ed"
+        macaddress: "0a:83:6b:95:10:ed"  # same MAC as above
       dhcp4: true
       dhcp4-overrides:
         use-routes: false
@@ -248,13 +251,27 @@ Update deployment node netplan `sudo vim /etc/netplan/50-cloud-init.yaml` as per
 
 Use `aws-base-outputs.json` to populate existing files:
 
-| Target file | Field(s) to set | AWS output source |
+`rancher.ini` has three separate "obs"-adjacent names — don't guess which is which:
+
+- `mosip_obs` — the OBS **RKE2/Rancher cluster node itself** (`obs-node-1`), running Rancher/Longhorn/monitoring.
+- `nginx` — the **MOSIP-side** Nginx (`nginx-node-1`), public front door for `api.{MOSIP_DOMAIN}`.
+- `nginx_obs` — a **separate** Nginx (`nginx-obs-node-1`) fronting the OBS cluster's Rancher/Keycloak UI at `rancher.{MOSIP_DOMAIN}` — not part of the `mosip_obs` cluster itself.
+
+| Target file | Field/group to set | AWS output source |
 | --- | --- | --- |
-| `ansible/wireguard/inventory/hosts.ini` | `ansible_host`, `wireguard_endpoint` | jumpserver private/public IP |
-| `ansible/infra_deployment/inventory/rancher.ini` | `physical_vms`, RKE2 groups, `mosip_obs`, `nginx`, `nginx_obs` | `physical_vm_private_ips`, node IPs, `obs_private_ip`, nginx IPs |
-| `ansible/infra_deployment/inventory/group_vars/all.yml` | `mosip_domain`, `nginx_obs_public_domain_names`, `rancher_import_url` (later) | your domain; Rancher URL after OBS stage |
-| `terraform/obs_deployment/terraform.tfvars` | `rancher_hostname`, `kubeconfig_path` | `rancher.{MOSIP_DOMAIN}`, OBS kubeconfig path |
-| `terraform/mosip_deployment/terraform.tfvars` | `installation_domain`, `kubeconfig_path` | `{MOSIP_DOMAIN}`, main kubeconfig path |
+| `ansible/wireguard/inventory/hosts.ini` | `ansible_host` | `jumpserver_private_ip` |
+| `ansible/wireguard/inventory/hosts.ini` | `wireguard_endpoint` | `jumpserver_public_ip` |
+| `ansible/infra_deployment/inventory/rancher.ini` | `[physical_vms]`, `[control_plane_primary]`, `[control_plane_subsequent]` `ansible_host` | `physical_vm_private_ips` (map `vm1`..`vm6`) |
+| `ansible/infra_deployment/inventory/rancher.ini` | `[mosip_obs]` `ansible_host` (`obs-node-1`) | `obs_private_ip` |
+| `ansible/infra_deployment/inventory/rancher.ini` | `[nginx]` `ansible_host` (`nginx-node-1`) | `nginx_private_ip` |
+| `ansible/infra_deployment/inventory/rancher.ini` | `[nginx_obs]` `ansible_host` (`nginx-obs-node-1`) | `nginx_obs_private_ip` |
+| `ansible/infra_deployment/inventory/group_vars/all.yml` | `mosip_domain` | your chosen `{MOSIP_DOMAIN}` |
+| `ansible/infra_deployment/inventory/group_vars/all.yml` | `nginx_obs_public_domain_names` | `rancher.{MOSIP_DOMAIN}` (served by the `nginx_obs` host above) |
+| `ansible/infra_deployment/inventory/group_vars/all.yml` | `rancher_import_url` (later) | Rancher import URL, copied after the OBS Terraform stage |
+| `terraform/obs_deployment/terraform.tfvars` | `rancher_hostname`, `kubeconfig_path` | `rancher.{MOSIP_DOMAIN}`; OBS kubeconfig path (`/home/ubuntu/rancher/obs/kube_config_cluster.yml`) |
+| `terraform/mosip_deployment/terraform.tfvars` | `installation_domain`, `kubeconfig_path` | `{MOSIP_DOMAIN}`; Main kubeconfig path (`/home/ubuntu/rancher/mosip/kube_config_cluster.yml`) |
+
+If you split control-plane/etcd/worker roles across dedicated nodes instead of the default colocated topology, the `control_plane_node_ips`, `etcd_node_ips`, and `worker_node_ips` outputs map onto `[control_plane_primary]`/`[control_plane_subsequent]`, `[rke2_etcd]`, and `[rke2_agents]`/`[worker_nodes]` respectively.
 
 **After AWS apply:** confirm the deployment node can `ssh ubuntu@<private-ip>` to every node. If not, fix Step 2 (second interface / routing) before Phase 3.
 
@@ -417,12 +434,31 @@ ansible-playbook -v -i inventory/hosts.ini playbooks/wireguard.yml
 
 - Fetch peer config: `ssh ubuntu@<wg-bastion-public-ip> "sudo cat /root/wireguard/config/peer1/peer1.conf"`
 - Default MTU in peer configs: **1330** (adjust only if your network requires it).
+- Save the fetched config on your laptop before starting the tunnel — `wg-quick` reads it from `/etc/wireguard/<name>.conf`:
+
+```bash
+sudo mkdir -p /etc/wireguard
+sudo tee /etc/wireguard/wg1-{MOSIP_DOMAIN}.conf > /dev/null   # paste the fetched peer1.conf contents
+sudo chmod 600 /etc/wireguard/wg1-{MOSIP_DOMAIN}.conf
+```
+
 - Test from laptop:
 
 ```bash
 sudo systemctl start wg-quick@wg1-{MOSIP_DOMAIN}
 ssh ubuntu@<any-internal-host-ip>
 ```
+
+### kubectl access and kubeconfig locations
+
+Both RKE2 clusters (OBS and Main) are deployed via Ansible, and each deployment writes its kubeconfig to **two places** on the deployment node:
+
+- **Explicit path** — this is the same path you set as `kubeconfig_path` in Terraform tfvars, and it always points at that specific cluster regardless of deployment order:
+  - OBS: `/home/ubuntu/rancher/obs/kube_config_cluster.yml`
+  - Main: `/home/ubuntu/rancher/mosip/kube_config_cluster.yml`
+- **Default path** — `~/.kube/config`, copied there by the same Ansible step so plain `kubectl` commands work with no `--kubeconfig` flag.
+
+Both playbooks copy their cluster's config to that same default `~/.kube/config` path, so **whichever cluster you deployed most recently is the one bare `kubectl` commands target**. In this guide's sequence, Main is deployed after OBS — so once you reach the Main cluster stage, `kubectl get pods -A` (no flags) talks to **Main**, and reaching OBS again requires `kubectl --kubeconfig=/home/ubuntu/rancher/obs/kube_config_cluster.yml ...`. When in doubt about which cluster is currently the default, use the explicit path for the cluster you actually want.
 
 ### Observation node (RKE2 + Rancher stack)
 
@@ -440,7 +476,7 @@ cd ~/automating-mosip-deployment/ansible/infra_deployment
 ansible-playbook -v -i inventory/rancher.ini playbooks/deploy-rancher-obs.yml
 ```
 
-**Verify:** `kubectl get pods -A` (OBS kubeconfig); `curl https://rancher.{MOSIP_DOMAIN}` → 502 until Terraform OBS apply.
+**Verify:** `kubectl get pods -A` (OBS is the only cluster deployed so far, so this targets OBS via `~/.kube/config`); `curl https://rancher.{MOSIP_DOMAIN}` → 502 until Terraform OBS apply.
 
 **Terraform OBS:**
 
@@ -458,11 +494,11 @@ terraform apply -var-file=terraform.tfvars
 - Place wildcard cert as `fullchain.pem` and `privkey.pem` in `playbooks/roles/nginx/files/`
 
 ```bash
-cd ~/mosip/automating-mosip-deployment/ansible/infra_deployment
+cd ~/automating-mosip-deployment/ansible/infra_deployment
 ansible-playbook -f 8 -v -i inventory/rancher.ini playbooks/deploy-all.yml
 ```
 
-**Verify:** `kubectl get pods -A`; `curl https://{MOSIP_DOMAIN}` → 502 until MOSIP infra Terraform.
+**Verify:** `kubectl get pods -A` (now targets **Main** by default — see [kubectl access and kubeconfig locations](#kubectl-access-and-kubeconfig-locations); use `--kubeconfig=/home/ubuntu/rancher/obs/kube_config_cluster.yml` to reach OBS); `curl https://{MOSIP_DOMAIN}` → 502 until MOSIP infra Terraform.
 
 ### MOSIP Terraform (infra then services)
 
@@ -471,7 +507,7 @@ ansible-playbook -f 8 -v -i inventory/rancher.ini playbooks/deploy-all.yml
 **Infra:**
 
 ```bash
-cd ~/mosip/automating-mosip-deployment/terraform/mosip_deployment/infra
+cd ~/automating-mosip-deployment/terraform/mosip_deployment/infra
 terraform init
 terraform plan -var-file=../terraform.tfvars
 terraform apply -var-file=../terraform.tfvars

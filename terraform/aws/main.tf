@@ -663,7 +663,6 @@ resource "aws_instance" "nginx_node" {
   subnet_id                   = aws_subnet.public.id
   vpc_security_group_ids      = [aws_security_group.nginx.id]
   associate_public_ip_address = true
-  iam_instance_profile        = var.enable_certbot_iam_profile ? aws_iam_instance_profile.certbot_profile[0].name : null
 
   root_block_device {
     volume_type           = "gp3"
@@ -699,58 +698,6 @@ resource "aws_instance" "nginx_obs_node" {
     Project     = var.project_name
     Role        = "nginx_obs"
   }
-}
-
-resource "aws_iam_role" "certbot_role" {
-  count = var.enable_certbot_iam_profile ? 1 : 0
-
-  name = "${var.project_name}-${var.environment}-certbot-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Action = "sts:AssumeRole"
-      Effect = "Allow"
-      Principal = {
-        Service = "ec2.amazonaws.com"
-      }
-    }]
-  })
-}
-
-resource "aws_iam_policy" "certbot_route53" {
-  count = var.enable_certbot_iam_profile ? 1 : 0
-
-  name = "${var.project_name}-${var.environment}-certbot-route53"
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "route53:ChangeResourceRecordSets",
-          "route53:ListHostedZones",
-          "route53:ListResourceRecordSets",
-          "route53:GetChange"
-        ]
-        Resource = "*"
-      }
-    ]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "certbot_policy_attachment" {
-  count = var.enable_certbot_iam_profile ? 1 : 0
-
-  role       = aws_iam_role.certbot_role[0].name
-  policy_arn = aws_iam_policy.certbot_route53[0].arn
-}
-
-resource "aws_iam_instance_profile" "certbot_profile" {
-  count = var.enable_certbot_iam_profile ? 1 : 0
-
-  name = "${var.project_name}-${var.environment}-certbot-profile"
-  role = aws_iam_role.certbot_role[0].name
 }
 
 data "aws_route53_zone" "selected" {

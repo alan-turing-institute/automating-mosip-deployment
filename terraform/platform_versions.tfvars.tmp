@@ -1,6 +1,0 @@
-# Deprecated for Terraform roots.
-# Keep version control in:
-# - terraform/obs_deployment/terraform.tfvars
-# - terraform/mosip_deployment/terraform.tfvars
-#
-# This file is retained only for backward compatibility with older workflows.

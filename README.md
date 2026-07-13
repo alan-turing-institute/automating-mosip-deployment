@@ -45,12 +45,12 @@ This repository deploys clusters with **RKE2** via Ansible playbooks:
 - Main stack: `deploy-all.yml` (imports `deploy-rancher.yml`, nginx, istio)
 - OBS stack: `deploy-rancher-obs.yml`
 
-Platform versions are controlled by `platform_version_profile` in `group_vars/platform_versions.yml` and `terraform/platform_versions.tfvars` (default: `k8s_1_28`).
+Platform versions are set directly in `ansible/infra_deployment/inventory/group_vars/all.yml.tmp` and each stack's `terraform.tfvars.tmp` (default profile: `k8s_1_28`). There is no separate `platform_versions` file on either side.
 
 **Legacy RKE1** deployments are maintained on a separate git branch.
 
 Important: in `aws` mode, Terraform is used for prerequisite infrastructure provisioning only. Host configuration, service bootstrap, and procedural operations remain in Ansible playbooks.
-The AWS prerequisite Terraform module lives in `terraform/aws/base-infra` and is executed before the unchanged Ansible and downstream Terraform stages.
+The AWS prerequisite Terraform module lives in `terraform/aws` and is executed before the unchanged Ansible and downstream Terraform stages.
 
 ### Ansible: Infrastructure Setup
 

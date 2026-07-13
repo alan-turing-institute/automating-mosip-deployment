@@ -36,9 +36,6 @@ subdomain_internal      = ["activemq", "kibana", "regclient", "object-store", "k
 enable_root_domain_record = true
 root_domain_record_type   = "A"
 
-# Optional certbot Route53 IAM/profile attachment on nginx node
-enable_certbot_iam_profile = false
-
 # Core metadata. Used to correctly label AWS objects, e.g. for EC2 ${var.project_name}-obs-node-1
 environment  = "dev"
 project_name = "mosip"

@@ -106,8 +106,3 @@ output "deployment_node_private_ip" {
   description = "Private IP of the deployment node ENI on the private subnet when enabled"
   value       = var.enable_deployment_node_private_eni ? aws_network_interface.deployment_node[0].private_ip : null
 }
-
-output "certbot_instance_profile_name" {
-  description = "Certbot IAM instance profile attached to nginx node when enabled"
-  value       = var.enable_certbot_iam_profile ? aws_iam_instance_profile.certbot_profile[0].name : null
-}
