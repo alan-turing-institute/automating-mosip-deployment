@@ -65,6 +65,9 @@ resource "kubernetes_config_map_v1" "config_server_share" {
 
 
 
+# regproc-group1..group7 install sequentially (matches upstream install.sh order) — later groups
+# can depend on state/topics created by earlier ones, so each depends_on the previous group.
+
 # Install regproc-group1
 resource "helm_release" "regproc_group1" {
   name       = "regproc-group1"
@@ -191,7 +194,8 @@ resource "helm_release" "regproc_group2" {
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
     kubernetes_config_map_v1.config_server_share,
-    helm_release.regproc_salt
+    helm_release.regproc_salt,
+    helm_release.regproc_group1
   ]
   # Added so it's not going to die if it's not ready
   # All probes disabled for regproc-group2
@@ -290,7 +294,8 @@ resource "helm_release" "regproc_group3" {
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
     kubernetes_config_map_v1.config_server_share,
-    helm_release.regproc_salt
+    helm_release.regproc_salt,
+    helm_release.regproc_group2
   ]
 
   # Startup Probe Configuration
@@ -390,7 +395,8 @@ resource "helm_release" "regproc_group4" {
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
     kubernetes_config_map_v1.config_server_share,
-    helm_release.regproc_salt
+    helm_release.regproc_salt,
+    helm_release.regproc_group3
   ]
 
   # Startup Probe Configuration
@@ -490,7 +496,8 @@ resource "helm_release" "regproc_group5" {
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
     kubernetes_config_map_v1.config_server_share,
-    helm_release.regproc_salt
+    helm_release.regproc_salt,
+    helm_release.regproc_group4
   ]
 
   # Startup Probe Configuration
@@ -590,7 +597,8 @@ resource "helm_release" "regproc_group6" {
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
     kubernetes_config_map_v1.config_server_share,
-    helm_release.regproc_salt
+    helm_release.regproc_salt,
+    helm_release.regproc_group5
   ]
 
   # Startup Probe Configuration
@@ -690,7 +698,8 @@ resource "helm_release" "regproc_group7" {
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
     kubernetes_config_map_v1.config_server_share,
-    helm_release.regproc_salt
+    helm_release.regproc_salt,
+    helm_release.regproc_group6
   ]
 
   # Startup Probe Configuration

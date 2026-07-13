@@ -1098,11 +1098,6 @@ module "resident" {
   depends_on = [time_sleep.phase_9_complete]
 }
 
-# Wait for Phase 10 completion before running partner onboarding checks
-resource "time_sleep" "phase_10_complete" {
-  depends_on = [module.resident, module.regclient, module.mosip_file_server]
-  create_duration = var.module_wait_seconds > 0 ? "${var.module_wait_seconds}s" : "0s"
-}
 
 module "regclient" {
   source = "../modules/regclient"
@@ -1146,6 +1141,13 @@ module "mosip_file_server" {
 
   depends_on = [time_sleep.phase_9_complete]
 }
+
+# Wait for Phase 10 completion before running partner onboarding checks
+resource "time_sleep" "phase_10_complete" {
+  depends_on = [module.resident, module.regclient, module.mosip_file_server]
+  create_duration = var.module_wait_seconds > 0 ? "${var.module_wait_seconds}s" : "0s"
+}
+
 
 # ============================================================================
 # PHASE 11: Ecosystem Validation (Partner Onboarding Checks)

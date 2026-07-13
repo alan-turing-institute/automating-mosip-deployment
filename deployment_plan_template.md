@@ -424,7 +424,6 @@ ansible-playbook -f 12 -v -i inventory/rancher.ini playbooks/apt-upgrade.yml
 ### WireGuard deployment
 
 - Ensure WireGuard public IP is on `wg-bastion`; port `51820/udp` open.
-- On wg-bastion: `sudo apt update && sudo apt upgrade -y`
 - From deployment node:
 
 ```bash
@@ -463,11 +462,16 @@ Both playbooks copy their cluster's config to that same default `~/.kube/config`
 ### Observation node (RKE2 + Rancher stack)
 
 - In `group_vars/all.yml`: set `nginx_obs_public_domain_names`, `mosip_domain`
-- Place wildcard cert as `fullchain.pem` and `privkey.pem` in `playbooks/roles/nginx_obs/files/`
+- Place wildcard cert as `fullchain.pem` and `privkey.pem` in `playbooks/roles/nginx_obs/files/` and `playbooks/roles/nginx/files/`, example base on `turing-mosip2.net` certificate.
 ```sh
+# OBS
 sudo cp /etc/letsencrypt/live/turing-mosip2.net/fullchain.pem ~/automating-mosip-deployment/ansible/infra_deployment/playbooks/roles/nginx_obs/files/
 sudo cp /etc/letsencrypt/live/turing-mosip2.net/privkey.pem ~/automating-mosip-deployment/ansible/infra_deployment/playbooks/roles/nginx_obs/files/
 sudo chown -R ubuntu:ubuntu ~/automating-mosip-deployment/ansible/infra_deployment/playbooks/roles/nginx_obs/files/*.pem
+# MOSIP
+sudo cp /etc/letsencrypt/live/turing-mosip2.net/fullchain.pem ~/automating-mosip-deployment/ansible/infra_deployment/playbooks/roles/nginx/files/
+sudo cp /etc/letsencrypt/live/turing-mosip2.net/privkey.pem ~/automating-mosip-deployment/ansible/infra_deployment/playbooks/roles/nginx/files/
+sudo chown -R ubuntu:ubuntu ~/automating-mosip-deployment/ansible/infra_deployment/playbooks/roles/nginx/files/*.pem
 ```
 
 - Run Ansible
@@ -490,8 +494,6 @@ terraform apply -var-file=terraform.tfvars
 **Verify:** Rancher UI loads; copy import URL from Rancher → **Import Existing → Generic** → paste into `rancher_import_url` in `group_vars/all.yml`.
 
 ### Main cluster (RKE2 + Istio)
-
-- Place wildcard cert as `fullchain.pem` and `privkey.pem` in `playbooks/roles/nginx/files/`
 
 ```bash
 cd ~/automating-mosip-deployment/ansible/infra_deployment

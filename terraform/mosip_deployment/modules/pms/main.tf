@@ -368,6 +368,8 @@ resource "helm_release" "pmp_ui" {
   }
 
   depends_on = [
+    helm_release.pms_partner,
+    helm_release.pms_policy,
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
     kubernetes_config_map_v1.config_server_share
