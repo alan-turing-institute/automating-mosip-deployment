@@ -3,6 +3,7 @@
 ## What is This Repository?
 
 This repository contains automated tools and scripts that make deploying MOSIP (Modular Open Source Identity Platform) faster, easier, and more reliable. These tools automate the entire deployment process, allowing you to set up a complete MOSIP environment efficiently and consistently.
+Video tutorial: https://www.youtube.com/watch?v=6wMZWhszJ-k
 
 ## Why Was This Created?
 
@@ -69,10 +70,4 @@ Terraform provides several key capabilities:
 
 ## Getting Started
 
-Copy `deployment_plan_template.md` to `deployment_plan.md` and follow it in order:
-
-1. **Phase 1** — deployment node (create VM, network placement, tools, clone repo)
-2. **Phase 2** — AWS or on-prem infrastructure
-3. **Phase 3** — shared WireGuard → OBS RKE2 → main RKE2 → MOSIP Terraform sequence
-
-All operational commands run from the deployment node after Phase 1.
+To begin, copy the `deployment_plan_template.md` into `deployment_plan.md` to create your master copy of project deployment steps and variables. This template contains all the detailed technical instructions, step-by-step procedures, configuration requirements, and technical details needed to deploy MOSIP using these automated tools. Once copied, update all configuration values in `deployment_plan.md` to match your specific environment.
