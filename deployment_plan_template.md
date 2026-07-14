@@ -26,11 +26,11 @@ All commands in phases 2 and 3 are run **from the deployment node**.
 
 Every Ansible playbook, Terraform apply, Helm operation, and `kubectl` check in this automation is designed to run from a dedicated **deployment node**. This machine is not a MOSIP application node; it is the control point that:
 
-- SSHs to every WireGuard, Nginx, observation, and MOSIP cluster node (hundreds of times during a full install).
+- Can SSHs to every WireGuard, Nginx, observation, and MOSIP cluster node.
 - Holds the repository checkout, inventories, Terraform variables, kubeconfig files, and the SSH key Ansible uses.
-- Talks to the Kubernetes API repeatedly while Helm releases and MOSIP modules become healthy (installs can run for hours).
+- Talks to the Kubernetes API repeatedly while Helm releases and MOSIP modules become healthy.
 
-**Why network placement matters:** Ansible copies scripts and configuration to remote hosts. Terraform and Helm poll the Kubernetes API while waiting for pods. If the deployment node reaches the cluster over a high-latency path, a VPN-only route, or an unstable link, you are more likely to see SSH drops, chart download failures, and API timeouts — especially during the long MOSIP Terraform stage.
+**Why network placement matters:** Ansible copies scripts and configuration to remote hosts. Terraform and Helm poll the Kubernetes API while waiting for pods. If the deployment node reaches the cluster over a high-latency path, a VPN-only route, or an unstable link, you are more likely to see SSH drops, chart download failures, and API timeouts — especially during the longer MOSIP Terraform stage.
 
 **Recommended setup:** put the deployment node on the **same private network** as the MOSIP and observation VMs. You may keep one interface or route for operator/admin access (SSH to the deployment node from your laptop) and a second interface or route into the MOSIP private network. WireGuard is for day-to-day admin access to the environment; avoid running the main install from a laptop over WireGuard when a co-located deployment node is available.
 
@@ -44,9 +44,6 @@ You may power off the deployment node after installation and use it again for da
 | Purpose | Operator workstation for Ansible, Terraform, Helm, `kubectl`, certificates, inventory |
 | Size | 2 vCPU, 4 GB RAM, 20 GB storage |
 | Not included in | AWS base Terraform (you provision this VM yourself in both AWS and on-prem flows) |
-
-The deployment node can run a newer OS than the cluster nodes because it is a pure operator workstation — it never runs RKE2 or MOSIP workloads, only Ansible/Terraform/Helm/kubectl. Cluster nodes stay on Ubuntu 24.04 (see [Phase 2, Option B — VMs to create](#vms-to-create)) until 26.04 is validated against RKE2 and the MOSIP Helm charts.
-
 Before continuing, decide how you will connect this VM to the MOSIP network (Step 2).
 
 ### Step 2 — Connect the deployment node to the MOSIP network
@@ -68,7 +65,7 @@ Use private IPs from `terraform output` when filling Ansible inventories after A
 2. Place the deployment node on the **same internal/private network** as those VMs.
 3. If the deployment node also needs access from a separate admin network, configure routing so admin SSH works without breaking reachability to MOSIP private IPs.
 
-**Multi-interface example** (both options — admin network + MOSIP network). Interface names (`ens3`, `ens4`) are illustrative — run `ip -br link` on the deployment node to find your actual interface names before editing netplan:
+**Multi-interface example** (both options — admin network + MOSIP network). Interface names (`ens3`, `ens4`) are illustrative:
 
 ```yaml
 network:
@@ -84,8 +81,6 @@ network:
       dhcp4-overrides:
         route-metric: 100
 ```
-
-Adjust interface names and use static IPs where your platform requires them. If the MOSIP interface should not use the admin gateway, omit `gateway4` on that interface to avoid routing conflicts.
 
 ### Step 3 — Configure SSH access from the deployment node
 
@@ -103,7 +98,7 @@ Use the default name `id_ed25519` so Ansible picks it up automatically (`ansible
 
 Clusters use **RKE2** (Ansible installs it on nodes — no `rke` binary on the deployment node). Install **istioctl 1.22.0** to match the Istio version deployed with the main cluster.
 
-On Ubuntu 26.04:
+On deployment node:
 
 ```sh
 sudo apt update
@@ -145,8 +140,6 @@ git clone https://github.com/alan-turing-institute/automating-mosip-deployment.g
 cd automating-mosip-deployment
 ```
 
-Configure inventories and Terraform variables in Phase 2/3 once you know your domain and IP addresses.
-
 ---
 
 ## Phase 2 — Choose your infrastructure path
@@ -175,7 +168,7 @@ mkdir ~/.aws
 vim ~/.aws/credentials #Copy your temporary access code from AWS Console under [default]
 ```
 
-#### Optional AWS DNS and certbot
+#### Optional AWS DNS
 
 In `terraform/aws/aws.tfvars`:
 
@@ -183,14 +176,6 @@ In `terraform/aws/aws.tfvars`:
 - **Root domain:** `enable_root_domain_record = true`, `root_domain_record_type = "A"`
 
 When DNS automation is enabled, Route53 records include A records for `api`, `api-internal`, OBS hosts, and CNAMEs for MOSIP service hostnames (see previous MOSIP DNS table for the full list).
-
-Terraform does **not** provision any IAM role/profile for certbot — issue certificates manually on the deployment node using the Route53 DNS plugin against the AWS credentials already configured above:
-
-```bash
-sudo certbot -v certonly --dns-route53 --agree-tos --preferred-challenges=dns \
-  -d *.{MOSIP_DOMAIN} -d {MOSIP_DOMAIN}
-```
-Provide `fullchain.pem` and `privkey.pem` before Nginx/OBS stages.
 
 #### Terraform apply
 
@@ -315,25 +300,7 @@ Configure DNS for `{MOSIP_DOMAIN}`. Replace IPs with your infrastructure:
   - **Public API IP** → MOSIP Nginx (`443/tcp`) — api, prereg, resident, idp
   - **WireGuard IP** → WireGuard bastion (`51820/udp`)
 
-#### Certificates
 
-Wildcard PEM for observation and MOSIP Nginx (can be one cert if same domain):
-
-- `fullchain.pem`
-- `privkey.pem`
-
-**Optional — generate on deployment node** if you do not use a corporate wildcard:
-
-```bash
-# AWS Route53
-sudo cp -r ~/.aws /root #Copy AWS credentials to root user
-sudo certbot -v certonly --dns-route53 --agree-tos --preferred-challenges=dns -d *.{MOSIP_DOMAIN} -d {MOSIP_DOMAIN}
-
-# Manual DNS
-sudo certbot certonly --agree-tos --manual --preferred-challenges=dns -d *.{MOSIP_DOMAIN} -d {MOSIP_DOMAIN}
-```
-
-With manual DNS, you may need two TXT records with different values — both are allowed; do not remove the first before validation completes.
 
 #### VMs to create
 
@@ -346,6 +313,38 @@ Cluster nodes: Ubuntu 24.04 LTS per [official MOSIP docs](https://docs.mosip.io/
 | mosip-nginx | 1 | 2 | 4 GB | 16 GB | Internal + public API IP |
 | observation-node | 1 | 2 | 8 GB | 32 GB | Internal |
 | mosip-node | 6 | 12 | 32 GB | 128 GB each | Internal |
+
+
+### Certificates
+For AWS make sure your `.aws/credentials` are not expired.
+For manual DNS, you may need two TXT records with different values — both are allowed; do not remove the first before validation completes.
+
+```sh
+# AWS route53
+mkdir -p ~/cert/{config,work,logs}
+certbot -v certonly --dns-route53 --agree-tos --preferred-challenges=dns \
+--config-dir ~/cert/config --work-dir ~/cert/work --logs-dir ~/cert/logs \
+  -d *.{MOSIP_DOMAIN} -d {MOSIP_DOMAIN}
+
+# On Prem syntax
+# 
+mkdir -p ~/cert/{config,work,logs}
+certbot -v certonly --manual --agree-tos --preferred-challenges=dns \
+--config-dir ~/cert/config --work-dir ~/cert/work --logs-dir ~/cert/logs \
+  -d *.{MOSIP_DOMAIN} -d {MOSIP_DOMAIN}
+```
+
+Place wildcard cert as `fullchain.pem` and `privkey.pem` in `playbooks/roles/nginx_obs/files/` and `playbooks/roles/nginx/files/`, example base on `turing-mosip2.net` certificate.
+
+```sh
+# OBS
+cp /home/ubuntu/cert/config/live/turing-mosip2.net/fullchain.pem ~/automating-mosip-deployment/ansible/infra_deployment/playbooks/roles/nginx_obs/files/
+cp /home/ubuntu/cert/config/live/turing-mosip2.net/privkey.pem ~/automating-mosip-deployment/ansible/infra_deployment/playbooks/roles/nginx_obs/files/
+
+# MOSIP
+cp /home/ubuntu/cert/config/live/turing-mosip2.net/fullchain.pem ~/automating-mosip-deployment/ansible/infra_deployment/playbooks/roles/nginx/files/
+cp /home/ubuntu/cert/config/live/turing-mosip2.net/privkey.pem ~/automating-mosip-deployment/ansible/infra_deployment/playbooks/roles/nginx/files/
+```
 
 ---
 
@@ -410,7 +409,7 @@ nginx-node-1 ansible_host=<mosip-nginx-private-ip>
 nginx-obs-node-1 ansible_host=<obs-nginx-private-ip>
 ```
 
-Topology default: vm1 = primary control plane; vm2–vm3 = HA control plane; vm4–vm6 = worker agents.
+Topology default: vm1 = primary control plane; vm2–vm3 = HA control plane; vm1–vm6 = worker agents.
 
 Set `rancher_hostname`, `kubeconfig_path`, and `installation_domain` in the Terraform tfvars under `terraform/obs_deployment/` and `terraform/mosip_deployment/` before the Terraform stages below.
 
@@ -437,14 +436,14 @@ ansible-playbook -v -i inventory/hosts.ini playbooks/wireguard.yml
 
 ```bash
 sudo mkdir -p /etc/wireguard
-sudo tee /etc/wireguard/wg1-{MOSIP_DOMAIN}.conf > /dev/null   # paste the fetched peer1.conf contents
-sudo chmod 600 /etc/wireguard/wg1-{MOSIP_DOMAIN}.conf
+sudo vi /etc/wireguard/wg1-mosip.conf # paste the fetched peer1.conf contents
+sudo chmod 600 /etc/wireguard/wg1-mosip.conf
 ```
 
 - Test from laptop:
 
 ```bash
-sudo systemctl start wg-quick@wg1-{MOSIP_DOMAIN}
+sudo systemctl start wg-quick@wg1-mosip
 ssh ubuntu@<any-internal-host-ip>
 ```
 
@@ -457,22 +456,11 @@ Both RKE2 clusters (OBS and Main) are deployed via Ansible, and each deployment 
   - Main: `/home/ubuntu/rancher/mosip/kube_config_cluster.yml`
 - **Default path** — `~/.kube/config`, copied there by the same Ansible step so plain `kubectl` commands work with no `--kubeconfig` flag.
 
-Both playbooks copy their cluster's config to that same default `~/.kube/config` path, so **whichever cluster you deployed most recently is the one bare `kubectl` commands target**. In this guide's sequence, Main is deployed after OBS — so once you reach the Main cluster stage, `kubectl get pods -A` (no flags) talks to **Main**, and reaching OBS again requires `kubectl --kubeconfig=/home/ubuntu/rancher/obs/kube_config_cluster.yml ...`. When in doubt about which cluster is currently the default, use the explicit path for the cluster you actually want.
+In this guide's sequence, Main is deployed after OBS — so once you reach the Main cluster stage, `kubectl get pods -A` (no flags) talks to **Main**, and reaching OBS again requires `kubectl --kubeconfig=/home/ubuntu/rancher/obs/kube_config_cluster.yml <cmd>` When in doubt about which cluster is currently the default, use the explicit path for the cluster you actually want.
 
 ### Observation node (RKE2 + Rancher stack)
 
 - In `group_vars/all.yml`: set `nginx_obs_public_domain_names`, `mosip_domain`
-- Place wildcard cert as `fullchain.pem` and `privkey.pem` in `playbooks/roles/nginx_obs/files/` and `playbooks/roles/nginx/files/`, example base on `turing-mosip2.net` certificate.
-```sh
-# OBS
-sudo cp /etc/letsencrypt/live/turing-mosip2.net/fullchain.pem ~/automating-mosip-deployment/ansible/infra_deployment/playbooks/roles/nginx_obs/files/
-sudo cp /etc/letsencrypt/live/turing-mosip2.net/privkey.pem ~/automating-mosip-deployment/ansible/infra_deployment/playbooks/roles/nginx_obs/files/
-sudo chown -R ubuntu:ubuntu ~/automating-mosip-deployment/ansible/infra_deployment/playbooks/roles/nginx_obs/files/*.pem
-# MOSIP
-sudo cp /etc/letsencrypt/live/turing-mosip2.net/fullchain.pem ~/automating-mosip-deployment/ansible/infra_deployment/playbooks/roles/nginx/files/
-sudo cp /etc/letsencrypt/live/turing-mosip2.net/privkey.pem ~/automating-mosip-deployment/ansible/infra_deployment/playbooks/roles/nginx/files/
-sudo chown -R ubuntu:ubuntu ~/automating-mosip-deployment/ansible/infra_deployment/playbooks/roles/nginx/files/*.pem
-```
 
 - Run Ansible
 ```bash
@@ -500,11 +488,11 @@ cd ~/automating-mosip-deployment/ansible/infra_deployment
 ansible-playbook -f 8 -v -i inventory/rancher.ini playbooks/deploy-all.yml
 ```
 
-**Verify:** `kubectl get pods -A` (now targets **Main** by default — see [kubectl access and kubeconfig locations](#kubectl-access-and-kubeconfig-locations); use `--kubeconfig=/home/ubuntu/rancher/obs/kube_config_cluster.yml` to reach OBS); `curl https://{MOSIP_DOMAIN}` → 502 until MOSIP infra Terraform.
+**Verify:** `kubectl get pods -A` (now targets **Main** by default)
 
 ### MOSIP Terraform (infra then services)
 
-**Expect long runtimes** — first apply often takes hours. Modules deploy sequentially; `config-server` and `regproc` may need 20–30 minutes before probes pass.
+**Expect long runtimes** — first apply often takes about an hour. Modules deploy sequentially; `config-server` and `regproc` may need 15–30 minutes before probes pass.
 
 **Infra:**
 
