@@ -92,9 +92,3 @@ variable "liveness_probe_failure_threshold" {
   type        = number
 }
 
-variable "keystore_password" {
-  description = "Password for the keystore. If not provided, a random one will be generated."
-  type        = string
-  default     = ""
-  sensitive   = true
-}

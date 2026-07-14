@@ -162,6 +162,12 @@ resource "helm_release" "credential" {
   repository = "mosip"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.idrepo.metadata[0].name
+  wait       = true
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   timeout    = var.helm_timeout_seconds
 
   set {
@@ -251,6 +257,12 @@ resource "helm_release" "credentialrequest" {
   repository = "mosip"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.idrepo.metadata[0].name
+  wait = true
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   timeout    = var.helm_timeout_seconds
 
   set {
@@ -340,6 +352,12 @@ resource "helm_release" "identity" {
   repository = "mosip"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.idrepo.metadata[0].name
+  wait = true
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   timeout    = var.helm_timeout_seconds
 
   set {
@@ -429,6 +447,12 @@ resource "helm_release" "vid" {
   repository = "mosip"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.idrepo.metadata[0].name
+  wait = true
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   timeout    = var.helm_timeout_seconds
 
   set {
@@ -511,3 +535,19 @@ resource "helm_release" "vid" {
     kubernetes_config_map_v1.config_server_share
   ]
 } 
+resource "kubernetes_limit_range" "default" {
+  metadata {
+    name      = "default-limits"
+    namespace = kubernetes_namespace.idrepo.metadata[0].name
+  }
+  spec {
+    limit {
+      type = "Container"
+      default_request = {
+        cpu    = "100m"
+        memory = "256Mi"
+      }
+    }
+  }
+  depends_on = [kubernetes_namespace.idrepo]
+}

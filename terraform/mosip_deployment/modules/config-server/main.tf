@@ -30,13 +30,14 @@ resource "kubernetes_namespace_v1" "config_server" {
 # Copy ConfigMaps from other namespaces
 resource "kubernetes_config_map_v1" "config_server_cm" {
   depends_on = [kubernetes_namespace_v1.config_server]
-  
+
   for_each = {
-    "global"                    = { namespace = "default" }
-    "keycloak-host"             = { namespace = "keycloak" }
+    "global"                          = { namespace = "default" }
+    "keycloak-host"                   = { namespace = "keycloak" }
     "activemq-activemq-artemis-share" = { namespace = "activemq" }
-    "s3"                        = { namespace = "s3" }
-    "msg-gateway"               = { namespace = "msg-gateways" }
+    "s3"                              = { namespace = "s3" }
+    "msg-gateway"                     = { namespace = "msg-gateways" }
+    "postgres-setup-config"           = { namespace = "postgres" }
   }
   
   metadata {
@@ -52,11 +53,12 @@ resource "kubernetes_config_map_v1" "config_server_cm" {
 # Data source for ConfigMaps
 data "kubernetes_config_map_v1" "source_configmaps" {
   for_each = {
-    "global"                    = { namespace = "default" }
-    "keycloak-host"             = { namespace = "keycloak" }
+    "global"                          = { namespace = "default" }
+    "keycloak-host"                   = { namespace = "keycloak" }
     "activemq-activemq-artemis-share" = { namespace = "activemq" }
-    "s3"                        = { namespace = "s3" }
-    "msg-gateway"               = { namespace = "msg-gateways" }
+    "s3"                              = { namespace = "s3" }
+    "msg-gateway"                     = { namespace = "msg-gateways" }
+    "postgres-setup-config"           = { namespace = "postgres" }
   }
   
   metadata {
@@ -242,40 +244,136 @@ resource "helm_release" "config_server" {
   
   name       = "config-server"
   namespace  = kubernetes_namespace_v1.config_server.metadata[0].name
+  wait       = true
   repository = "https://mosip.github.io/mosip-helm"
   chart      = "config-server"
   version    = var.chart_version
   timeout    = 1800  # 30 minutes
 
+  # Composite profile — MOSIP default; spring_compositeRepos[0] is the mosip-config git repo
   set {
-    name  = "gitRepo.uri"
+    name  = "spring_profiles.enabled"
+    value = "true"
+  }
+
+  set {
+    name  = "spring_profiles.spring_compositeRepos[0].type"
+    value = "git"
+  }
+
+  set {
+    name  = "spring_profiles.spring_compositeRepos[0].uri"
     value = var.git_repo_uri
   }
 
   set {
-    name  = "gitRepo.version"
+    name  = "spring_profiles.spring_compositeRepos[0].version"
     value = var.git_repo_version
   }
 
   set {
-    name  = "gitRepo.searchPaths"
+    name  = "spring_profiles.spring_compositeRepos[0].searchFolders"
     value = var.git_search_folders
   }
 
   set {
-    name  = "gitRepo.private"
+    name  = "spring_profiles.spring_compositeRepos[0].private"
     value = tostring(var.git_private)
   }
 
   set {
-    name  = "gitRepo.username"
+    name  = "spring_profiles.spring_compositeRepos[0].username"
     value = var.git_username
   }
 
   set_sensitive {
-    name  = "gitRepo.token"
+    name  = "spring_profiles.spring_compositeRepos[0].token"
     value = var.git_token
   }
+
+  set {
+    name  = "spring_profiles.spring_compositeRepos[0].spring_cloud_config_server_git_cloneOnStart"
+    value = "true"
+  }
+
+  set {
+    name  = "spring_profiles.spring_compositeRepos[0].spring_cloud_config_server_git_force_pull"
+    value = "true"
+  }
+
+  set {
+    name  = "spring_profiles.spring_compositeRepos[0].spring_cloud_config_server_git_refreshRate"
+    value = "5"
+  }
+
+  set {
+    name  = "spring_profiles.spring_fail_on_composite_error"
+    value = "false"
+  }
+
+  set {
+    name  = "localRepo.enabled"
+    value = "false"
+  }
+
+  # extraEnvVars — use values/yamlencode because audience strings contain commas
+  # which Helm's --set flag would misparse as list delimiters
+  values = [
+    yamlencode({
+      extraEnvVars = [
+        {
+          name    = "SPRING_CLOUD_CONFIG_SERVER_OVERRIDES_MOSIP_KERNEL_UIN_MIN_UNUSED_THRESHOLD_OVERRIDE"
+          value   = var.config_server_uin_min_threshold
+          enabled = true
+        },
+        {
+          name    = "SPRING_CLOUD_CONFIG_SERVER_OVERRIDES_AUTH_SERVER_ADMIN_ALLOWED_AUDIENCE_IDREPO_OVERRIDE"
+          value   = var.config_server_auth_audience_idrepo
+          enabled = true
+        },
+        {
+          name    = "SPRING_CLOUD_CONFIG_SERVER_OVERRIDES_MOSIP_IDREPO_CREDENTIAL_REQUEST_ENABLE_CONVENTION_BASED_ID_IDREPO_OVERRIDE"
+          value   = var.config_server_credential_convention_id_enabled
+          enabled = true
+        },
+        {
+          name    = "SPRING_CLOUD_CONFIG_SERVER_OVERRIDES_AUTH_SERVER_ADMIN_ALLOWED_AUDIENCE_KERNEL_OVERRIDE"
+          value   = var.config_server_auth_audience_kernel
+          enabled = true
+        },
+        {
+          name    = "SPRING_CLOUD_CONFIG_SERVER_OVERRIDES_MOSIP_KERNEL_VID_MIN_UNUSED_THRESHOLD_OVERRIDE"
+          value   = var.config_server_vid_min_threshold
+          enabled = true
+        },
+        {
+          name    = "SPRING_CLOUD_CONFIG_SERVER_OVERRIDES_MOSIP_PREREGISTRATION_CAPTCHA_ENABLE_OVERRIDE"
+          value   = var.config_server_captcha_enable
+          enabled = true
+        },
+        {
+          name    = "SPRING_CLOUD_CONFIG_SERVER_OVERRIDES_MOSIP_ESIGNET_CAPTCHA_REQUIRED_ESIGNET_OVERRIDE"
+          value   = var.config_server_esignet_captcha_required
+          enabled = true
+        },
+        {
+          name    = "SPRING_CLOUD_CONFIG_SERVER_OVERRIDES_MOSIP_DATABASE_HOSTNAME_OVERRIDE"
+          value   = "postgres-postgresql.postgres"
+          enabled = true
+        },
+        {
+          name    = "SPRING_CLOUD_CONFIG_SERVER_OVERRIDES_MOSIP_DATABASE_PORT_OVERRIDE"
+          value   = "5432"
+          enabled = true
+        },
+        {
+          name    = "SPRING_CLOUD_CONFIG_SERVER_OVERRIDES_RESIDENT_OIDC_CLIENTID"
+          value   = var.resident_oidc_clientid
+          enabled = true
+        },
+      ]
+    })
+  ]
 
   # Startup Probe Configuration
   set {
@@ -355,3 +453,19 @@ resource "helm_release" "config_server" {
     value = tostring(var.liveness_probe_failure_threshold)
   }
 } 
+resource "kubernetes_limit_range" "default" {
+  metadata {
+    name      = "default-limits"
+    namespace = kubernetes_namespace_v1.config_server.metadata[0].name
+  }
+  spec {
+    limit {
+      type = "Container"
+      default_request = {
+        cpu    = "100m"
+        memory = "256Mi"
+      }
+    }
+  }
+  depends_on = [kubernetes_namespace_v1.config_server]
+}

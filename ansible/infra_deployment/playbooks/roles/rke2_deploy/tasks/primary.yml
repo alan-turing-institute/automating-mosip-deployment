@@ -1,0 +1,96 @@
+---
+- name: Explain skip when cluster already exists
+  ansible.builtin.debug:
+    msg: "Skipping primary node install for '{{ cluster_name }}' because deployment node already has a working kubeconfig."
+  when: rke2_cluster_exists | default(false)
+
+- name: Check if RKE2 server is already active
+  ansible.builtin.systemd:
+    name: rke2-server
+  register: primary_rke2_status
+  failed_when: false
+  when: not (rke2_cluster_exists | default(false))
+
+- name: Set primary service active fact
+  ansible.builtin.set_fact:
+    rke2_primary_service_active: "{{ primary_rke2_status.status is defined and primary_rke2_status.status.ActiveState == 'active' }}"
+  when: not (rke2_cluster_exists | default(false))
+
+- name: Explain skip when service already active
+  ansible.builtin.debug:
+    msg: "RKE2 server already active on {{ inventory_hostname }}. Skipping install and reusing existing node."
+  when:
+    - not (rke2_cluster_exists | default(false))
+    - rke2_primary_service_active | default(false)
+
+- name: Install and configure primary node
+  when:
+    - not (rke2_cluster_exists | default(false))
+    - not (rke2_primary_service_active | default(false))
+  block:
+    - name: Create RKE2 config directory
+      ansible.builtin.file:
+        path: "{{ rke2_config_dir }}"
+        state: directory
+        mode: '0750'
+        owner: "{{ ansible_facts['user_id'] }}"
+        group: "{{ ansible_facts['user_gid'] | default(ansible_facts['user_id']) }}"
+
+    - name: Install RKE2 on primary node
+      ansible.builtin.shell: |
+        curl -sfL https://get.rke2.io | INSTALL_RKE2_VERSION="{{ rke2_version }}" sh -
+      args:
+        creates: /usr/local/bin/rke2
+
+    - name: Point RKE2 server systemd unit at user config path
+      ansible.builtin.import_tasks: systemd_config_path.yml
+      vars:
+        rke2_systemd_service: rke2-server
+
+    - name: Render primary RKE2 config
+      ansible.builtin.template:
+        src: rke2-server-control-plane-primary.conf.j2
+        dest: "{{ rke2_config_dir }}/config.yaml"
+        mode: '0600'
+      no_log: true
+
+    - name: Start and enable RKE2 server
+      ansible.builtin.systemd:
+        name: rke2-server
+        enabled: true
+        state: started
+
+- name: Ensure RKE2 server systemd config path is set
+  ansible.builtin.import_tasks: systemd_config_path.yml
+  vars:
+    rke2_systemd_service: rke2-server
+  when:
+    - not (rke2_cluster_exists | default(false))
+    - rke2_primary_service_active | default(false)
+
+- name: Wait for RKE2 kubeconfig on primary at custom or default path
+  ansible.builtin.shell: >-
+    test -f "{{ rke2_config_dir }}/rke2.yaml" ||
+    test -f "{{ rke2_default_kubeconfig_path }}"
+  register: rke2_kubeconfig_ready
+  changed_when: false
+  retries: 30
+  delay: 10
+  until: rke2_kubeconfig_ready.rc == 0
+  when: not (rke2_cluster_exists | default(false))
+
+- name: Wait for Kubernetes API on primary
+  ansible.builtin.wait_for:
+    port: 6443
+    host: "{{ ansible_host }}"
+    timeout: 300
+    delay: 15
+  when: not (rke2_cluster_exists | default(false))
+
+- name: Create kubectl symlink on primary
+  ansible.builtin.file:
+    src: /var/lib/rancher/rke2/bin/kubectl
+    dest: /usr/local/bin/kubectl
+    state: link
+    force: true
+  when: not (rke2_cluster_exists | default(false))

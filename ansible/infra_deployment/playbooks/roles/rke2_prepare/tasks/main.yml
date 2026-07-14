@@ -1,0 +1,100 @@
+---
+- name: Check connectivity to node
+  wait_for_connection:
+    timeout: 60
+    sleep: 5
+  register: connection_check
+
+- name: Verify node is reachable
+  assert:
+    that:
+      - connection_check is success
+    fail_msg: "Unable to establish connection to node. Check network and SSH access."
+    success_msg: "Node is reachable."
+
+- name: Install required packages
+  apt:
+    name: "{{ required_packages }}"
+    state: present
+    update_cache: yes
+  become: true
+
+- name: Load kernel modules
+  become: true
+  modprobe:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - br_netfilter
+    - overlay
+
+- name: Add kernel modules to /etc/modules
+  become: true
+  lineinfile:
+    path: /etc/modules
+    line: "{{ item }}"
+    state: present
+  loop:
+    - br_netfilter
+    - overlay
+
+- name: Configure system limits
+  become: true
+  blockinfile:
+    path: /etc/security/limits.conf
+    block: |
+      *    soft    nofile    {{ system_limits.nofile_soft }}
+      *    hard    nofile    {{ system_limits.nofile_hard }}
+      *    soft    nproc     {{ system_limits.nproc_soft }}
+      *    hard    nproc     {{ system_limits.nproc_hard }}
+      *    soft    memlock   {{ system_limits.memlock_soft }}
+      *    hard    memlock   {{ system_limits.memlock_hard }}
+      root soft    nofile    {{ system_limits.nofile_soft }}
+      root hard    nofile    {{ system_limits.nofile_hard }}
+      root soft    nproc     {{ system_limits.nproc_soft }}
+      root hard    nproc     {{ system_limits.nproc_hard }}
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - SYSTEM LIMITS"
+
+- name: Configure main sysctl parameters
+  become: true
+  sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    state: present
+    sysctl_file: /etc/sysctl.d/99-kubernetes.conf
+    reload: yes
+  loop: "{{ sysctl_params | dict2items }}"
+
+- name: Configure bridge-netfilter parameters
+  become: true
+  sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    state: present
+    sysctl_file: /etc/sysctl.d/99-kubernetes.conf
+    reload: yes
+  loop:
+    - { key: "net.bridge.bridge-nf-call-iptables", value: "1" }
+    - { key: "net.bridge.bridge-nf-call-ip6tables", value: "1" }
+  when: ansible_virtualization_type != "openvz"
+
+- name: Remove swapfile from /etc/fstab
+  mount:
+    name: "{{ item }}"
+    fstype: swap
+    state: absent
+  loop:
+    - swap
+    - none
+  become: true
+  when: disable_swap
+
+- name: Disable swap
+  command: swapoff -a
+  become: true
+  when: disable_swap
+  changed_when: true
+
+- name: Configure RKE2 firewall rules
+  import_tasks: firewall.yml
+  when: rke2_enable_firewall | default(false)

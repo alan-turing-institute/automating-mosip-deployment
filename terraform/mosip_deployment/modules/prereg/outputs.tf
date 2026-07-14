@@ -8,10 +8,6 @@ output "prereg_gateway_status" {
   value       = helm_release.prereg_gateway.status
 }
 
-output "prereg_captcha_status" {
-  description = "Status of prereg captcha deployment"
-  value       = helm_release.prereg_captcha.status
-}
 
 output "prereg_application_status" {
   description = "Status of prereg application deployment"

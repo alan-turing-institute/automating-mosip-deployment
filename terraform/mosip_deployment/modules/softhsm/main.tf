@@ -36,6 +36,7 @@ resource "helm_release" "softhsm_kernel" {
   repository = "https://mosip.github.io/mosip-helm"
   chart      = "softhsm"
   version    = var.chart_version
+  wait       = true
 
   values = [
     file("${path.module}/values.yaml")
@@ -52,6 +53,7 @@ resource "helm_release" "softhsm_ida" {
   repository = "https://mosip.github.io/mosip-helm"
   chart      = "softhsm"
   version    = var.chart_version
+  wait       = true
 
   values = [
     file("${path.module}/values.yaml")
@@ -59,3 +61,20 @@ resource "helm_release" "softhsm_ida" {
 
   depends_on = [kubernetes_namespace.softhsm]
 } 
+resource "kubernetes_limit_range" "default" {
+  count = var.enable_softhsm ? 1 : 0
+  metadata {
+    name      = "default-limits"
+    namespace = kubernetes_namespace.softhsm[count.index].metadata[0].name
+  }
+  spec {
+    limit {
+      type = "Container"
+      default_request = {
+        cpu    = "100m"
+        memory = "256Mi"
+      }
+    }
+  }
+  depends_on = [kubernetes_namespace.softhsm]
+}

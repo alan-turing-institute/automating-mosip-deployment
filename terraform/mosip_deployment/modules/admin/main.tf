@@ -190,6 +190,7 @@ resource "helm_release" "admin_hotlist" {
   chart      = "mosip/admin-hotlist"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.admin.metadata[0].name
+  wait       = true
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
@@ -281,6 +282,7 @@ resource "helm_release" "admin_service" {
   chart      = "mosip/admin-service"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.admin.metadata[0].name
+  wait       = true
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
@@ -376,8 +378,9 @@ resource "helm_release" "admin_service" {
 resource "helm_release" "admin_ui" {
   name       = "admin-ui"
   chart      = "mosip/admin-ui"
-  version    = var.helm_chart_version
+  version    = var.admin_ui_chart_version
   namespace  = kubernetes_namespace.admin.metadata[0].name
+  wait = true
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
@@ -472,3 +475,19 @@ resource "helm_release" "admin_ui" {
 
   timeout = var.helm_timeout_seconds
 } 
+resource "kubernetes_limit_range" "default" {
+  metadata {
+    name      = "default-limits"
+    namespace = kubernetes_namespace.admin.metadata[0].name
+  }
+  spec {
+    limit {
+      type = "Container"
+      default_request = {
+        cpu    = "100m"
+        memory = "256Mi"
+      }
+    }
+  }
+  depends_on = [kubernetes_namespace.admin]
+}

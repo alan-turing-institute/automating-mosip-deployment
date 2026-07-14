@@ -62,6 +62,7 @@ resource "kubernetes_config_map_v1" "landing_page_config" {
 resource "helm_release" "landing_page" {
   name       = "landing-page"
   namespace  = kubernetes_namespace.landing_page.metadata[0].name
+  wait       = true
   repository = "mosip"
   chart      = "landing-page"
   version    = var.chart_version
@@ -178,4 +179,20 @@ resource "helm_release" "landing_page" {
   }
 
   depends_on = [kubernetes_config_map_v1.landing_page_config]
+}
+resource "kubernetes_limit_range" "default" {
+  metadata {
+    name      = "default-limits"
+    namespace = kubernetes_namespace.landing_page.metadata[0].name
+  }
+  spec {
+    limit {
+      type = "Container"
+      default_request = {
+        cpu    = "100m"
+        memory = "256Mi"
+      }
+    }
+  }
+  depends_on = [kubernetes_namespace.landing_page]
 }

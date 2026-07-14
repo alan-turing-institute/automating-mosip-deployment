@@ -33,6 +33,12 @@ variable "enable_insecure" {
   default     = false
 }
 
+variable "push_reports_to_s3" {
+  description = "Push onboarding reports to S3/MinIO"
+  type        = bool
+  default     = true
+}
+
 variable "module_ida_enabled" {
   description = "Enable IDA module"
   type        = bool
@@ -60,13 +66,13 @@ variable "module_resident_enabled" {
 variable "module_mobileid_enabled" {
   description = "Enable Mobile ID module"
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "module_digitalcard_enabled" {
   description = "Enable Digital Card module"
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "module_esignet_enabled" {
@@ -90,7 +96,7 @@ variable "module_resident_oidc_enabled" {
 variable "module_mimoto_keybinding_enabled" {
   description = "Enable Mimoto Keybinding module"
   type        = bool
-  default     = true
+  default     = false
 }
 
 # Probe Configuration Variables

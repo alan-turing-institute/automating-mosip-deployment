@@ -1,0 +1,23 @@
+---
+- name: Import cluster to Rancher
+  when: rancher_import_url | default('') | length > 0
+  block:
+    - name: Apply Rancher import manifest
+      command: kubectl --kubeconfig={{ cluster_dir }}/kube_config_cluster.yml apply -f {{ rancher_import_url }} --validate=false
+      register: rancher_import
+      failed_when: rancher_import.rc != 0
+      changed_when: rancher_import.rc == 0
+
+    - name: Wait for Rancher agent deployment
+      shell: |
+        kubectl --kubeconfig={{ cluster_dir }}/kube_config_cluster.yml get deployment -n cattle-system cattle-cluster-agent -o json | jq -e '.status.readyReplicas == .status.replicas'
+      register: agent_status
+      until: agent_status.rc == 0
+      retries: "{{ (rancher_import_timeout | int / 10) | int }}"
+      delay: 10
+      changed_when: false
+
+    - name: Display Rancher import status
+      debug:
+        msg: "Cluster has been successfully imported to Rancher"
+  ignore_errors: true

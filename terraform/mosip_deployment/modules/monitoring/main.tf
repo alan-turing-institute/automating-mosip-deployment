@@ -20,7 +20,8 @@ resource "helm_release" "rancher_monitoring_crd" {
   repository       = "https://charts.rancher.io"
   chart            = "rancher-monitoring-crd"
   namespace        = "cattle-monitoring-system"
-  version    = "102.0.5+up40.1.2" # MUST USE THIS VERSION OLD RANCHER !!!
+  wait             = true
+  version          = var.monitoring_crd_version
   create_namespace = true
   timeout          = var.helm_timeout_seconds
 
@@ -42,12 +43,63 @@ resource "helm_release" "rancher_monitoring" {
   repository = "https://charts.rancher.io"
   chart      = "rancher-monitoring"
   namespace  = "cattle-monitoring-system"
-  version    = "102.0.5+up40.1.2" # MUST USE THIS VERSION OLD RANCHER !!!
+  wait = true
+  version    = var.monitoring_version
   timeout    = var.helm_timeout_seconds
 
   set {
     name  = "windowsExporter.enabled"
     value = "false"
+  }
+
+  set {
+    name  = "prometheus.prometheusSpec.resources.requests.cpu"
+    value = "100m"
+  }
+
+  set {
+    name  = "prometheus.prometheusSpec.resources.requests.memory"
+    value = "512Mi"
+  }
+
+  set {
+    name  = "alertmanager.alertmanagerSpec.resources.requests.cpu"
+    value = "50m"
+  }
+
+  set {
+    name  = "alertmanager.alertmanagerSpec.resources.requests.memory"
+    value = "64Mi"
+  }
+
+  set {
+    name  = "grafana.resources.requests.cpu"
+    value = "50m"
+  }
+
+  set {
+    name  = "grafana.resources.requests.memory"
+    value = "128Mi"
+  }
+
+  set {
+    name  = "prometheusOperator.resources.requests.cpu"
+    value = "50m"
+  }
+
+  set {
+    name  = "prometheusOperator.resources.requests.memory"
+    value = "64Mi"
+  }
+
+  set {
+    name  = "kube-state-metrics.resources.requests.cpu"
+    value = "50m"
+  }
+
+  set {
+    name  = "prometheus-node-exporter.resources.requests.cpu"
+    value = "50m"
   }
 
   depends_on = [

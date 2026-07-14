@@ -1,15 +1,76 @@
 ---
-# Prepare Rancher Nodes
-- name: Prepare Rancher Nodes
+# Prepare cluster nodes for RKE2
+- name: Prepare physical VMs for RKE2
   hosts: physical_vms
   gather_facts: true
-  serial: 1  # Process one VM at a time to avoid apt locks
   roles:
-    - rancher_prepare
+    - rke2_prepare
 
-# Deploy Rancher from Deployment Node
-- name: Deploy Rancher from Deployment Node
+# Cluster orchestration from deployment node
+- name: Initialize RKE2 cluster state
   hosts: deployment
   gather_facts: true
-  roles:
-    - rancher_deploy 
+  vars:
+    rke2_primary_group: "control_plane_primary"
+    rke2_config_dir: "{{ rke2_main_config_dir | default('/etc/rancher/rke2') }}"
+  tasks:
+    - name: Load main-cluster check_cluster tasks
+      ansible.builtin.include_role:
+        name: rke2_deploy
+        tasks_from: check_cluster.yml
+    - name: Load main-cluster token tasks
+      ansible.builtin.include_role:
+        name: rke2_deploy
+        tasks_from: token.yml
+
+# Install primary control plane
+- name: Install RKE2 primary control plane
+  hosts: control_plane_primary
+  become: true
+  gather_facts: true
+  serial: 1
+  vars:
+    rke2_cluster_exists: "{{ hostvars[groups['deployment'][0]]['rke2_cluster_exists'] | default(false) }}"
+    rke2_cluster_token: "{{ hostvars[groups['deployment'][0]]['rke2_cluster_token'] | default('') }}"
+    rke2_config_dir: "{{ rke2_main_config_dir | default('/etc/rancher/rke2') }}"
+  tasks:
+    - name: Load main-cluster primary tasks
+      ansible.builtin.include_role:
+        name: rke2_deploy
+        tasks_from: primary.yml
+
+# Install subsequent nodes
+- name: Install RKE2 subsequent nodes
+  hosts: control_plane_subsequent:rke2_agents:rke2_etcd
+  become: true
+  gather_facts: true
+  serial: 1
+  vars:
+    rke2_cluster_exists: "{{ hostvars[groups['deployment'][0]]['rke2_cluster_exists'] | default(false) }}"
+    rke2_cluster_token: "{{ hostvars[groups['deployment'][0]]['rke2_cluster_token'] | default('') }}"
+    rke2_primary_ip: "{{ hostvars[groups['deployment'][0]]['rke2_primary_ip'] }}"
+    rke2_config_dir: "{{ rke2_main_config_dir | default('/etc/rancher/rke2') }}"
+  tasks:
+    - name: Load main-cluster subsequent tasks
+      ansible.builtin.include_role:
+        name: rke2_deploy
+        tasks_from: subsequent.yml
+
+# Fetch kubeconfig and optional Rancher import
+- name: Finalize RKE2 cluster on deployment node
+  hosts: deployment
+  gather_facts: true
+  vars:
+    rke2_cluster_exists: "{{ hostvars[groups['deployment'][0]]['rke2_cluster_exists'] | default(false) }}"
+    rke2_primary_ip: "{{ hostvars[groups['deployment'][0]]['rke2_primary_ip'] | default(hostvars[groups['control_plane_primary'][0]]['ansible_host']) }}"
+    rke2_kubeconfig_delegate_host: "{{ groups['control_plane_primary'][0] }}"
+    rke2_config_dir: "{{ rke2_main_config_dir | default('/etc/rancher/rke2') }}"
+  tasks:
+    - name: Load main-cluster kubeconfig tasks
+      ansible.builtin.include_role:
+        name: rke2_deploy
+        tasks_from: kubeconfig.yml
+    - name: Load Rancher import tasks
+      ansible.builtin.include_role:
+        name: rke2_deploy
+        tasks_from: rancher_import.yml

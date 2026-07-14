@@ -117,7 +117,8 @@ module "minio" {
 
   # Bitnami image repository configuration
   bitnami_image_repository = var.bitnami_image_repository
-  enable_istio            = var.enable_istio
+  image_tag                = var.minio_image_tag
+  enable_istio             = var.enable_istio
 
   depends_on = [time_sleep.phase_1_complete]
 }
@@ -265,12 +266,15 @@ module "captcha" {
   count  = var.enable_captcha ? 1 : 0
   source = "../modules/captcha"
 
-  namespace = var.captcha_namespace
-  kubeconfig_path = var.kubeconfig_path
-  prereg_captcha_site_key = var.prereg_captcha_site_key
-  prereg_captcha_secret_key = var.prereg_captcha_secret_key
-  resident_captcha_site_key = var.resident_captcha_site_key
-  resident_captcha_secret_key = var.resident_captcha_secret_key
+  namespace                       = var.captcha_namespace
+  kubeconfig_path                 = var.kubeconfig_path
+  helm_chart_version              = var.captcha_helm_chart_version
+  helm_timeout_seconds            = var.global_helm_timeout_seconds
+  metrics_service_monitor_enabled = var.captcha_metrics_service_monitor_enabled
+  prereg_captcha_site_key         = var.prereg_captcha_site_key
+  prereg_captcha_secret_key       = var.prereg_captcha_secret_key
+  resident_captcha_site_key       = var.resident_captcha_site_key
+  resident_captcha_secret_key     = var.resident_captcha_secret_key
 
   depends_on = [time_sleep.phase_1_complete]
 }
@@ -310,6 +314,16 @@ module "config_server" {
   git_username       = var.config_server_git_username
   git_token          = var.config_server_git_token
   helm_timeout_seconds = var.global_helm_timeout_seconds
+
+  # extraEnvVars overrides
+  config_server_uin_min_threshold                = var.config_server_uin_min_threshold
+  config_server_vid_min_threshold                = var.config_server_vid_min_threshold
+  config_server_auth_audience_idrepo             = var.config_server_auth_audience_idrepo
+  config_server_auth_audience_kernel             = var.config_server_auth_audience_kernel
+  config_server_credential_convention_id_enabled = var.config_server_credential_convention_id_enabled
+  config_server_captcha_enable                   = var.config_server_captcha_enable
+  config_server_esignet_captcha_required         = var.config_server_esignet_captcha_required
+  resident_oidc_clientid                         = var.config_server_resident_oidc_clientid
 
   # Startup Probe Configuration
   startup_probe_enabled                = var.config_server_startup_probe_enabled
@@ -449,8 +463,7 @@ module "mock_smtp" {
   count  = var.mock_smtp_enabled ? 1 : 0
   source = "../modules/mock-smtp"
 
-  mock_smtp_host    = var.mock_smtp_host
-  helm_version = var.mock_smtp_helm_version
+  helm_version         = var.mock_smtp_helm_version
   helm_timeout_seconds = var.global_helm_timeout_seconds
 
   # Startup Probe Configuration
@@ -493,6 +506,11 @@ module "kernel" {
 
   namespace                   = var.kernel_namespace
   helm_chart_version         = var.kernel_helm_chart_version
+  authmanager_chart_version  = var.kernel_authmanager_chart_version
+  auditmanager_chart_version = var.kernel_auditmanager_chart_version
+  masterdata_chart_version   = var.kernel_masterdata_chart_version
+  otpmanager_chart_version   = var.kernel_otpmanager_chart_version
+  syncdata_chart_version     = var.kernel_syncdata_chart_version
   enable_insecure            = var.kernel_enable_insecure
   helm_timeout_seconds       = var.global_helm_timeout_seconds
 
@@ -541,9 +559,11 @@ module "masterdata_loader" {
   source = "../modules/masterdata-loader"
   count  = var.masterdata_loader_enabled ? 1 : 0
 
-  helm_chart_version      = var.masterdata_loader_helm_chart_version
-  mosip_data_github_branch = var.masterdata_loader_mosip_data_github_branch
-  helm_timeout_seconds = var.global_helm_timeout_seconds
+  helm_chart_version         = var.masterdata_loader_helm_chart_version
+  mosip_data_github_branch   = var.masterdata_loader_mosip_data_github_branch
+  mosip_data_github_repo     = var.masterdata_loader_mosip_data_github_repo
+  mosip_data_xls_folder_path = var.masterdata_loader_mosip_data_xls_folder_path
+  helm_timeout_seconds       = var.global_helm_timeout_seconds
 
   # Startup Probe Configuration
   startup_probe_enabled                = var.masterdata_loader_startup_probe_enabled
@@ -684,6 +704,9 @@ module "prereg" {
 
   namespace           = var.prereg_namespace
   helm_chart_version  = var.prereg_chart_version
+  prereg_gateway_chart_version = var.prereg_gateway_chart_version
+  prereg_booking_chart_version = var.prereg_booking_chart_version
+  prereg_ui_chart_version      = var.prereg_ui_chart_version
   istio_injection_label = var.prereg_istio_injection_label
   helm_timeout_seconds = var.global_helm_timeout_seconds
   rate_limit_max_tokens = var.prereg_rate_limit_max_tokens
@@ -711,7 +734,7 @@ module "prereg" {
   liveness_probe_period_seconds         = var.prereg_liveness_probe_period_seconds
   liveness_probe_failure_threshold       = var.prereg_liveness_probe_failure_threshold
 
-  depends_on = [module.datashare]
+  depends_on = [module.datashare, module.masterdata_loader]
 }
 
 # Wait for Phase 6 completion
@@ -764,6 +787,8 @@ module "pms" {
   namespace                   = var.pms_namespace
   helm_chart_version         = var.pms_helm_chart_version
   pmp_ui_chart_version       = var.pmp_ui_chart_version
+  pmp_revamp_ui_enabled      = var.pmp_revamp_ui_enabled
+  pmp_revamp_ui_chart_version = var.pmp_revamp_ui_chart_version
   istio_injection_label      = var.pms_istio_injection_label
   helm_timeout_seconds       = var.global_helm_timeout_seconds
 
@@ -907,9 +932,10 @@ module "admin" {
   source = "../modules/admin"
   count  = var.admin_enabled ? 1 : 0
 
-  namespace         = var.admin_namespace
-  helm_chart_version = var.admin_helm_chart_version
-  helm_timeout_seconds = var.global_helm_timeout_seconds
+  namespace              = var.admin_namespace
+  helm_chart_version     = var.admin_helm_chart_version
+  admin_ui_chart_version = var.admin_ui_chart_version
+  helm_timeout_seconds   = var.global_helm_timeout_seconds
 
   # Startup Probe Configuration
   startup_probe_enabled                = var.admin_startup_probe_enabled
@@ -966,9 +992,10 @@ module "ida" {
   source = "../modules/ida"
   count  = var.ida_enabled ? 1 : 0
 
-  namespace         = var.ida_namespace
-  helm_chart_version = var.ida_helm_chart_version
-  enable_insecure   = var.ida_enable_insecure
+  namespace            = var.ida_namespace
+  helm_chart_version   = var.ida_helm_chart_version
+  keygen_chart_version = var.ida_keygen_chart_version
+  enable_insecure      = var.ida_enable_insecure
   helm_timeout_seconds = var.global_helm_timeout_seconds
 
   # Startup Probe Configuration
@@ -1071,38 +1098,6 @@ module "resident" {
   depends_on = [time_sleep.phase_9_complete]
 }
 
-module "partner_onboarder" {
-  source = "../modules/partner-onboarder"
-  count  = var.partner_onboarder_enabled ? 1 : 0
-
-  namespace         = var.partner_onboarder_namespace
-  helm_chart_version = var.partner_onboarder_helm_chart_version
-  s3_bucket_name    = var.partner_onboarder_s3_bucket_name
-  helm_timeout_seconds = var.global_helm_timeout_seconds
-
-  # Startup Probe Configuration
-  startup_probe_enabled                = var.partner_onboarder_startup_probe_enabled
-  startup_probe_timeout_seconds        = var.partner_onboarder_startup_probe_timeout_seconds
-  startup_probe_initial_delay_seconds   = var.partner_onboarder_startup_probe_initial_delay_seconds
-  startup_probe_period_seconds         = var.partner_onboarder_startup_probe_period_seconds
-  startup_probe_failure_threshold      = var.partner_onboarder_startup_probe_failure_threshold
-
-  # Readiness Probe Configuration
-  readiness_probe_enabled                = var.partner_onboarder_readiness_probe_enabled
-  readiness_probe_timeout_seconds        = var.partner_onboarder_readiness_probe_timeout_seconds
-  readiness_probe_initial_delay_seconds   = var.partner_onboarder_readiness_probe_initial_delay_seconds
-  readiness_probe_period_seconds          = var.partner_onboarder_readiness_probe_period_seconds
-  readiness_probe_failure_threshold      = var.partner_onboarder_readiness_probe_failure_threshold
-
-  # Liveness Probe Configuration
-  liveness_probe_enabled                = var.partner_onboarder_liveness_probe_enabled
-  liveness_probe_timeout_seconds        = var.partner_onboarder_liveness_probe_timeout_seconds
-  liveness_probe_initial_delay_seconds    = var.partner_onboarder_liveness_probe_initial_delay_seconds
-  liveness_probe_period_seconds         = var.partner_onboarder_liveness_probe_period_seconds
-  liveness_probe_failure_threshold       = var.partner_onboarder_liveness_probe_failure_threshold
-
-  depends_on = [module.resident]
-}
 
 module "regclient" {
   source = "../modules/regclient"
@@ -1145,4 +1140,51 @@ module "mosip_file_server" {
   helm_timeout_seconds = var.global_helm_timeout_seconds
 
   depends_on = [time_sleep.phase_9_complete]
+}
+
+# Wait for Phase 10 completion before running partner onboarding checks
+resource "time_sleep" "phase_10_complete" {
+  depends_on = [module.resident, module.regclient, module.mosip_file_server]
+  create_duration = var.module_wait_seconds > 0 ? "${var.module_wait_seconds}s" : "0s"
+}
+
+
+# ============================================================================
+# PHASE 11: Ecosystem Validation (Partner Onboarding Checks)
+# ============================================================================
+# This phase runs at the very end, after all MOSIP services are deployed,
+# to validate the ecosystem with partner onboarding and API endpoint checks.
+
+module "partner_onboarder" {
+  source = "../modules/partner-onboarder"
+  count  = var.partner_onboarder_enabled ? 1 : 0
+
+  namespace            = var.partner_onboarder_namespace
+  helm_chart_version   = var.partner_onboarder_helm_chart_version
+  s3_bucket_name       = var.partner_onboarder_s3_bucket_name
+  push_reports_to_s3   = var.partner_onboarder_push_reports_to_s3
+  helm_timeout_seconds = var.global_helm_timeout_seconds
+
+  # Startup Probe Configuration
+  startup_probe_enabled                = var.partner_onboarder_startup_probe_enabled
+  startup_probe_timeout_seconds        = var.partner_onboarder_startup_probe_timeout_seconds
+  startup_probe_initial_delay_seconds   = var.partner_onboarder_startup_probe_initial_delay_seconds
+  startup_probe_period_seconds         = var.partner_onboarder_startup_probe_period_seconds
+  startup_probe_failure_threshold      = var.partner_onboarder_startup_probe_failure_threshold
+
+  # Readiness Probe Configuration
+  readiness_probe_enabled                = var.partner_onboarder_readiness_probe_enabled
+  readiness_probe_timeout_seconds        = var.partner_onboarder_readiness_probe_timeout_seconds
+  readiness_probe_initial_delay_seconds   = var.partner_onboarder_readiness_probe_initial_delay_seconds
+  readiness_probe_period_seconds          = var.partner_onboarder_readiness_probe_period_seconds
+  readiness_probe_failure_threshold      = var.partner_onboarder_readiness_probe_failure_threshold
+
+  # Liveness Probe Configuration
+  liveness_probe_enabled                = var.partner_onboarder_liveness_probe_enabled
+  liveness_probe_timeout_seconds        = var.partner_onboarder_liveness_probe_timeout_seconds
+  liveness_probe_initial_delay_seconds    = var.partner_onboarder_liveness_probe_initial_delay_seconds
+  liveness_probe_period_seconds         = var.partner_onboarder_liveness_probe_period_seconds
+  liveness_probe_failure_threshold       = var.partner_onboarder_liveness_probe_failure_threshold
+
+  depends_on = [time_sleep.phase_10_complete]
 }

@@ -23,6 +23,7 @@ resource "null_resource" "provider_config" {
 
 # Deploy Longhorn
 module "longhorn" {
+  count  = var.longhorn_enable ? 1 : 0
   source = "../modules/longhorn"
 
   namespace                                          = var.longhorn_namespace
@@ -47,11 +48,11 @@ module "longhorn" {
 module "monitoring" {
   source = "../modules/monitoring"
   
-  monitoring_namespace  = var.monitoring_namespace
+  monitoring_namespace   = var.monitoring_namespace
   monitoring_crd_version = var.monitoring_crd_version
-  monitoring_version    = var.monitoring_version
+  monitoring_version     = var.monitoring_version
 
-  depends_on = [module.longhorn]
+  depends_on = [null_resource.provider_config, module.longhorn]
 }
 
 # Global ConfigMap - Foundation for all services
@@ -77,6 +78,7 @@ resource "kubernetes_config_map_v1" "global" {
     "mosip-iam-external-host"   = "iam.${var.installation_domain}"
     "mosip-postgres-host"       = "postgres.${var.installation_domain}"
     "mosip-pmp-host"            = "pmp.${var.installation_domain}"
+    "mosip-pmp-revamp-ui-host"  = "pmp-revamp.${var.installation_domain}"
     "mosip-resident-host"       = "resident.${var.installation_domain}"
     "mosip-compliance-host"     = "compliance.${var.installation_domain}"
     "mosip-esignet-host"        = "esignet.${var.installation_domain}"
@@ -85,7 +87,7 @@ resource "kubernetes_config_map_v1" "global" {
     "is_glowroot_env"           = var.is_glowroot_env
   }
 
-  depends_on = [module.longhorn]
+  depends_on = [null_resource.provider_config, module.longhorn]
 }
 
 # Deploy Istio Operator - This creates the CRDs that MOSIP services need
@@ -97,5 +99,5 @@ module "istio" {
   istio_version = var.istio_version
   proxy_protocol_enabled = var.proxy_protocol_enabled
 
-  depends_on = [kubernetes_config_map_v1.global, module.longhorn, module.monitoring]
+  depends_on = [kubernetes_config_map_v1.global, module.monitoring]
 }

@@ -285,10 +285,6 @@ output "prereg_gateway_status" {
   value       = var.prereg_enabled ? module.prereg[0].prereg_gateway_status : null
 }
 
-output "prereg_captcha_status" {
-  description = "Status of prereg captcha deployment"
-  value       = var.prereg_enabled ? module.prereg[0].prereg_captcha_status : null
-}
 
 output "prereg_application_status" {
   description = "Status of prereg application deployment"

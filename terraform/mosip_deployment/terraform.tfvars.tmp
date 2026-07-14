@@ -1,8 +1,14 @@
 # Required variables
 installation_name = "dev1-mosip" # Shown at landing page
 installation_domain = "turing-mosip.net"  # Change this to your actual domain
-mosip_version = "1.2.0"           # Change this to your desired MOSIP version
+mosip_version = "1.2.1.1"           # Change this to your desired MOSIP version
 kubeconfig_path = "/home/ubuntu/rancher/mosip/kube_config_cluster.yml"  #IMPORTANT: Use the full path to the kubeconfig file, e.g. /home/ubuntu/ and not ~/
+
+# MOSIP infra chart versions (independent from OBS stack)
+longhorn_version = "1.5.1"
+monitoring_crd_version = "103.1.1+up45.31.1"
+monitoring_version = "103.1.0+up45.31.1"
+istio_version = "1.22.0"
 
 # Enable modules
 ###### KEEP DOCKER OFF FOR NOW #####
@@ -64,7 +70,7 @@ module_wait_seconds = 60                   # Wait time between sequential module
 # ActiveMQ Probe Configuration
 activemq_startup_probe_enabled = true
 activemq_startup_probe_timeout_seconds = 10
-activemq_startup_probe_initial_delay_seconds = 180
+activemq_startup_probe_initial_delay_seconds = 90
 activemq_startup_probe_period_seconds = 60
 activemq_startup_probe_failure_threshold = 10
 activemq_readiness_probe_enabled = true
@@ -81,7 +87,7 @@ activemq_liveness_probe_failure_threshold = 10
 # Kafka Probe Configuration
 kafka_startup_probe_enabled = true
 kafka_startup_probe_timeout_seconds = 10
-kafka_startup_probe_initial_delay_seconds = 180
+kafka_startup_probe_initial_delay_seconds = 90
 kafka_startup_probe_period_seconds = 60
 kafka_startup_probe_failure_threshold = 10
 kafka_readiness_probe_enabled = true
@@ -98,7 +104,7 @@ kafka_liveness_probe_failure_threshold = 10
 # Admin Probe Configuration (for admin-hotlist and admin-ui)
 admin_startup_probe_enabled = true
 admin_startup_probe_timeout_seconds = 10
-admin_startup_probe_initial_delay_seconds = 1200
+admin_startup_probe_initial_delay_seconds = 90
 admin_startup_probe_period_seconds = 60
 admin_startup_probe_failure_threshold = 10
 admin_readiness_probe_enabled = true
@@ -115,7 +121,7 @@ admin_liveness_probe_failure_threshold = 10
 # Admin-Service Probe Configuration (separate control - all probes disabled by default)
 admin_service_startup_probe_enabled = false
 admin_service_startup_probe_timeout_seconds = 10
-admin_service_startup_probe_initial_delay_seconds = 180
+admin_service_startup_probe_initial_delay_seconds = 90
 admin_service_startup_probe_period_seconds = 60
 admin_service_startup_probe_failure_threshold = 10
 admin_service_readiness_probe_enabled = false
@@ -132,7 +138,7 @@ admin_service_liveness_probe_failure_threshold = 10
 # IDA Probe Configuration
 ida_startup_probe_enabled = true
 ida_startup_probe_timeout_seconds = 10
-ida_startup_probe_initial_delay_seconds = 1200
+ida_startup_probe_initial_delay_seconds = 90
 ida_startup_probe_period_seconds = 60
 ida_startup_probe_failure_threshold = 10
 ida_readiness_probe_enabled = true
@@ -217,7 +223,7 @@ mock_abis_liveness_probe_failure_threshold = 10
 # Mock-SMTP Probe Configuration
 mock_smtp_startup_probe_enabled = true
 mock_smtp_startup_probe_timeout_seconds = 10
-mock_smtp_startup_probe_initial_delay_seconds = 180
+mock_smtp_startup_probe_initial_delay_seconds = 90
 mock_smtp_startup_probe_period_seconds = 60
 mock_smtp_startup_probe_failure_threshold = 10
 mock_smtp_readiness_probe_enabled = true
@@ -251,7 +257,7 @@ packetmanager_liveness_probe_failure_threshold = 10
 # Partner-Onboarder Probe Configuration
 partner_onboarder_startup_probe_enabled = true
 partner_onboarder_startup_probe_timeout_seconds = 10
-partner_onboarder_startup_probe_initial_delay_seconds = 1200
+partner_onboarder_startup_probe_initial_delay_seconds = 90
 partner_onboarder_startup_probe_period_seconds = 60
 partner_onboarder_startup_probe_failure_threshold = 10
 partner_onboarder_readiness_probe_enabled = true
@@ -302,7 +308,7 @@ prereg_liveness_probe_failure_threshold = 10
 # Print Probe Configuration
 print_startup_probe_enabled = true
 print_startup_probe_timeout_seconds = 10
-print_startup_probe_initial_delay_seconds = 1200
+print_startup_probe_initial_delay_seconds = 90
 print_startup_probe_period_seconds = 60
 print_startup_probe_failure_threshold = 10
 print_readiness_probe_enabled = true
@@ -319,24 +325,20 @@ print_liveness_probe_failure_threshold = 10
 # Regclient Probe Configuration
 regclient_startup_probe_enabled = true
 regclient_startup_probe_timeout_seconds = 10
-regclient_startup_probe_initial_delay_seconds = 900
+regclient_startup_probe_initial_delay_seconds = 600
 regclient_startup_probe_period_seconds = 60
-regclient_startup_probe_failure_threshold = 10
+regclient_startup_probe_failure_threshold = 60  # 60 min max for jar download + JRE unpack + jarsigner + zip
 regclient_readiness_probe_enabled = true
 regclient_readiness_probe_timeout_seconds = 10
 regclient_readiness_probe_initial_delay_seconds = 0
 regclient_readiness_probe_period_seconds = 60
 regclient_readiness_probe_failure_threshold = 10
-regclient_liveness_probe_enabled = true
-regclient_liveness_probe_timeout_seconds = 10
-regclient_liveness_probe_initial_delay_seconds = 0
-regclient_liveness_probe_period_seconds = 60
-regclient_liveness_probe_failure_threshold = 10
+regclient_liveness_probe_enabled = false  # static file server — if nginx crashes the container exits; no hang detection needed
 
 # Resident Probe Configuration
 resident_startup_probe_enabled = true
 resident_startup_probe_timeout_seconds = 10
-resident_startup_probe_initial_delay_seconds = 1200
+resident_startup_probe_initial_delay_seconds = 90
 resident_startup_probe_period_seconds = 60
 resident_startup_probe_failure_threshold = 10
 resident_readiness_probe_enabled = true
@@ -368,12 +370,11 @@ websub_liveness_probe_period_seconds = 60
 websub_liveness_probe_failure_threshold = 10
 
 # Component toggles and versions
-# Longhorn Storage
-longhorn_version = "1.5.1"         # Version of Longhorn to deploy
+# Chart pins (longhorn_version, istio_version, monitoring versions) are set near the top of this file.
 longhorn_namespace = "longhorn-system"  # Namespace for Longhorn deployment
 longhorn_replica_count = 1        # Number of replicas for volumes
-longhorn_guaranteed_engine_cpu = "5"    # Guaranteed CPU for engine manager
-longhorn_guaranteed_replica_cpu = "5"    # Guaranteed CPU for replica manager
+longhorn_guaranteed_engine_cpu = "2"    # Guaranteed CPU for engine manager (% of node CPU → instance-manager requests)
+longhorn_guaranteed_replica_cpu = "2"    # Guaranteed CPU for replica manager (% of node CPU → instance-manager requests)
 longhorn_storage_minimal_available_percentage = "25"    # Minimal available percentage for storage
 longhorn_storage_over_provisioning_percentage = "200"   # Storage over-provisioning percentage
 longhorn_storage_reserved_percentage = "25"            # Reserved storage percentage
@@ -385,16 +386,16 @@ longhorn_storage_class_name = "longhorn"              # Name of the storage clas
 #longhorn_filesystem_size = "10Gi"                     # Size for filesystem PV
 
 # Istio Service Mesh and Gateway Configuration
-istio_version = "1.15.0"           # Specific version required for MOSIP compatibility
+# istio_version is set near the top of this file (keep in sync with Ansible group_vars/all.yml.tmp)
 proxy_protocol_enabled = false     # Set to true to enable proxy protocol for ingress gateway
 
 # IAM (Keycloak)
 iam_version = "7.1.18"            # Version of Keycloak Helm chart
-iam_init_version = "12.0.1"       # Version of Keycloak Init Helm chart
+iam_init_version = "1.3.0"       # Version of Keycloak Init Helm chart
 iam_namespace = "keycloak"        # Namespace for IAM deployment
 iam_admin_password = "admin"      # Initial admin password for Keycloak (change this in production)
 iam_image_repository = "mosipid/mosip-artemis-keycloak"
-iam_image_tag = "1.2.0.1"
+iam_image_tag = "1.3.0"
 iam_image_pull_policy = "Always"
 
 # IAM SMTP Configuration
@@ -408,20 +409,21 @@ iam_smtp_username = ""      # Optional, only if smtp_auth is true
 iam_smtp_password = ""      # Optional, only if smtp_auth is true
 
 # Postgres Database
-postgres_version = "12.11.1"       # Version of Postgres Helm chart to deploy
+postgres_version = "13.1.5"       # Version of Postgres Helm chart to deploy
 postgres_namespace = "postgres"     # Namespace for Postgres deployment
-postgres_init_version = "12.0.1"   # Version of Postgres Init Helm chart
+postgres_init_version = "1.3.0"   # Version of Postgres Init Helm chart
 
 # Httpbin Debug Tool
 httpbin_namespace = "httpbin"      # Namespace for httpbin deployment
 
 # SoftHSM
-softhsm_chart_version = "12.0.1"  # Version of SoftHSM Helm chart to deploy
+softhsm_chart_version = "1.4.1-rc.1"  # Version of SoftHSM Helm chart to deploy
 softhsm_namespace = "softhsm"     # Namespace for SoftHSM deployment
 
 # MinIO Object Store
-minio_chart_version = "10.1.6"   # Version of MinIO Helm chart to deploy
-minio_namespace = "minio"        # Namespace for MinIO deployment
+minio_chart_version = "15.0.6"              # Version of MinIO Helm chart to deploy
+minio_image_tag     = "2025.2.28-debian-12-r1"  # mosipid/minio image tag (matches MOSIP_orig install.sh)
+minio_namespace = "minio"                    # Namespace for MinIO deployment
 
 # S3 Credentials Configuration
 create_s3_namespace = true      # Set to true to create S3 namespace with credentials
@@ -440,11 +442,11 @@ kafka_zookeeper_storage_size = "2Gi"
 kafka_zookeeper_replica_count = 5
 
 # ClamAV Configuration
-clamav_helm_chart_version = "2.4.1"
+clamav_helm_chart_version = "3.1.0"
 clamav_replica_count = 1
-clamav_image_repository = "clamav/clamav"
-clamav_image_tag = "latest"
-clamav_image_pull_policy = "Always"
+clamav_image_repository = "mosipid/clamav"
+clamav_image_tag = "1.3.0_base"
+clamav_image_pull_policy = "IfNotPresent"
 
 # MSG Gateway Configuration
 smtp_host          = "mock-smtp.mock-smtp"
@@ -465,13 +467,13 @@ docker_email = ""
 
 # Conf Secrets
 conf_secrets_namespace = "conf-secrets"
-conf_secrets_chart_version = "12.0.1"
+conf_secrets_chart_version = "1.3.1-rc.1"
 
 # Config Server Configuration
 config_server_namespace = "config-server"
-config_server_chart_version = "12.0.1"
+config_server_chart_version = "1.3.1-rc.1"
 config_server_git_repo_uri = "https://github.com/mosip/mosip-config"
-config_server_git_repo_version = "v1.2.0.1"
+config_server_git_repo_version = "v1.3.1-rc.1"
 config_server_git_search_folders = ""
 config_server_git_private = false
 config_server_git_username = ""
@@ -480,7 +482,7 @@ config_server_git_token = ""
 # Config Server Probe Configuration
 config_server_startup_probe_enabled = true
 config_server_startup_probe_timeout_seconds = 10
-config_server_startup_probe_initial_delay_seconds = 1200
+config_server_startup_probe_initial_delay_seconds = 90
 config_server_startup_probe_period_seconds = 60
 config_server_startup_probe_failure_threshold = 10
 config_server_readiness_probe_enabled = false
@@ -494,9 +496,19 @@ config_server_liveness_probe_initial_delay_seconds = 0
 config_server_liveness_probe_period_seconds = 60
 config_server_liveness_probe_failure_threshold = 10
 
+# Config Server extraEnvVars overrides (SPRING_CLOUD_CONFIG_SERVER_OVERRIDES_*)
+config_server_uin_min_threshold                = "10000"
+config_server_vid_min_threshold                = "10000"
+config_server_auth_audience_idrepo             = "mosip-regproc-client,mosip-prereg-client,mosip-admin-client,mosip-crereq-client,mosip-creser-client,mosip-datsha-client,mosip-ida-client,mosip-resident-client,mosip-reg-client,mpartner-default-print,mosip-idrepo-client,mpartner-default-auth,mosip-syncdata-client,mosip-masterdata-client,mosip-pms-client,mosip-hotlist-client,opencrvs-partner,mpartner-default-digitalcard,mpartner-default-mobile,mosip-signup-client,mosip-testrig-client"
+config_server_auth_audience_kernel             = "mosip-toolkit-android-client,mosip-toolkit-client,mosip-regproc-client,mosip-prereg-client,mosip-admin-client,mosip-crereq-client,mosip-creser-client,mosip-datsha-client,mosip-ida-client,mosip-resident-client,mosip-reg-client,mpartner-default-print,mosip-idrepo-client,mpartner-default-auth,mosip-syncdata-client,mosip-masterdata-client,mosip-pms-client,mosip-hotlist-client,mobileid_newlogic,opencrvs-partner,mosip-deployment-client,mpartner-default-digitalcard,mpartner-default-mobile,mosip-signup-client,mosip-testrig-client"
+config_server_credential_convention_id_enabled = "true"
+config_server_captcha_enable                   = "false"
+config_server_esignet_captcha_required         = ""
+config_server_resident_oidc_clientid           = ""  # Set to actual OIDC client ID after eSignet onboarding
+
 # Landing Page Configuration
-landing_page_chart_version = "12.0.1"  # Version of Landing Page Helm chart
-landing_version = "1.2.0.2"           # Version of Landing Page to deploy
+landing_page_chart_version = "1.3.0"  # Version of Landing Page Helm chart
+landing_version = "1.2.1.1"           # Version of Landing Page to deploy
 healthservices_host = "healthservices.mosip.net"  # Health Services host URL
 
 # Captcha Configuration
@@ -506,15 +518,17 @@ prereg_captcha_site_key = "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"     # Defau
 prereg_captcha_secret_key = "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe"   # Default test key - REPLACE for production
 resident_captcha_site_key = "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"   # Default test key - REPLACE for production
 resident_captcha_secret_key = "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe" # Default test key - REPLACE for production
+captcha_helm_chart_version                     = "0.1.1"
+captcha_metrics_service_monitor_enabled        = false
 
 # Artifactory Configuration
 artifactory_namespace = "artifactory"
-artifactory_chart_version = "12.0.2"
+artifactory_chart_version = "1.3.2-rc.1"
 
 # Artifactory Probe Configuration
 artifactory_startup_probe_enabled = true
 artifactory_startup_probe_timeout_seconds = 10
-artifactory_startup_probe_initial_delay_seconds = 120
+artifactory_startup_probe_initial_delay_seconds = 90
 artifactory_startup_probe_period_seconds = 60
 artifactory_startup_probe_failure_threshold = 10
 artifactory_readiness_probe_enabled = true
@@ -529,22 +543,26 @@ artifactory_liveness_probe_period_seconds = 60
 artifactory_liveness_probe_failure_threshold = 10
 
 # Keymanager configuration
-keymanager_chart_version = "12.0.1"
-keymanager_keygen_chart_version = "12.0.1"
+keymanager_chart_version = "1.4.1-rc.1"
+keymanager_keygen_chart_version = "1.4.1-rc.1"
 keymanager_spring_config_name_env = "kernel"
 keymanager_softhsm_cm = "softhsm-kernel-share"
 
 # Websub Configuration
-websub_helm_chart_version = "12.0.1"
+websub_helm_chart_version = "1.3.2-rc.1"
 
 # Mock SMTP Configuration
-mock_smtp_host             = "smtp.mosip.net"
 mock_smtp_helm_version = "1.0.0"
 
 # Kernel Configuration
 kernel_namespace               = "kernel"
-kernel_helm_chart_version      = "12.0.1"
-kernel_enable_insecure         = false
+kernel_helm_chart_version          = "1.3.1-rc.1"   # idgenerator, pridgenerator, ridgenerator, notifier
+kernel_authmanager_chart_version   = "1.3.1"
+kernel_auditmanager_chart_version  = "1.3.2-rc.1"
+kernel_masterdata_chart_version    = "1.3.1"
+kernel_otpmanager_chart_version    = "1.3.0"
+kernel_syncdata_chart_version      = "1.3.1"
+kernel_enable_insecure             = false
 kernel_helm_timeout_seconds    = 1200
 
 # Kernel Probe Configuration (for all components except idgenerator)
@@ -567,7 +585,7 @@ kernel_liveness_probe_failure_threshold = 10
 # Kernel IDGenerator Probe Configuration (separate control)
 kernel_idgenerator_startup_probe_enabled = false
 kernel_idgenerator_startup_probe_timeout_seconds = 10
-kernel_idgenerator_startup_probe_initial_delay_seconds = 180
+kernel_idgenerator_startup_probe_initial_delay_seconds = 90
 kernel_idgenerator_startup_probe_period_seconds = 60
 kernel_idgenerator_startup_probe_failure_threshold = 10
 kernel_idgenerator_readiness_probe_enabled = false
@@ -582,12 +600,14 @@ kernel_idgenerator_liveness_probe_period_seconds = 60
 kernel_idgenerator_liveness_probe_failure_threshold = 10
 
 # Masterdata Loader
-masterdata_loader_helm_chart_version = "12.0.1"
-masterdata_loader_mosip_data_github_branch = "v1.2.0.1"
+masterdata_loader_helm_chart_version = "1.3.0"
+masterdata_loader_mosip_data_github_branch   = "v1.3.2-rc.1"
+masterdata_loader_mosip_data_github_repo     = "https://github.com/mosip/mosip-data"
+masterdata_loader_mosip_data_xls_folder_path = "/home/mosip/mosip-data/mosip_master/xlsx"
 
 # BioSDK settings
 biosdk_namespace = "biosdk"
-biosdk_helm_chart_version = "12.0.1"
+biosdk_helm_chart_version = "1.3.1-rc.1"
 
 # BioSDK Probe Configuration
 biosdk_startup_probe_enabled = true
@@ -608,11 +628,11 @@ biosdk_liveness_probe_failure_threshold = 10
 
 # Packetmanager settings
 packetmanager_namespace = "packetmanager"
-packetmanager_helm_chart_version = "12.0.1"
+packetmanager_helm_chart_version = "1.3.1-rc.1"
 
 # Datashare settings
 datashare_namespace = "datashare"
-datashare_helm_chart_version = "12.0.1"
+datashare_helm_chart_version = "1.3.1-rc.1"
 
 # Datashare Probe Configuration
 datashare_startup_probe_enabled = true
@@ -632,7 +652,10 @@ datashare_liveness_probe_period_seconds = 60
 datashare_liveness_probe_failure_threshold = 10
 
 # Prereg configuration
-prereg_chart_version = "12.0.1"
+prereg_chart_version = "1.3.0"
+prereg_gateway_chart_version = "1.0.0"
+prereg_booking_chart_version = "1.3.1-rc.1"
+prereg_ui_chart_version = "1.3.0"
 prereg_istio_injection_label = "disabled"
 prereg_helm_timeout_seconds = 1200
 prereg_rate_limit_max_tokens = 100
@@ -641,25 +664,27 @@ prereg_rate_limit_fill_interval = "50ms"
 
 # IDREPO settings
 idrepo_namespace = "idrepo"
-idrepo_helm_chart_version = "12.0.1"
+idrepo_helm_chart_version = "1.3.1-rc.1"
 idrepo_istio_injection_label = "enabled"
 idrepo_helm_timeout_seconds = 1200
 
 # PMS settings
 pms_namespace = "pms"
-pms_helm_chart_version = "12.0.1"
-pmp_ui_chart_version = "12.0.1"
+pms_helm_chart_version = "12.2.3"
+pmp_ui_chart_version = "12.2.3"
+pmp_revamp_ui_enabled = true
+pmp_revamp_ui_chart_version = "12.2.2"
 pms_istio_injection_label = "enabled"
 pms_helm_timeout_seconds = 1200
 
 # Mock ABIS settings
 mock_abis_namespace = "abis"
-mock_abis_helm_chart_version = "12.0.2"
+mock_abis_helm_chart_version = "v1.3.1-rc.1"
 mock_abis_istio_injection_label = "enabled"
 mock_abis_helm_timeout_seconds = 1200
 
 # Mock MV settings
-mock_mv_helm_chart_version = "12.0.2"
+mock_mv_helm_chart_version = "v1.3.1-rc.1"
 mock_mv_istio_injection_label = "enabled"
 mock_mv_startup_probe_initial_delay = 90
 mock_mv_startup_probe_timeout = 180
@@ -667,13 +692,13 @@ mock_mv_helm_timeout_seconds = 1200
 
 # Regproc Configuration
 regproc_namespace         = "regproc"
-regproc_helm_chart_version = "12.0.1" 
+regproc_helm_chart_version = "1.3.1-rc.1" 
 regproc_helm_timeout      = 1200
 
 # Regproc Probe Configuration (for all components except group2 and notifier)
 regproc_startup_probe_enabled = true
 regproc_startup_probe_timeout_seconds = 10
-regproc_startup_probe_initial_delay_seconds = 180
+regproc_startup_probe_initial_delay_seconds = 90
 regproc_startup_probe_period_seconds = 60
 regproc_startup_probe_failure_threshold = 10
 regproc_readiness_probe_enabled = true
@@ -690,7 +715,7 @@ regproc_liveness_probe_failure_threshold = 10
 # Regproc Group2 Probe Configuration (separate control)
 regproc_group2_startup_probe_enabled = false
 regproc_group2_startup_probe_timeout_seconds = 10
-regproc_group2_startup_probe_initial_delay_seconds = 180
+regproc_group2_startup_probe_initial_delay_seconds = 90
 regproc_group2_startup_probe_period_seconds = 60
 regproc_group2_startup_probe_failure_threshold = 10
 regproc_group2_readiness_probe_enabled = false
@@ -707,7 +732,7 @@ regproc_group2_liveness_probe_failure_threshold = 10
 # Regproc Notifier Probe Configuration (separate control)
 regproc_notifier_startup_probe_enabled = false
 regproc_notifier_startup_probe_timeout_seconds = 10
-regproc_notifier_startup_probe_initial_delay_seconds = 180
+regproc_notifier_startup_probe_initial_delay_seconds = 90
 regproc_notifier_startup_probe_period_seconds = 60
 regproc_notifier_startup_probe_failure_threshold = 10
 regproc_notifier_readiness_probe_enabled = false
@@ -723,39 +748,42 @@ regproc_notifier_liveness_probe_failure_threshold = 10
 
 # Admin Configuration
 admin_namespace         = "admin"
-admin_helm_chart_version = "12.0.1"
+admin_helm_chart_version = "1.3.1"
+admin_ui_chart_version   = "1.3.0"
 admin_helm_timeout      = 1200
 
 # IDA Configuration
 ida_namespace         = "ida"
-ida_helm_chart_version = "12.0.1"
+ida_helm_chart_version   = "1.3.1-rc.1"
+ida_keygen_chart_version = "1.4.1-rc.1"
 ida_enable_insecure   = false
 ida_helm_timeout      = 1200
 
 # Print Configuration
 print_namespace         = "print"
-print_helm_chart_version = "12.0.1"
+print_helm_chart_version = "1.3.1"
 print_helm_timeout      = 1200
 
 # Resident Configuration
 resident_namespace = "resident"
-resident_helm_chart_version = "12.0.1"
-resident_ui_chart_version = "0.0.1"
+resident_helm_chart_version = "1.3.1"
+resident_ui_chart_version = "0.9.1"
 resident_enable_insecure = false
 
 # Regclient Configuration
 regclient_namespace = "regclient"
-regclient_helm_chart_version = "12.0.2"
+regclient_helm_chart_version = "1.3.0-beta.2"
 
 # Partner Onboarder Configuration
 partner_onboarder_namespace         = "onboarder"
-partner_onboarder_helm_chart_version = "12.0.1"
+partner_onboarder_helm_chart_version = "1.3.1"
 partner_onboarder_helm_timeout      = 1200
 partner_onboarder_s3_bucket_name    = "onboarder"
+partner_onboarder_push_reports_to_s3 = true
 
 # mosip-file-server Configuration
 mosip_file_server_namespace          = "mosip-file-server"
-mosip_file_server_helm_chart_version = "12.0.1"
+mosip_file_server_helm_chart_version = "1.3.0"
 mosip_file_server_helm_timeout       = 1200
 
 # Additional variables

@@ -33,6 +33,7 @@ resource "helm_release" "minio" {
 
   name       = "minio"
   namespace  = kubernetes_namespace.minio.metadata[0].name
+  wait       = true
   repository = "mosip"
   chart      = "minio"
   version    = var.chart_version
@@ -41,16 +42,20 @@ resource "helm_release" "minio" {
     file("${path.module}/values.yaml")
   ]
 
-  # Override MinIO subchart image repository to use mosipid for Bitnami images
-  # Set both paths to ensure compatibility with different chart versions
   set {
     name  = "image.repository"
     value = "${var.bitnami_image_repository}/minio"
   }
 
   set {
-    name  = "minio.image.repository"
-    value = "${var.bitnami_image_repository}/minio"
+    name  = "image.tag"
+    value = var.image_tag
+  }
+
+  # Required because mosipid/minio is not a standard Bitnami registry image
+  set {
+    name  = "global.security.allowInsecureImages"
+    value = "true"
   }
 
   depends_on = [kubernetes_namespace.minio]
@@ -218,3 +223,19 @@ resource "kubernetes_secret" "s3" {
 
   depends_on = [kubernetes_namespace.s3]
 } 
+resource "kubernetes_limit_range" "default" {
+  metadata {
+    name      = "default-limits"
+    namespace = kubernetes_namespace.minio.metadata[0].name
+  }
+  spec {
+    limit {
+      type = "Container"
+      default_request = {
+        cpu    = "100m"
+        memory = "256Mi"
+      }
+    }
+  }
+  depends_on = [kubernetes_namespace.minio]
+}

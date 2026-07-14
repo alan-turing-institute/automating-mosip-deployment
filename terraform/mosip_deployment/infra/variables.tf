@@ -41,8 +41,9 @@ variable "longhorn_namespace" {
 }
 
 variable "longhorn_version" {
-  description = "Version of Longhorn to deploy"
+  description = "Longhorn chart version."
   type        = string
+  default     = "1.5.1"
 }
 
 variable "longhorn_replica_count" {
@@ -119,15 +120,15 @@ variable "monitoring_namespace" {
 }
 
 variable "monitoring_crd_version" {
-  description = "Version of Rancher monitoring CRD chart"
+  description = "rancher-monitoring-crd chart version."
   type        = string
-  default     = ""
+  default     = "103.1.1+up45.31.1"
 }
 
 variable "monitoring_version" {
-  description = "Version of Rancher monitoring chart"
+  description = "rancher-monitoring chart version."
   type        = string
-  default     = ""
+  default     = "103.1.0+up45.31.1"
 }
 
 # Istio Variables
@@ -139,8 +140,8 @@ variable "enable_istio" {
 
 variable "istio_version" {
   type        = string
-  description = "Version of Istio to install"
-  default     = "1.15.0"
+  description = "Istio version."
+  default     = "1.22.0"
 }
 
 variable "istio_namespace" {

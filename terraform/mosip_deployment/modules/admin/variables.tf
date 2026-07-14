@@ -5,7 +5,13 @@ variable "namespace" {
 }
 
 variable "helm_chart_version" {
-  description = "Helm chart version for admin"
+  description = "Helm chart version for admin-hotlist and admin-service"
+  type        = string
+  default     = "12.0.1"
+}
+
+variable "admin_ui_chart_version" {
+  description = "Helm chart version for admin-ui (separate from service/hotlist)"
   type        = string
   default     = "12.0.1"
 }

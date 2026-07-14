@@ -1,0 +1,11 @@
+---
+cluster_dir: "{{ rancher_base_dir }}/{{ cluster_name }}"
+rke2_config_dir: "{{ rke2_main_config_dir | default('/etc/rancher/rke2') }}"
+rke2_token_file: "{{ cluster_dir }}/rke2_token"
+ssh_key_path: "~/.ssh/id_ed25519"
+rke2_primary_group: "control_plane_primary"
+rke2_kubeconfig_delegate_host: "{{ groups[rke2_primary_group][0] }}"
+rke2_default_kubeconfig_path: "/etc/rancher/rke2/rke2.yaml"
+check_existing_config: true
+# Fallback if not set in group_vars/all.yml; set rke2_version there to override.
+rke2_version: "v1.28.8+rke2r1"

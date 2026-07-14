@@ -28,7 +28,13 @@ resource "helm_release" "clamav" {
   chart           = "clamav"
   repository      = "https://wiremind.github.io/wiremind-helm-charts"
   namespace       = kubernetes_namespace.clamav[0].metadata[0].name
+  wait            = true
   version         = var.helm_chart_version
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   timeout         = var.helm_timeout_seconds
 
   values = [
@@ -42,3 +48,20 @@ resource "helm_release" "clamav" {
 
   depends_on = [kubernetes_namespace.clamav]
 } 
+resource "kubernetes_limit_range" "default" {
+  count = var.enable_clamav ? 1 : 0
+  metadata {
+    name      = "default-limits"
+    namespace = kubernetes_namespace.clamav[count.index].metadata[0].name
+  }
+  spec {
+    limit {
+      type = "Container"
+      default_request = {
+        cpu    = "100m"
+        memory = "256Mi"
+      }
+    }
+  }
+  depends_on = [kubernetes_namespace.clamav]
+}

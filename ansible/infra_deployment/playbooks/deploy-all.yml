@@ -26,25 +26,12 @@
     - name: Fail if SSL certificates don't exist
       fail:
         msg: "SSL certificates not found in {{ playbook_dir }}/roles/nginx/files/. Please copy your fullchain.pem and privkey.pem files."
-      when: 
+      when:
         - groups['nginx'] | length > 0
         - ssl_files.results | selectattr('stat.exists', 'equalto', false) | list | length > 0
 
-# Prepare physical VMs for Rancher
-- name: Prepare physical VMs for Rancher
-  hosts: physical_vms
-  gather_facts: true
-  roles:
-    - rancher_prepare
+- import_playbook: deploy-rancher.yml
 
-# Deploy Rancher cluster
-- name: Deploy Rancher from deployment node
-  hosts: deployment
-  gather_facts: true
-  roles:
-    - rancher_deploy
-
-# Deploy Nginx if configured
 - name: Deploy Nginx Load Balancer
   hosts: nginx
   gather_facts: true
@@ -52,23 +39,21 @@
     - role: nginx
       when: groups['nginx'] | length > 0
 
-# Deploy Istio
 - name: Install Istio Operator and Base Components
   hosts: deployment
   gather_facts: false
   roles:
     - istio
 
-# Verify full deployment
-- name: Verify deployment
+- name: Verify RKE2 deployment
   hosts: deployment
   gather_facts: false
   tasks:
     - name: Set main cluster directory
       set_fact:
         main_cluster_dir: "{{ rancher_base_dir }}/{{ cluster_name }}"
-    
-    - name: Verify Rancher cluster status
+
+    - name: Verify RKE2 cluster status
       command: kubectl --kubeconfig={{ main_cluster_dir }}/kube_config_cluster.yml get nodes
       register: cluster_status
       until: cluster_status.rc == 0 and 'NotReady' not in cluster_status.stdout
@@ -84,7 +69,8 @@
         msg:
           - "Deployment Summary:"
           - "----------------"
-          - "Rancher Cluster: READY"
-          - "Rancher Nodes: {{ groups['rancher_nodes'] | length }}"
+          - "RKE2 Cluster: READY"
+          - "Kubeconfig: {{ main_cluster_dir }}/kube_config_cluster.yml"
+          - "RKE2 Token: {{ main_cluster_dir }}/rke2_token"
           - "Nginx Load Balancer: {{ 'Deployed on ' + groups['nginx'] | join(', ') if groups['nginx'] | length > 0 else 'Not Configured' }}"
-          - "Istio: INSTALLED" 
+          - "Istio: INSTALLED"

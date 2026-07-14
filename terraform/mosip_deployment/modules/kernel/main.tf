@@ -64,6 +64,11 @@ locals {
 }
 
 resource "helm_release" "idgenerator" {
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [kubernetes_config_map_v1.kernel_configmaps]
   
   name       = "idgenerator"
@@ -71,6 +76,7 @@ resource "helm_release" "idgenerator" {
   repository = local.common_helm_config.repository
   version    = local.common_helm_config.version
   namespace  = local.common_helm_config.namespace
+  wait       = true
   timeout    = local.common_helm_config.timeout
 
   # Configure probes to handle duplicate UIN constraint errors during pool population
@@ -154,13 +160,19 @@ resource "helm_release" "idgenerator" {
 }
 # Deploy kernel components using Helm
 resource "helm_release" "authmanager" {
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [kubernetes_config_map_v1.kernel_configmaps, helm_release.idgenerator]
   
   name       = "authmanager"
   chart      = "authmanager"
   repository = local.common_helm_config.repository
-  version    = local.common_helm_config.version
+  version    = var.authmanager_chart_version
   namespace  = local.common_helm_config.namespace
+  wait = true
   timeout    = local.common_helm_config.timeout
 
   set {
@@ -248,13 +260,19 @@ resource "helm_release" "authmanager" {
 }
 
 resource "helm_release" "auditmanager" {
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [kubernetes_config_map_v1.kernel_configmaps, helm_release.idgenerator]
   
   name       = "auditmanager"
   chart      = "auditmanager"
   repository = local.common_helm_config.repository
-  version    = local.common_helm_config.version
+  version    = var.auditmanager_chart_version
   namespace  = local.common_helm_config.namespace
+  wait = true
   timeout    = local.common_helm_config.timeout
 
   set {
@@ -344,18 +362,29 @@ resource "helm_release" "auditmanager" {
 
 
 resource "helm_release" "masterdata" {
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [kubernetes_config_map_v1.kernel_configmaps, helm_release.idgenerator]
   
   name       = "masterdata"
   chart      = "masterdata"
   repository = local.common_helm_config.repository
-  version    = local.common_helm_config.version
+  version    = var.masterdata_chart_version
   namespace  = local.common_helm_config.namespace
+  wait = true
   timeout    = local.common_helm_config.timeout
 
   set {
     name  = "istio.corsPolicy.allowOrigins[0].exact"
     value = "https://${data.kubernetes_config_map.source_configmaps["global"].data["mosip-admin-host"]}"
+  }
+
+  set {
+    name  = "enable_insecure"
+    value = var.enable_insecure
   }
 
   # Startup Probe Configuration
@@ -438,14 +467,25 @@ resource "helm_release" "masterdata" {
 }
 
 resource "helm_release" "otpmanager" {
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [kubernetes_config_map_v1.kernel_configmaps, helm_release.idgenerator]
   
   name       = "otpmanager"
   chart      = "otpmanager"
   repository = local.common_helm_config.repository
-  version    = local.common_helm_config.version
+  version    = var.otpmanager_chart_version
   namespace  = local.common_helm_config.namespace
+  wait = true
   timeout    = local.common_helm_config.timeout
+
+  set {
+    name  = "enable_insecure"
+    value = var.enable_insecure
+  }
 
   # Startup Probe Configuration
   set {
@@ -527,6 +567,11 @@ resource "helm_release" "otpmanager" {
 }
 
 resource "helm_release" "pridgenerator" {
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [kubernetes_config_map_v1.kernel_configmaps, helm_release.idgenerator]
   
   name       = "pridgenerator"
@@ -534,7 +579,13 @@ resource "helm_release" "pridgenerator" {
   repository = local.common_helm_config.repository
   version    = local.common_helm_config.version
   namespace  = local.common_helm_config.namespace
+  wait = true
   timeout    = local.common_helm_config.timeout
+
+  set {
+    name  = "enable_insecure"
+    value = var.enable_insecure
+  }
 
   # Startup Probe Configuration
   set {
@@ -616,6 +667,11 @@ resource "helm_release" "pridgenerator" {
 }
 
 resource "helm_release" "ridgenerator" {
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [kubernetes_config_map_v1.kernel_configmaps, helm_release.idgenerator]
   
   name       = "ridgenerator"
@@ -623,7 +679,13 @@ resource "helm_release" "ridgenerator" {
   repository = local.common_helm_config.repository
   version    = local.common_helm_config.version
   namespace  = local.common_helm_config.namespace
+  wait = true
   timeout    = local.common_helm_config.timeout
+
+  set {
+    name  = "enable_insecure"
+    value = var.enable_insecure
+  }
 
   # Startup Probe Configuration
   set {
@@ -705,14 +767,25 @@ resource "helm_release" "ridgenerator" {
 }
 
 resource "helm_release" "syncdata" {
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [kubernetes_config_map_v1.kernel_configmaps, helm_release.idgenerator]
   
   name       = "syncdata"
   chart      = "syncdata"
   repository = local.common_helm_config.repository
-  version    = local.common_helm_config.version
+  version    = var.syncdata_chart_version
   namespace  = local.common_helm_config.namespace
+  wait = true
   timeout    = local.common_helm_config.timeout
+
+  set {
+    name  = "enable_insecure"
+    value = var.enable_insecure
+  }
 
   # Startup Probe Configuration
   set {
@@ -794,6 +867,11 @@ resource "helm_release" "syncdata" {
 }
 
 resource "helm_release" "notifier" {
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [kubernetes_config_map_v1.kernel_configmaps, helm_release.idgenerator]
   
   name       = "notifier"
@@ -801,7 +879,13 @@ resource "helm_release" "notifier" {
   repository = local.common_helm_config.repository
   version    = local.common_helm_config.version
   namespace  = local.common_helm_config.namespace
+  wait = true
   timeout    = local.common_helm_config.timeout
+
+  set {
+    name  = "enable_insecure"
+    value = var.enable_insecure
+  }
 
   # Startup Probe Configuration
   set {
@@ -881,3 +965,19 @@ resource "helm_release" "notifier" {
     value = tostring(var.liveness_probe_failure_threshold)
   }
 } 
+resource "kubernetes_limit_range" "default" {
+  metadata {
+    name      = "default-limits"
+    namespace = kubernetes_namespace.kernel.metadata[0].name
+  }
+  spec {
+    limit {
+      type = "Container"
+      default_request = {
+        cpu    = "100m"
+        memory = "256Mi"
+      }
+    }
+  }
+  depends_on = [kubernetes_namespace.kernel]
+}

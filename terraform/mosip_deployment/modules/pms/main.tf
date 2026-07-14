@@ -67,6 +67,7 @@ resource "kubernetes_config_map_v1" "config_server_share" {
 locals {
   internal_api_host = data.kubernetes_config_map.global.data["mosip-api-internal-host"]
   pmp_host         = data.kubernetes_config_map.global.data["mosip-pmp-host"]
+  pmp_revamp_host  = lookup(data.kubernetes_config_map.global.data, "mosip-pmp-revamp-ui-host", "pmp-revamp.${data.kubernetes_config_map.global.data["installation-domain"]}")
 }
 
 # Install pms components using Helm
@@ -76,11 +77,17 @@ resource "helm_release" "pms_partner" {
   repository = "mosip"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.pms.metadata[0].name
+  wait = true
   timeout    = var.helm_timeout_seconds
 
   set {
     name  = "istio.corsPolicy.allowOrigins[0].prefix"
     value = "https://${local.pmp_host}"
+  }
+
+  set {
+    name  = "istio.corsPolicy.allowOrigins[1].prefix"
+    value = "https://${local.pmp_revamp_host}"
   }
 
   set {
@@ -171,11 +178,17 @@ resource "helm_release" "pms_policy" {
   repository = "mosip"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.pms.metadata[0].name
+  wait = true
   timeout    = var.helm_timeout_seconds
 
   set {
     name  = "istio.corsPolicy.allowOrigins[0].prefix"
     value = "https://${local.pmp_host}"
+  }
+
+  set {
+    name  = "istio.corsPolicy.allowOrigins[1].prefix"
+    value = "https://${local.pmp_revamp_host}"
   }
 
   set {
@@ -266,6 +279,7 @@ resource "helm_release" "pmp_ui" {
   repository = "mosip"
   version    = var.pmp_ui_chart_version
   namespace  = kubernetes_namespace.pms.metadata[0].name
+  wait = true
   timeout    = var.helm_timeout_seconds
 
   set {
@@ -354,8 +368,71 @@ resource "helm_release" "pmp_ui" {
   }
 
   depends_on = [
+    helm_release.pms_partner,
+    helm_release.pms_policy,
+    kubernetes_config_map_v1.global,
+    kubernetes_config_map_v1.artifactory_share,
+    kubernetes_config_map_v1.config_server_share
+  ]
+}
+
+resource "helm_release" "pmp_revamp_ui" {
+  count = var.pmp_revamp_ui_enabled ? 1 : 0
+
+  name       = "pmp-revamp-ui"
+  chart      = "pmp-revamp-ui"
+  repository = "mosip"
+  version    = var.pmp_revamp_ui_chart_version
+  namespace  = kubernetes_namespace.pms.metadata[0].name
+  wait = true
+  timeout    = var.helm_timeout_seconds
+
+  set {
+    name  = "pmp_revamp.react_app_partner_manager_api_base_url"
+    value = "https://${local.internal_api_host}/v1/partnermanager"
+  }
+
+  set {
+    name  = "pmp_revamp.react_app_policy_manager_api_base_url"
+    value = "https://${local.internal_api_host}/v1/policymanager"
+  }
+
+  set {
+    name  = "pmp_revamp.pms_partner_manager_internal_service_url"
+    value = "http://pms-partner.${var.namespace}/v1/partnermanager"
+  }
+
+  set {
+    name  = "pmp_revamp.pms_policy_manager_internal_service_url"
+    value = "http://pms-policy.${var.namespace}/v1/policymanager"
+  }
+
+  set {
+    name  = "istio.hosts[0]"
+    value = local.pmp_revamp_host
+  }
+
+  depends_on = [
+    helm_release.pms_partner,
+    helm_release.pms_policy,
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
     kubernetes_config_map_v1.config_server_share
   ]
 } 
+resource "kubernetes_limit_range" "default" {
+  metadata {
+    name      = "default-limits"
+    namespace = kubernetes_namespace.pms.metadata[0].name
+  }
+  spec {
+    limit {
+      type = "Container"
+      default_request = {
+        cpu    = "100m"
+        memory = "256Mi"
+      }
+    }
+  }
+  depends_on = [kubernetes_namespace.pms]
+}

@@ -118,6 +118,7 @@ resource "helm_release" "resident" {
   repository = "mosip"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.resident.metadata[0].name
+  wait = true
   timeout    = var.helm_timeout_seconds
 
   set {
@@ -221,6 +222,7 @@ resource "helm_release" "resident_ui" {
   repository = "mosip"
   version    = var.ui_chart_version
   namespace  = kubernetes_namespace.resident.metadata[0].name
+  wait = true
   timeout    = var.helm_timeout_seconds
 
   set {
@@ -244,3 +246,19 @@ resource "helm_release" "resident_ui" {
 
   depends_on = [helm_release.resident]
 } 
+resource "kubernetes_limit_range" "default" {
+  metadata {
+    name      = "default-limits"
+    namespace = kubernetes_namespace.resident.metadata[0].name
+  }
+  spec {
+    limit {
+      type = "Container"
+      default_request = {
+        cpu    = "100m"
+        memory = "256Mi"
+      }
+    }
+  }
+  depends_on = [kubernetes_namespace.resident]
+}

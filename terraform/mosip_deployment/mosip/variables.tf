@@ -205,6 +205,12 @@ variable "minio_chart_version" {
   default     = "10.1.6"
 }
 
+variable "minio_image_tag" {
+  description = "MinIO image tag (mosipid/minio)"
+  type        = string
+  default     = "2025.2.28-debian-12-r1"
+}
+
 variable "minio_namespace" {
   description = "Namespace for MinIO deployment"
   type        = string
@@ -644,6 +650,55 @@ variable "config_server_git_token" {
   sensitive   = true
 }
 
+# Config Server extraEnvVars overrides
+variable "config_server_uin_min_threshold" {
+  description = "Minimum unused UIN pool threshold override"
+  type        = string
+  default     = "10000"
+}
+
+variable "config_server_vid_min_threshold" {
+  description = "Minimum unused VID pool threshold override"
+  type        = string
+  default     = "10000"
+}
+
+variable "config_server_auth_audience_idrepo" {
+  description = "Allowed audience list for AUTH_SERVER_ADMIN_ALLOWED_AUDIENCE_IDREPO"
+  type        = string
+  default     = "mosip-regproc-client,mosip-prereg-client,mosip-admin-client,mosip-crereq-client,mosip-creser-client,mosip-datsha-client,mosip-ida-client,mosip-resident-client,mosip-reg-client,mpartner-default-print,mosip-idrepo-client,mpartner-default-auth,mosip-syncdata-client,mosip-masterdata-client,mosip-pms-client,mosip-hotlist-client,opencrvs-partner,mpartner-default-digitalcard,mpartner-default-mobile,mosip-signup-client,mosip-testrig-client"
+}
+
+variable "config_server_auth_audience_kernel" {
+  description = "Allowed audience list for AUTH_SERVER_ADMIN_ALLOWED_AUDIENCE_KERNEL"
+  type        = string
+  default     = "mosip-toolkit-android-client,mosip-toolkit-client,mosip-regproc-client,mosip-prereg-client,mosip-admin-client,mosip-crereq-client,mosip-creser-client,mosip-datsha-client,mosip-ida-client,mosip-resident-client,mosip-reg-client,mpartner-default-print,mosip-idrepo-client,mpartner-default-auth,mosip-syncdata-client,mosip-masterdata-client,mosip-pms-client,mosip-hotlist-client,mobileid_newlogic,opencrvs-partner,mosip-deployment-client,mpartner-default-digitalcard,mpartner-default-mobile,mosip-signup-client,mosip-testrig-client"
+}
+
+variable "config_server_credential_convention_id_enabled" {
+  description = "Enable convention-based ID for credential requests"
+  type        = string
+  default     = "true"
+}
+
+variable "config_server_captcha_enable" {
+  description = "Enable captcha for pre-registration"
+  type        = string
+  default     = "false"
+}
+
+variable "config_server_esignet_captcha_required" {
+  description = "eSignet captcha required override (empty = use config)"
+  type        = string
+  default     = ""
+}
+
+variable "config_server_resident_oidc_clientid" {
+  description = "Resident OIDC client ID served via config-server override (empty = dummy initial, set after eSignet OIDC onboarding)"
+  type        = string
+  default     = ""
+}
+
 # Config Server Probe Configuration
 variable "config_server_startup_probe_enabled" {
   description = "Enable startup probe for config-server"
@@ -780,6 +835,18 @@ variable "resident_captcha_secret_key" {
   description = "Recaptcha admin secret key for Resident domain"
   type        = string
   default     = ""
+}
+
+variable "captcha_helm_chart_version" {
+  description = "Helm chart version for captcha"
+  type        = string
+  default     = "0.1.1"
+}
+
+variable "captcha_metrics_service_monitor_enabled" {
+  description = "Enable Prometheus ServiceMonitor for captcha"
+  type        = bool
+  default     = true
 }
 
 # Artifactory Variables
@@ -1114,11 +1181,6 @@ variable "mock_smtp_helm_version" {
   default     = "1.0.0"
 }
 
-variable "mock_smtp_host" {
-  type        = string
-  description = "SMTP host value"
-}
-
 # Mock-SMTP Probe Configuration Variables
 variable "mock_smtp_startup_probe_enabled" {
   description = "Enable startup probe for mock-smtp"
@@ -1223,9 +1285,39 @@ variable "kernel_namespace" {
 }
 
 variable "kernel_helm_chart_version" {
-  description = "Helm chart version for kernel components"
+  description = "Helm chart version for kernel components (idgenerator, pridgenerator, ridgenerator, notifier)"
   type        = string
   default     = "12.0.1"
+}
+
+variable "kernel_authmanager_chart_version" {
+  description = "Helm chart version for kernel authmanager"
+  type        = string
+  default     = "1.3.1"
+}
+
+variable "kernel_auditmanager_chart_version" {
+  description = "Helm chart version for kernel auditmanager"
+  type        = string
+  default     = "1.3.2-rc.1"
+}
+
+variable "kernel_masterdata_chart_version" {
+  description = "Helm chart version for kernel masterdata"
+  type        = string
+  default     = "1.3.1"
+}
+
+variable "kernel_otpmanager_chart_version" {
+  description = "Helm chart version for kernel otpmanager"
+  type        = string
+  default     = "1.3.0"
+}
+
+variable "kernel_syncdata_chart_version" {
+  description = "Helm chart version for kernel syncdata"
+  type        = string
+  default     = "1.3.1"
 }
 
 variable "kernel_enable_insecure" {
@@ -1406,6 +1498,18 @@ variable "masterdata_loader_mosip_data_github_branch" {
   description = "MOSIP data Github branch for masterdata loader"
   type        = string
   default     = "v1.2.0.1"
+}
+
+variable "masterdata_loader_mosip_data_github_repo" {
+  description = "MOSIP data Github repository URL for masterdata loader"
+  type        = string
+  default     = "https://github.com/mosip/mosip-data"
+}
+
+variable "masterdata_loader_mosip_data_xls_folder_path" {
+  description = "Path to the XLS folder within the mosip-data repo"
+  type        = string
+  default     = "/home/mosip/mosip-data/mosip_master/xlsx"
 }
 
 # Masterdata-Loader Probe Configuration Variables
@@ -1821,7 +1925,25 @@ variable "prereg_namespace" {
 variable "prereg_chart_version" {
   description = "Prereg helm chart version"
   type        = string
-  default     = "12.0.1"
+  default     = "1.3.0"
+}
+
+variable "prereg_gateway_chart_version" {
+  description = "Prereg gateway helm chart version"
+  type        = string
+  default     = "1.0.0"
+}
+
+variable "prereg_booking_chart_version" {
+  description = "Prereg booking helm chart version"
+  type        = string
+  default     = "1.3.1-rc.1"
+}
+
+variable "prereg_ui_chart_version" {
+  description = "Prereg UI helm chart version"
+  type        = string
+  default     = "1.3.0"
 }
 
 variable "prereg_istio_injection_label" {
@@ -2081,7 +2203,19 @@ variable "pms_helm_chart_version" {
 variable "pmp_ui_chart_version" {
   description = "Helm chart version for PMP UI"
   type        = string
-  default     = "12.0.1"
+  default     = "12.2.3"
+}
+
+variable "pmp_revamp_ui_enabled" {
+  description = "Deploy PMP revamp UI chart"
+  type        = bool
+  default     = true
+}
+
+variable "pmp_revamp_ui_chart_version" {
+  description = "Helm chart version for PMP revamp UI"
+  type        = string
+  default     = "12.2.2"
 }
 
 variable "pms_istio_injection_label" {
@@ -2598,6 +2732,12 @@ variable "admin_helm_chart_version" {
   default     = "12.0.1"
 }
 
+variable "admin_ui_chart_version" {
+  description = "Helm chart version for admin-ui (separate from admin-service/admin-hotlist)"
+  type        = string
+  default     = "12.0.1"
+}
+
 # Admin Probe Configuration Variables
 variable "admin_startup_probe_enabled" {
   description = "Enable startup probe for admin (admin-hotlist, admin-ui)"
@@ -2796,6 +2936,12 @@ variable "ida_helm_chart_version" {
   description = "Helm chart version for ida"
   type        = string
   default     = "12.0.1"
+}
+
+variable "ida_keygen_chart_version" {
+  description = "Helm chart version for ida keygen (mosip/keygen chart, versioned independently from ida)"
+  type        = string
+  default     = "1.4.1-rc.1"
 }
 
 # IDA Probe Configuration Variables
@@ -3150,6 +3296,12 @@ variable "partner_onboarder_s3_bucket_name" {
   description = "S3/MinIO bucket name for partner onboarder"
   type        = string
   default     = "mosip-partner-onboarder"
+}
+
+variable "partner_onboarder_push_reports_to_s3" {
+  description = "Push onboarding reports to S3/MinIO"
+  type        = bool
+  default     = true
 }
 
 # Partner-Onboarder Probe Configuration Variables

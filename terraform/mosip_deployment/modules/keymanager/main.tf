@@ -130,7 +130,7 @@ resource "kubernetes_manifest" "idle_timeout_filter" {
             value = {
               name = "envoy.filters.network.tcp_proxy"
               typed_config = {
-                "@type"        = "type.googleapis.com/envoy.config.filter.network.tcp_proxy.v2.TcpProxy"
+                "@type"        = "type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy"
                 idle_timeout = "0s"
               }
             }
@@ -250,7 +250,7 @@ resource "helm_release" "kernel_keygen" {
 }
 resource "time_sleep" "wait_5_min" {
   depends_on = [helm_release.kernel_keygen]
-  create_duration = "300s"
+  create_duration = "120s"
 }
 
 
@@ -337,6 +337,11 @@ resource "helm_release" "keymanager" {
     value = tostring(var.liveness_probe_failure_threshold)
   }
 
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   timeout = var.helm_timeout_seconds
   wait    = true
 
@@ -350,3 +355,19 @@ resource "helm_release" "keymanager" {
     time_sleep.wait_5_min
   ]
 } 
+resource "kubernetes_limit_range" "default" {
+  metadata {
+    name      = "default-limits"
+    namespace = kubernetes_namespace_v1.keymanager.metadata[0].name
+  }
+  spec {
+    limit {
+      type = "Container"
+      default_request = {
+        cpu    = "100m"
+        memory = "256Mi"
+      }
+    }
+  }
+  depends_on = [kubernetes_namespace_v1.keymanager]
+}

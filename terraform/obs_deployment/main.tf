@@ -38,6 +38,10 @@ resource "helm_release" "ingress_nginx" {
   values = [
     yamlencode({
       controller = {
+        ingressClass = "ingress-nginx"
+        ingressClassResource = {
+          name = "ingress-nginx"
+        }
         service = {
           type      = var.ingress_nginx_values.controller.service.type
           nodePorts = var.ingress_nginx_values.controller.service.nodePorts
@@ -139,7 +143,7 @@ resource "helm_release" "rancher" {
         enabled = true
         includeDefaultExtraAnnotations = true
         extraAnnotations = {
-          "kubernetes.io/ingress.class" = "nginx"
+          "kubernetes.io/ingress.class" = "ingress-nginx"
         }
       }
       rancherImage = "rancher/rancher"

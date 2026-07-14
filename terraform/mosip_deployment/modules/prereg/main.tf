@@ -72,14 +72,30 @@ locals {
 # Install prereg components using Helm
 resource "helm_release" "prereg_gateway" {
   name       = "prereg-gateway"
-  chart      = "prereg-gateway"
+  chart      = "istio-addons"
   repository = "mosip"
-  version    = var.helm_chart_version
+  version    = var.prereg_gateway_chart_version
   namespace  = kubernetes_namespace.prereg.metadata[0].name
+  wait = true
   timeout    = var.helm_timeout_seconds
 
   set {
-    name  = "istio.hosts[0]"
+    name  = "istio.host"
+    value = local.prereg_host
+  }
+
+  set {
+    name  = "istio.name"
+    value = "prereg-gateway"
+  }
+
+  set {
+    name  = "istio.ingressController"
+    value = "ingressgateway"
+  }
+
+  set {
+    name  = "istio.serviceHost"
     value = local.prereg_host
   }
 
@@ -165,101 +181,13 @@ resource "helm_release" "prereg_gateway" {
   ]
 }
 
-resource "helm_release" "prereg_captcha" {
-  name       = "prereg-captcha"
-  chart      = "prereg-captcha"
-  repository = "mosip"
-  version    = var.helm_chart_version
-  namespace  = kubernetes_namespace.prereg.metadata[0].name
-  timeout    = var.helm_timeout_seconds
-
-  set {
-    name  = "startupProbe.enabled"
-    value = tostring(var.startup_probe_enabled)
-  }
-
-  set {
-    name  = "startupProbe.timeoutSeconds"
-    value = tostring(var.startup_probe_timeout_seconds)
-  }
-
-  set {
-    name  = "startupProbe.initialDelaySeconds"
-    value = tostring(var.startup_probe_initial_delay_seconds)
-  }
-
-  set {
-    name  = "startupProbe.periodSeconds"
-    value = tostring(var.startup_probe_period_seconds)
-  }
-
-  set {
-    name  = "startupProbe.failureThreshold"
-    value = tostring(var.startup_probe_failure_threshold)
-  }
-
-  set {
-    name  = "readinessProbe.enabled"
-    value = tostring(var.readiness_probe_enabled)
-  }
-
-  set {
-    name  = "readinessProbe.timeoutSeconds"
-    value = tostring(var.readiness_probe_timeout_seconds)
-  }
-
-  set {
-    name  = "readinessProbe.initialDelaySeconds"
-    value = tostring(var.readiness_probe_initial_delay_seconds)
-  }
-
-  set {
-    name  = "readinessProbe.periodSeconds"
-    value = tostring(var.readiness_probe_period_seconds)
-  }
-
-  set {
-    name  = "readinessProbe.failureThreshold"
-    value = tostring(var.readiness_probe_failure_threshold)
-  }
-
-  set {
-    name  = "livenessProbe.enabled"
-    value = tostring(var.liveness_probe_enabled)
-  }
-
-  set {
-    name  = "livenessProbe.timeoutSeconds"
-    value = tostring(var.liveness_probe_timeout_seconds)
-  }
-
-  set {
-    name  = "livenessProbe.initialDelaySeconds"
-    value = tostring(var.liveness_probe_initial_delay_seconds)
-  }
-
-  set {
-    name  = "livenessProbe.periodSeconds"
-    value = tostring(var.liveness_probe_period_seconds)
-  }
-
-  set {
-    name  = "livenessProbe.failureThreshold"
-    value = tostring(var.liveness_probe_failure_threshold)
-  }
-  depends_on = [
-    kubernetes_config_map_v1.global,
-    kubernetes_config_map_v1.artifactory_share,
-    kubernetes_config_map_v1.config_server_share
-  ]
-}
-
 resource "helm_release" "prereg_application" {
   name       = "prereg-application"
   chart      = "prereg-application"
   repository = "mosip"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.prereg.metadata[0].name
+  wait = true
   timeout    = var.helm_timeout_seconds
 
   set {
@@ -347,8 +275,9 @@ resource "helm_release" "prereg_booking" {
   name       = "prereg-booking"
   chart      = "prereg-booking"
   repository = "mosip"
-  version    = var.helm_chart_version
+  version    = var.prereg_booking_chart_version
   namespace  = kubernetes_namespace.prereg.metadata[0].name
+  wait = true
   timeout    = var.helm_timeout_seconds
 
   set {
@@ -438,6 +367,7 @@ resource "helm_release" "prereg_datasync" {
   repository = "mosip"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.prereg.metadata[0].name
+  wait = true
   timeout    = var.helm_timeout_seconds
 
   set {
@@ -527,6 +457,7 @@ resource "helm_release" "prereg_batchjob" {
   repository = "mosip"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.prereg.metadata[0].name
+  wait = true
   timeout    = var.helm_timeout_seconds
 
   set {
@@ -614,8 +545,9 @@ resource "helm_release" "prereg_ui" {
   name       = "prereg-ui"
   chart      = "prereg-ui"
   repository = "mosip"
-  version    = var.helm_chart_version
+  version    = var.prereg_ui_chart_version
   namespace  = kubernetes_namespace.prereg.metadata[0].name
+  wait = true
   timeout    = var.helm_timeout_seconds
 
   set {
@@ -785,3 +717,19 @@ resource "kubernetes_manifest" "rate_control_envoyfilter" {
     kubernetes_config_map_v1.config_server_share
   ]
 } 
+resource "kubernetes_limit_range" "default" {
+  metadata {
+    name      = "default-limits"
+    namespace = kubernetes_namespace.prereg.metadata[0].name
+  }
+  spec {
+    limit {
+      type = "Container"
+      default_request = {
+        cpu    = "100m"
+        memory = "256Mi"
+      }
+    }
+  }
+  depends_on = [kubernetes_namespace.prereg]
+}

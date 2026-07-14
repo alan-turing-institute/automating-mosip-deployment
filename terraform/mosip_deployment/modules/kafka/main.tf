@@ -17,6 +17,7 @@ resource "helm_release" "kafka" {
   repository = "https://charts.bitnami.com/bitnami"
   chart      = "kafka"
   version    = var.kafka_chart_version
+  wait       = true
   timeout    = var.helm_timeout_seconds
 
   values = [
@@ -128,6 +129,7 @@ resource "helm_release" "kafka_ui" {
   repository = "https://provectus.github.io/kafka-ui-charts"
   chart      = "kafka-ui"
   version    = var.kafka_ui_chart_version
+  wait       = true
   timeout    = var.helm_timeout_seconds
 
   values = [
@@ -220,6 +222,7 @@ resource "helm_release" "istio_addons" {
 
   name      = "istio-addons"
   namespace = kubernetes_namespace.kafka[0].metadata[0].name
+  wait      = true
   chart     = "${path.module}/chart/istio-addons"
   timeout   = var.helm_timeout_seconds
 
@@ -235,3 +238,20 @@ resource "helm_release" "istio_addons" {
 
   depends_on = [helm_release.kafka_ui]
 } 
+resource "kubernetes_limit_range" "default" {
+  count = var.enable_deployment ? 1 : 0
+  metadata {
+    name      = "default-limits"
+    namespace = kubernetes_namespace.kafka[count.index].metadata[0].name
+  }
+  spec {
+    limit {
+      type = "Container"
+      default_request = {
+        cpu    = "100m"
+        memory = "256Mi"
+      }
+    }
+  }
+  depends_on = [kubernetes_namespace.kafka]
+}

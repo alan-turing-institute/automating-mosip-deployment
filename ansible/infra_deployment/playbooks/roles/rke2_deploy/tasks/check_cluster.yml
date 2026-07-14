@@ -1,0 +1,41 @@
+---
+- name: Ensure cluster directory exists on deployment node
+  ansible.builtin.file:
+    path: "{{ cluster_dir }}"
+    state: directory
+    mode: '0750'
+
+- name: Skip existing-cluster detection when disabled
+  ansible.builtin.set_fact:
+    rke2_cluster_exists: false
+  when: not (check_existing_config | default(true) | bool)
+
+- name: Explain why existing-cluster detection is disabled
+  ansible.builtin.debug:
+    msg: "Skipping existing kubeconfig check because check_existing_config=false for cluster '{{ cluster_name }}'"
+  when: not (check_existing_config | default(true) | bool)
+
+- name: Check for existing cluster kubeconfig
+  ansible.builtin.stat:
+    path: "{{ cluster_dir }}/kube_config_cluster.yml"
+  register: existing_kubeconfig
+  when: check_existing_config | default(true) | bool
+
+- name: Test cluster connectivity using existing kubeconfig
+  ansible.builtin.command: kubectl --kubeconfig={{ cluster_dir }}/kube_config_cluster.yml get nodes
+  register: kubectl_test
+  changed_when: false
+  failed_when: false
+  when:
+    - check_existing_config | default(true) | bool
+    - existing_kubeconfig.stat.exists
+
+- name: Set cluster exists fact from kubeconfig health
+  ansible.builtin.set_fact:
+    rke2_cluster_exists: "{{ existing_kubeconfig.stat.exists and (kubectl_test.rc | default(1)) == 0 }}"
+  when: check_existing_config | default(true) | bool
+
+- name: Display cluster status
+  ansible.builtin.debug:
+    msg: "RKE2 cluster '{{ cluster_name }}' is already running and accessible from {{ cluster_dir }}/kube_config_cluster.yml"
+  when: rke2_cluster_exists | default(false)

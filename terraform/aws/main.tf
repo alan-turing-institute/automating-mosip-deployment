@@ -53,45 +53,41 @@ locals {
 }
 
 resource "aws_subnet" "public" {
-  count = length(var.public_subnets)
-
   vpc_id                  = aws_vpc.main.id
-  cidr_block              = var.public_subnets[count.index]
-  availability_zone       = var.availability_zones[count.index % length(var.availability_zones)]
+  cidr_block              = var.public_subnet_cidr
+  availability_zone       = var.availability_zone
   map_public_ip_on_launch = true
 
   tags = {
-    Name        = "${var.network_name}-public-subnet-${count.index + 1}"
+    Name        = "${var.network_name}-public-subnet"
     Type        = "Public"
     Environment = var.environment
     Project     = var.project_name
-    AZ          = var.availability_zones[count.index % length(var.availability_zones)]
+    AZ          = var.availability_zone
   }
 }
 
 resource "aws_subnet" "private" {
-  count = length(var.private_subnets)
-
   vpc_id            = aws_vpc.main.id
-  cidr_block        = var.private_subnets[count.index]
-  availability_zone = var.availability_zones[count.index % length(var.availability_zones)]
+  cidr_block        = var.private_subnet_cidr
+  availability_zone = var.availability_zone
 
   tags = {
-    Name        = "${var.network_name}-private-subnet-${count.index + 1}"
+    Name        = "${var.network_name}-private-subnet"
     Type        = "Private"
     Environment = var.environment
     Project     = var.project_name
-    AZ          = var.availability_zones[count.index % length(var.availability_zones)]
+    AZ          = var.availability_zone
   }
 }
 
 resource "aws_eip" "nat" {
-  count = var.enable_nat_gateway ? (var.single_nat_gateway ? 1 : length(var.public_subnets)) : 0
+  count = var.enable_nat_gateway ? 1 : 0
 
   domain = "vpc"
 
   tags = {
-    Name        = "${var.network_name}-nat-eip-${count.index + 1}"
+    Name        = "${var.network_name}-nat-eip"
     Environment = var.environment
     Project     = var.project_name
   }
@@ -100,13 +96,13 @@ resource "aws_eip" "nat" {
 }
 
 resource "aws_nat_gateway" "main" {
-  count = var.enable_nat_gateway ? (var.single_nat_gateway ? 1 : length(var.public_subnets)) : 0
+  count = var.enable_nat_gateway ? 1 : 0
 
-  allocation_id = aws_eip.nat[count.index].id
-  subnet_id     = aws_subnet.public[count.index].id
+  allocation_id = aws_eip.nat[0].id
+  subnet_id     = aws_subnet.public.id
 
   tags = {
-    Name        = "${var.network_name}-nat-gateway-${count.index + 1}"
+    Name        = "${var.network_name}-nat-gateway"
     Environment = var.environment
     Project     = var.project_name
   }
@@ -131,24 +127,22 @@ resource "aws_route_table" "public" {
 }
 
 resource "aws_route_table_association" "public" {
-  count = length(aws_subnet.public)
-
-  subnet_id      = aws_subnet.public[count.index].id
+  subnet_id      = aws_subnet.public.id
   route_table_id = aws_route_table.public.id
 }
 
 resource "aws_route_table" "private" {
-  count = var.enable_nat_gateway ? (var.single_nat_gateway ? 1 : length(var.private_subnets)) : 0
+  count = var.enable_nat_gateway ? 1 : 0
 
   vpc_id = aws_vpc.main.id
 
   route {
     cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = var.single_nat_gateway ? aws_nat_gateway.main[0].id : aws_nat_gateway.main[count.index % length(aws_nat_gateway.main)].id
+    nat_gateway_id = aws_nat_gateway.main[0].id
   }
 
   tags = {
-    Name        = "${var.network_name}-private-rt-${count.index + 1}"
+    Name        = "${var.network_name}-private-rt"
     Type        = "Private"
     Environment = var.environment
     Project     = var.project_name
@@ -156,10 +150,10 @@ resource "aws_route_table" "private" {
 }
 
 resource "aws_route_table_association" "private" {
-  count = length(aws_subnet.private)
+  count = var.enable_nat_gateway ? 1 : 0
 
-  subnet_id      = aws_subnet.private[count.index].id
-  route_table_id = var.single_nat_gateway ? aws_route_table.private[0].id : aws_route_table.private[count.index % length(aws_route_table.private)].id
+  subnet_id      = aws_subnet.private.id
+  route_table_id = aws_route_table.private[0].id
 }
 
 resource "aws_security_group" "jumpserver" {
@@ -196,6 +190,14 @@ resource "aws_security_group" "jumpserver" {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "ICMP - required for PMTUD (fragmentation-needed) and connectivity checks"
+    from_port   = -1
+    to_port     = -1
+    protocol    = "icmp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
@@ -282,6 +284,14 @@ resource "aws_security_group" "k8s_nodes" {
     cidr_blocks = [var.network_cidr]
   }
 
+  ingress {
+    description = "ICMP - required for PMTUD (fragmentation-needed) between nodes"
+    from_port   = -1
+    to_port     = -1
+    protocol    = "icmp"
+    cidr_blocks = [var.network_cidr, var.wireguard_cidr]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -333,6 +343,14 @@ resource "aws_security_group" "nginx" {
     cidr_blocks = [var.network_cidr]
   }
 
+  ingress {
+    description = "ICMP - required for PMTUD (fragmentation-needed)"
+    from_port   = -1
+    to_port     = -1
+    protocol    = "icmp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -347,11 +365,11 @@ resource "aws_security_group" "nginx" {
   }
 }
 
-# OBS: RKE1 cluster nodes. Port set aligned with MOSIP k8s-infra
-# k8-cluster/on-prem/rke1/ports.yaml (plus VPC-scoped SSH from WireGuard CIDR).
+# OBS: RKE2 cluster nodes. Port set aligned with MOSIP k8s-infra
+# k8-cluster/on-prem/rke2/ports.yaml (plus VPC-scoped SSH from WireGuard CIDR).
 resource "aws_security_group" "obs" {
   name        = "${var.project_name}-obs-sg"
-  description = "Security group for OBS RKE1 cluster nodes"
+  description = "Security group for OBS RKE2 cluster nodes"
   vpc_id      = aws_vpc.main.id
 
   ingress {
@@ -372,7 +390,7 @@ resource "aws_security_group" "obs" {
 
   # ports.yaml: HTTP/HTTPS on cluster nodes (scoped to VPC)
   ingress {
-    description = "HTTP (RKE1 / Rancher node requirements)"
+    description = "HTTP (RKE2 / Rancher node requirements)"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
@@ -380,7 +398,7 @@ resource "aws_security_group" "obs" {
   }
 
   ingress {
-    description = "HTTPS (RKE1 / Rancher node requirements)"
+    description = "HTTPS (RKE2 / Rancher node requirements)"
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
@@ -388,16 +406,25 @@ resource "aws_security_group" "obs" {
   }
 
   ingress {
-    description = "Kubernetes API (RKE1)"
+    description = "Kubernetes API (RKE2)"
     from_port   = 6443
     to_port     = 6443
     protocol    = "tcp"
     cidr_blocks = [var.network_cidr]
   }
 
-  # ports.yaml: Docker daemon (RKE SSH provisioning)
+  # RKE2 supervisor / join port
   ingress {
-    description = "Docker daemon (RKE1)"
+    description = "RKE2 supervisor (9345)"
+    from_port   = 9345
+    to_port     = 9345
+    protocol    = "tcp"
+    cidr_blocks = [var.network_cidr]
+  }
+
+  # Legacy Docker daemon port (not used by RKE2; retained for compatibility with shared port lists)
+  ingress {
+    description = "Docker daemon (legacy RKE port list)"
     from_port   = 2376
     to_port     = 2376
     protocol    = "tcp"
@@ -406,7 +433,7 @@ resource "aws_security_group" "obs" {
 
   # ports.yaml: etcd client and peer (Rancher/RKE reference range)
   ingress {
-    description = "Etcd client/peer (RKE1)"
+    description = "Etcd client/peer (RKE2)"
     from_port   = 2379
     to_port     = 2380
     protocol    = "tcp"
@@ -423,7 +450,7 @@ resource "aws_security_group" "obs" {
   }
 
   ingress {
-    description = "Kube-proxy health / metrics (RKE1 ports.yaml: 10256)"
+    description = "Kube-proxy health / metrics (10256)"
     from_port   = 10256
     to_port     = 10256
     protocol    = "tcp"
@@ -431,7 +458,7 @@ resource "aws_security_group" "obs" {
   }
 
   ingress {
-    description = "RKE1 ports.yaml: 9796"
+    description = "Node metrics (9796)"
     from_port   = 9796
     to_port     = 9796
     protocol    = "tcp"
@@ -439,7 +466,7 @@ resource "aws_security_group" "obs" {
   }
 
   ingress {
-    description = "RKE1 ports.yaml: 10254"
+    description = "Ingress controller health (10254)"
     from_port   = 10254
     to_port     = 10254
     protocol    = "tcp"
@@ -487,6 +514,14 @@ resource "aws_security_group" "obs" {
     cidr_blocks = [var.network_cidr]
   }
 
+  ingress {
+    description = "ICMP - required for PMTUD (fragmentation-needed) between nodes"
+    from_port   = -1
+    to_port     = -1
+    protocol    = "icmp"
+    cidr_blocks = [var.network_cidr, var.wireguard_cidr]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -530,6 +565,14 @@ resource "aws_security_group" "nginx_obs" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  ingress {
+    description = "ICMP - required for PMTUD (fragmentation-needed)"
+    from_port   = -1
+    to_port     = -1
+    protocol    = "icmp"
+    cidr_blocks = [var.network_cidr]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -548,7 +591,7 @@ resource "aws_instance" "jumpserver" {
   ami                         = var.jumpserver_ami_id
   instance_type               = var.jumpserver_instance_type
   key_name                    = data.aws_key_pair.selected.key_name
-  subnet_id                   = aws_subnet.public[0].id
+  subnet_id                   = aws_subnet.public.id
   vpc_security_group_ids      = [aws_security_group.jumpserver.id]
   associate_public_ip_address = true
 
@@ -573,7 +616,7 @@ resource "aws_instance" "physical_vm" {
   ami                         = var.node_ami_id
   instance_type               = var.k8s_instance_type
   key_name                    = data.aws_key_pair.selected.key_name
-  subnet_id                   = aws_subnet.private[each.value.index % length(aws_subnet.private)].id
+  subnet_id                   = aws_subnet.private.id
   vpc_security_group_ids      = [aws_security_group.k8s_nodes.id]
   associate_public_ip_address = false
 
@@ -595,7 +638,7 @@ resource "aws_instance" "obs_node" {
   ami                         = var.node_ami_id
   instance_type               = var.obs_instance_type
   key_name                    = data.aws_key_pair.selected.key_name
-  subnet_id                   = aws_subnet.private[0].id
+  subnet_id                   = aws_subnet.private.id
   vpc_security_group_ids      = [aws_security_group.obs.id]
   associate_public_ip_address = false
 
@@ -617,10 +660,9 @@ resource "aws_instance" "nginx_node" {
   ami                         = var.node_ami_id
   instance_type               = var.nginx_instance_type
   key_name                    = data.aws_key_pair.selected.key_name
-  subnet_id                   = aws_subnet.public[0].id
+  subnet_id                   = aws_subnet.public.id
   vpc_security_group_ids      = [aws_security_group.nginx.id]
   associate_public_ip_address = true
-  iam_instance_profile        = var.enable_certbot_iam_profile ? aws_iam_instance_profile.certbot_profile[0].name : null
 
   root_block_device {
     volume_type           = "gp3"
@@ -640,7 +682,7 @@ resource "aws_instance" "nginx_obs_node" {
   ami                         = var.node_ami_id
   instance_type               = var.nginx_obs_instance_type
   key_name                    = data.aws_key_pair.selected.key_name
-  subnet_id                   = aws_subnet.private[0].id
+  subnet_id                   = aws_subnet.private.id
   vpc_security_group_ids      = [aws_security_group.nginx_obs.id]
   associate_public_ip_address = false
 
@@ -656,58 +698,6 @@ resource "aws_instance" "nginx_obs_node" {
     Project     = var.project_name
     Role        = "nginx_obs"
   }
-}
-
-resource "aws_iam_role" "certbot_role" {
-  count = var.enable_certbot_iam_profile ? 1 : 0
-
-  name = "${var.project_name}-${var.environment}-certbot-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Action = "sts:AssumeRole"
-      Effect = "Allow"
-      Principal = {
-        Service = "ec2.amazonaws.com"
-      }
-    }]
-  })
-}
-
-resource "aws_iam_policy" "certbot_route53" {
-  count = var.enable_certbot_iam_profile ? 1 : 0
-
-  name = "${var.project_name}-${var.environment}-certbot-route53"
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "route53:ChangeResourceRecordSets",
-          "route53:ListHostedZones",
-          "route53:ListResourceRecordSets",
-          "route53:GetChange"
-        ]
-        Resource = "*"
-      }
-    ]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "certbot_policy_attachment" {
-  count = var.enable_certbot_iam_profile ? 1 : 0
-
-  role       = aws_iam_role.certbot_role[0].name
-  policy_arn = aws_iam_policy.certbot_route53[0].arn
-}
-
-resource "aws_iam_instance_profile" "certbot_profile" {
-  count = var.enable_certbot_iam_profile ? 1 : 0
-
-  name = "${var.project_name}-${var.environment}-certbot-profile"
-  role = aws_iam_role.certbot_role[0].name
 }
 
 data "aws_route53_zone" "selected" {
@@ -795,6 +785,73 @@ resource "aws_route53_record" "cluster_dns" {
   type    = each.value.type
   ttl     = each.value.ttl
   records = each.value.records
+}
+
+resource "aws_security_group" "deployment_node" {
+  count = var.enable_deployment_node_private_eni ? 1 : 0
+
+  name        = "${var.project_name}-deployment-node-eni-sg"
+  description = "Security group for deployment node private subnet ENI"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    description = "SSH from VPC"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = [var.network_cidr]
+  }
+
+  ingress {
+    description = "SSH from WireGuard clients"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = [var.wireguard_cidr]
+  }
+
+  ingress {
+    description = "ICMP - required for PMTUD (fragmentation-needed)"
+    from_port   = -1
+    to_port     = -1
+    protocol    = "icmp"
+    cidr_blocks = [var.network_cidr, var.wireguard_cidr]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name        = "${var.project_name}-deployment-node-eni-sg"
+    Environment = var.environment
+    Project     = var.project_name
+  }
+}
+
+resource "aws_network_interface" "deployment_node" {
+  count = var.enable_deployment_node_private_eni ? 1 : 0
+
+  subnet_id       = aws_subnet.private.id
+  security_groups = [aws_security_group.deployment_node[0].id]
+
+  tags = {
+    Name        = "${var.network_name}-deployment-node-eni"
+    Environment = var.environment
+    Project     = var.project_name
+    Role        = "deployment_node"
+  }
+}
+
+resource "aws_network_interface_attachment" "deployment_node" {
+  count = var.enable_deployment_node_private_eni ? 1 : 0
+
+  instance_id          = var.deployment_node_instance_id
+  network_interface_id = aws_network_interface.deployment_node[0].id
+  device_index         = 1
 }
 
 resource "aws_eip" "jumpserver" {

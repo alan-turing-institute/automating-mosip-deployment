@@ -65,12 +65,21 @@ resource "kubernetes_config_map_v1" "config_server_share" {
 
 
 
+# regproc-group1..group7 install sequentially (matches upstream install.sh order) — later groups
+# can depend on state/topics created by earlier ones, so each depends_on the previous group.
+
 # Install regproc-group1
 resource "helm_release" "regproc_group1" {
   name       = "regproc-group1"
   chart      = "mosip/regproc-group1"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.regproc.metadata[0].name
+  wait = true
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
@@ -175,11 +184,18 @@ resource "helm_release" "regproc_group2" {
   chart      = "mosip/regproc-group2"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.regproc.metadata[0].name
+  wait = true
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
     kubernetes_config_map_v1.config_server_share,
-    helm_release.regproc_salt
+    helm_release.regproc_salt,
+    helm_release.regproc_group1
   ]
   # Added so it's not going to die if it's not ready
   # All probes disabled for regproc-group2
@@ -268,11 +284,18 @@ resource "helm_release" "regproc_group3" {
   chart      = "mosip/regproc-group3"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.regproc.metadata[0].name
+  wait = true
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
     kubernetes_config_map_v1.config_server_share,
-    helm_release.regproc_salt
+    helm_release.regproc_salt,
+    helm_release.regproc_group2
   ]
 
   # Startup Probe Configuration
@@ -362,11 +385,18 @@ resource "helm_release" "regproc_group4" {
   chart      = "mosip/regproc-group4"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.regproc.metadata[0].name
+  wait = true
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
     kubernetes_config_map_v1.config_server_share,
-    helm_release.regproc_salt
+    helm_release.regproc_salt,
+    helm_release.regproc_group3
   ]
 
   # Startup Probe Configuration
@@ -456,11 +486,18 @@ resource "helm_release" "regproc_group5" {
   chart      = "mosip/regproc-group5"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.regproc.metadata[0].name
+  wait = true
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
     kubernetes_config_map_v1.config_server_share,
-    helm_release.regproc_salt
+    helm_release.regproc_salt,
+    helm_release.regproc_group4
   ]
 
   # Startup Probe Configuration
@@ -550,11 +587,18 @@ resource "helm_release" "regproc_group6" {
   chart      = "mosip/regproc-group6"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.regproc.metadata[0].name
+  wait = true
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
     kubernetes_config_map_v1.config_server_share,
-    helm_release.regproc_salt
+    helm_release.regproc_salt,
+    helm_release.regproc_group5
   ]
 
   # Startup Probe Configuration
@@ -644,11 +688,18 @@ resource "helm_release" "regproc_group7" {
   chart      = "mosip/regproc-group7"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.regproc.metadata[0].name
+  wait = true
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
     kubernetes_config_map_v1.config_server_share,
-    helm_release.regproc_salt
+    helm_release.regproc_salt,
+    helm_release.regproc_group6
   ]
 
   # Startup Probe Configuration
@@ -734,10 +785,17 @@ resource "helm_release" "regproc_group7" {
 
 # Install regproc-salt
 resource "helm_release" "regproc_salt" {
-  name       = "regproc-salt"
-  chart      = "mosip/regproc-salt"
-  version    = var.helm_chart_version
-  namespace  = kubernetes_namespace.regproc.metadata[0].name
+  name          = "regproc-salt"
+  chart         = "mosip/regproc-salt"
+  version       = var.helm_chart_version
+  namespace     = kubernetes_namespace.regproc.metadata[0].name
+  wait          = true
+  wait_for_jobs = true
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
@@ -831,6 +889,12 @@ resource "helm_release" "regproc_workflow" {
   chart      = "mosip/regproc-workflow"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.regproc.metadata[0].name
+  wait = true
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
@@ -932,6 +996,12 @@ resource "helm_release" "regproc_status" {
   chart      = "mosip/regproc-status"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.regproc.metadata[0].name
+  wait = true
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
@@ -1032,6 +1102,12 @@ resource "helm_release" "regproc_camel" {
   chart      = "mosip/regproc-camel"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.regproc.metadata[0].name
+  wait = true
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
@@ -1133,6 +1209,12 @@ resource "helm_release" "regproc_pktserver" {
   chart      = "mosip/regproc-pktserver"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.regproc.metadata[0].name
+  wait = true
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
@@ -1233,6 +1315,12 @@ resource "helm_release" "regproc_trans" {
   chart      = "mosip/regproc-trans"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.regproc.metadata[0].name
+  wait = true
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
@@ -1334,6 +1422,12 @@ resource "helm_release" "regproc_notifier" {
   chart      = "mosip/regproc-notifier"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.regproc.metadata[0].name
+  wait = true
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
@@ -1435,6 +1529,12 @@ resource "helm_release" "regproc_reprocess" {
   chart      = "mosip/regproc-reprocess"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.regproc.metadata[0].name
+  wait = true
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
@@ -1532,45 +1632,62 @@ resource "helm_release" "regproc_reprocess" {
 
 
 ## Install regproc-landingzone
-# Currently NOT IN USE - ITS PUSHED FROM DEV image with errors
-#resource "helm_release" "regproc_landingzone" {
-#  name       = "regproc-landingzone"
-#  chart      = "mosip/regproc-landingzone"
-#  version    = "12.0.2" # No longer 12.0.1 in helm repo
-#  namespace  = kubernetes_namespace.regproc.metadata[0].name
-#  depends_on = [
-#    kubernetes_config_map_v1.global,
-#    kubernetes_config_map_v1.artifactory_share,
-#    kubernetes_config_map_v1.config_server_share,
-#    helm_release.regproc_salt,
-#    helm_release.regproc_group1,
-#    helm_release.regproc_group2,
-#    helm_release.regproc_group3,
-#    helm_release.regproc_group4,
-#    helm_release.regproc_group5,
-#    helm_release.regproc_group6,
-#    helm_release.regproc_group7
-#  ]
-#
-#  # TODO: Disable startup probe as a workaround for the crash
-#  set {
-#    name  = "startupProbe.enabled"
-#    value = false
-#  }
-#  set {
-#    name  = "readinessProbe.enabled"
-#    value = false
-#  }
-#
-##  set {
-##    name  = "startupProbe.timeoutSeconds"
-##    value = "180"
-##  }
-##
-##  set {
-##    name  = "startupProbe.initialDelaySeconds"
-##    value = "600"
-##  }
-#
-#  timeout = var.helm_timeout_seconds
-#} 
+resource "helm_release" "regproc_landingzone" {
+  name       = "regproc-landingzone"
+  chart      = "mosip/regproc-landingzone"
+  version    = var.helm_chart_version
+  namespace  = kubernetes_namespace.regproc.metadata[0].name
+  wait       = true
+
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
+  set {
+    name  = "startupProbe.enabled"
+    value = "false"
+  }
+
+  set {
+    name  = "readinessProbe.enabled"
+    value = "false"
+  }
+
+  set {
+    name  = "livenessProbe.enabled"
+    value = "false"
+  }
+
+  depends_on = [
+    kubernetes_config_map_v1.global,
+    kubernetes_config_map_v1.artifactory_share,
+    kubernetes_config_map_v1.config_server_share,
+    helm_release.regproc_salt,
+    helm_release.regproc_group1,
+    helm_release.regproc_group2,
+    helm_release.regproc_group3,
+    helm_release.regproc_group4,
+    helm_release.regproc_group5,
+    helm_release.regproc_group6,
+    helm_release.regproc_group7
+  ]
+
+  timeout = var.helm_timeout_seconds
+}
+resource "kubernetes_limit_range" "default" {
+  metadata {
+    name      = "default-limits"
+    namespace = kubernetes_namespace.regproc.metadata[0].name
+  }
+  spec {
+    limit {
+      type = "Container"
+      default_request = {
+        cpu    = "100m"
+        memory = "256Mi"
+      }
+    }
+  }
+  depends_on = [kubernetes_namespace.regproc]
+}

@@ -45,15 +45,27 @@ data "kubernetes_secret" "db_common_secrets" {
 
 # Deploy masterdata-loader helm chart
 resource "helm_release" "masterdata_loader" {
-  name       = "masterdata-loader"
-  chart      = "mosip/masterdata-loader"
-  version    = var.helm_chart_version
-  namespace  = kubernetes_namespace.masterdata_loader.metadata[0].name
-  timeout    = var.helm_timeout_seconds
+  name           = "masterdata-loader"
+  chart          = "mosip/masterdata-loader"
+  version        = var.helm_chart_version
+  namespace      = kubernetes_namespace.masterdata_loader.metadata[0].name
+  timeout        = var.helm_timeout_seconds
+  wait           = true
+  wait_for_jobs  = true
 
   set {
     name  = "mosipDataGithubBranch"
     value = var.mosip_data_github_branch
+  }
+
+  set {
+    name  = "mosipDataGithubRepo"
+    value = var.mosip_data_github_repo
+  }
+
+  set {
+    name  = "mosipDataXlsfolderPath"
+    value = var.mosip_data_xls_folder_path
   }
 
   set {
@@ -135,3 +147,19 @@ resource "helm_release" "masterdata_loader" {
     kubernetes_secret.db_common_secrets
   ]
 } 
+resource "kubernetes_limit_range" "default" {
+  metadata {
+    name      = "default-limits"
+    namespace = kubernetes_namespace.masterdata_loader.metadata[0].name
+  }
+  spec {
+    limit {
+      type = "Container"
+      default_request = {
+        cpu    = "100m"
+        memory = "256Mi"
+      }
+    }
+  }
+  depends_on = [kubernetes_namespace.masterdata_loader]
+}

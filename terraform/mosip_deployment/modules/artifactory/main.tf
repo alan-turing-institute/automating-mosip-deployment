@@ -19,6 +19,7 @@ resource "helm_release" "artifactory" {
   chart      = "mosip/artifactory"
   version    = var.chart_version
   namespace  = kubernetes_namespace_v1.artifactory.metadata[0].name
+  wait = true
 
   # Startup Probe Configuration
   set {
@@ -100,3 +101,19 @@ resource "helm_release" "artifactory" {
 
   depends_on = [kubernetes_namespace_v1.artifactory]
 } 
+resource "kubernetes_limit_range" "default" {
+  metadata {
+    name      = "default-limits"
+    namespace = kubernetes_namespace_v1.artifactory.metadata[0].name
+  }
+  spec {
+    limit {
+      type = "Container"
+      default_request = {
+        cpu    = "100m"
+        memory = "256Mi"
+      }
+    }
+  }
+  depends_on = [kubernetes_namespace_v1.artifactory]
+}

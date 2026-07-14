@@ -69,6 +69,7 @@ resource "helm_release" "print_service" {
   chart      = "mosip/print-service"
   version    = var.helm_chart_version
   namespace  = kubernetes_namespace.print.metadata[0].name
+  wait       = true
   depends_on = [
     kubernetes_config_map_v1.global,
     kubernetes_config_map_v1.artifactory_share,
@@ -152,3 +153,19 @@ resource "helm_release" "print_service" {
 
   timeout = var.helm_timeout_seconds
 } 
+resource "kubernetes_limit_range" "default" {
+  metadata {
+    name      = "default-limits"
+    namespace = kubernetes_namespace.print.metadata[0].name
+  }
+  spec {
+    limit {
+      type = "Container"
+      default_request = {
+        cpu    = "100m"
+        memory = "256Mi"
+      }
+    }
+  }
+  depends_on = [kubernetes_namespace.print]
+}

@@ -9,10 +9,16 @@ variable "ingress_nginx_namespace" {
   default     = "ingress-nginx"
 }
 
-variable "ingress_nginx_version" {
-  description = "Version of ingress-nginx Helm chart"
+variable "rancher_version" {
+  description = "Rancher chart version."
   type        = string
-  default     = "4.0.18"
+  default     = "2.8.3"
+}
+
+variable "ingress_nginx_version" {
+  description = "Ingress NGINX chart version."
+  type        = string
+  default     = "4.10.0"
 }
 
 variable "rancher_namespace" {
@@ -24,12 +30,6 @@ variable "rancher_namespace" {
 variable "rancher_hostname" {
   description = "Hostname for Rancher UI"
   type        = string
-}
-
-variable "rancher_version" {
-  description = "Version of Rancher Helm chart"
-  type        = string
-  default     = "2.6.9"
 }
 
 variable "rancher_replicas" {
@@ -51,9 +51,9 @@ variable "longhorn_namespace" {
 }
 
 variable "longhorn_version" {
-  description = "Version of Longhorn Helm chart"
+  description = "Longhorn chart version."
   type        = string
-  default     = "1.4.2"
+  default     = "1.5.1"
 }
 
 variable "filesystem_pv_size" {

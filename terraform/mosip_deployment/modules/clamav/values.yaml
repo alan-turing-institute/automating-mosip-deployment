@@ -3,4 +3,12 @@ replicaCount: ${replica_count}
 image:
   repository: ${image_repository}
   tag: ${image_tag}
-  pullPolicy: ${image_pull_policy} 
+  # pullPolicy intentionally omitted — use chart default (IfNotPresent)
+
+resources:
+  limits:
+    cpu: 4800m
+    memory: 3000Mi
+  requests:
+    cpu: 1000m
+    memory: 1000Mi

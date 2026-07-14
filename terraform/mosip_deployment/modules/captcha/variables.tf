@@ -4,6 +4,23 @@ variable "namespace" {
   default     = "captcha"
 }
 
+variable "helm_chart_version" {
+  description = "Helm chart version for captcha"
+  type        = string
+}
+
+variable "helm_timeout_seconds" {
+  description = "Timeout for Helm operations in seconds"
+  type        = number
+  default     = 600
+}
+
+variable "metrics_service_monitor_enabled" {
+  description = "Enable Prometheus ServiceMonitor for captcha"
+  type        = bool
+  default     = false
+}
+
 variable "kubeconfig_path" {
   description = "Path to kubeconfig file"
   type        = string

@@ -1,5 +1,21 @@
 # Mandatory changes
 
+# Platform Version Pins
+# Set these to match your target Kubernetes stack. All version variables live here — no separate platform_versions.yml needed.
+rke2_version: "v1.28.8+rke2r1"
+kubectl_client_version: "v1.28.15"   # informational — used to document which kubectl to install manually
+helm_client_version: "v3.16.4"       # informational — used to document which helm to install manually
+istio_version: "1.22.0"
+
+# RKE2 Configuration
+# Separate paths per cluster — do NOT use a single rke2_config_dir (group_vars override role defaults).
+# Main MOSIP cluster node config path:
+rke2_main_config_dir: "/etc/rancher/rke2"
+# OBS cluster node config path:
+rke2_obs_config_dir: "/etc/rancher/rke2"
+rke2_enable_firewall: false
+rke2_dedicated_etcd: false
+
 # MOSIP Domain Configuration
 # Base domain for MOSIP installation (e.g., "turing-mosip.net", or if it's subdomain "warwick-1.turing-mosip.net")
 # This is used to generate public domain names: api.{domain}, prereg.{domain}, resident.{domain}
@@ -15,7 +31,7 @@ rancher_import_url: ""                   # UPDATE after OBS deployment. URL for 
 cluster_name: "mosip"  # Name of the MOSIP Kubernetes cluster
 # IMPORTANT: Do not use ~ in the path, use the full path instead, e.g. "/home/ubuntu/rancher". --kubeconfig does not support ~.
 rancher_base_dir: "/home/ubuntu/rancher"  # Base directory for main rancher cluster
-check_existing_config: true   # Whether to check for existing configurations before deployment
+check_existing_config: true   # Main cluster: reuse existing kubeconfig/token when healthy; set false to force fresh sync/install path
 kubelet_max_pods: 300      # Maximum number of pods per node
 service_cluster_ip_range: "10.43.0.0/16"  # Kubernetes service IP range
 cluster_cidr: "10.42.0.0/16"             # Pod network CIDR
@@ -33,7 +49,7 @@ rancher_import_timeout: 1200             # Timeout in seconds for Rancher agent 
 rancher_obs_cluster_name: "mosip_obs"    # Name of the OBS single-node cluster
 # IMPORTANT: Do not use ~ in the path, use the full path instead, e.g. "/home/ubuntu/rancher/obs"
 rancher_obs_base_dir: "/home/ubuntu/rancher/obs"  # Base directory for OBS cluster (under main rancher directory) - will be expanded to full path
-rancher_obs_check_existing_config: true  # Whether to check for existing OBS configurations before deployment
+rancher_obs_check_existing_config: true  # OBS cluster: reuse existing kubeconfig/token when healthy; set false to force fresh sync/install path
 rancher_obs_kubernetes_version: ""       # Kubernetes version for OBS cluster (empty for default)
 rancher_obs_service_cluster_ip_range: "10.43.0.0/16"  # Service IP range for OBS cluster
 rancher_obs_cluster_cidr: "10.42.0.0/16" # Pod network CIDR for OBS cluster
@@ -45,14 +61,6 @@ nginx_obs_enable_firewall_rules: false
 
 # System Configuration
 disable_swap: true                       # Whether to disable swap
-
-# Docker Configuration
-docker_install_from_apt: false           # Whether to install Docker from default apt repos
-#docker_version: "5:20.10.24~3-0~ubuntu-focal"  # Docker version to install IF USING 20.04
-docker_version: "5:20.10.24~3-0~ubuntu-jammy"  # Docker version to install IF USING 22.04
-docker_apt_gpg_key: "https://download.docker.com/linux/ubuntu/gpg"
-docker_apt_repository: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
-docker_user: "{{ ansible_user }}"        # User to add to docker group
 
 # Required Packages
 required_packages:
@@ -86,9 +94,9 @@ sysctl_params:
   net.core.netdev_max_backlog: 65535
   net.ipv4.tcp_max_tw_buckets: 1440000
   net.ipv4.tcp_fin_timeout: 15
-  net.ipv4.tcp_keepalive_intvl: 30
+  net.ipv4.tcp_keepalive_intvl: 15
   net.ipv4.tcp_keepalive_probes: 5
-  net.ipv4.tcp_keepalive_time: 1800
+  net.ipv4.tcp_keepalive_time: 60
   net.ipv4.neigh.default.gc_thresh1: 4096
   net.ipv4.neigh.default.gc_thresh2: 8192
   net.ipv4.neigh.default.gc_thresh3: 16384
@@ -96,17 +104,7 @@ sysctl_params:
   fs.inotify.max_user_watches: 1048576
   net.ipv4.tcp_tw_reuse: 1
 
-# Docker Daemon Configuration
-docker_daemon_config:
-  max_concurrent_downloads: 20
-  max_concurrent_uploads: 20
-  log_max_size: "100m"
-  log_max_file: 3
-  ulimit_nofile: 1048576
-  ulimit_nproc: 1048576
-
-# Istio Configuration
-istio_version: "1.15.0"                  # Version of Istio to install
+# Istio Configuration (istio_version set above in Platform Version Pins)
 istio_namespace: "istio-system"          # Namespace for Istio components
 istio_operator_wait_timeout: 300         # Timeout for operator readiness check
 

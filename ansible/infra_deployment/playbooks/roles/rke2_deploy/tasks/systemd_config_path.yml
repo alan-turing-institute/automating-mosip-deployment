@@ -1,0 +1,25 @@
+---
+- name: Ensure legacy RKE2 env directory exists
+  ansible.builtin.file:
+    path: /etc/rancher/rke2
+    state: directory
+    mode: '0755'
+
+- name: Set RKE2 systemd env file candidate paths
+  ansible.builtin.set_fact:
+    rke2_systemd_env_files:
+      - "/usr/local/lib/systemd/system/{{ rke2_systemd_service }}.env"
+      - "/etc/rancher/rke2/{{ rke2_systemd_service }}.env"
+
+- name: Point RKE2 systemd service at custom config file
+  ansible.builtin.lineinfile:
+    path: "{{ item }}"
+    regexp: '^RKE2_CONFIG_FILE='
+    line: "RKE2_CONFIG_FILE={{ rke2_config_dir }}/config.yaml"
+    create: true
+    mode: '0600'
+  loop: "{{ rke2_systemd_env_files }}"
+
+- name: Reload systemd after RKE2 env change
+  ansible.builtin.systemd:
+    daemon_reload: true

@@ -34,6 +34,12 @@ resource "helm_release" "postgres" {
   repository = "https://charts.bitnami.com/bitnami"
   chart      = "postgresql"
   version    = var.chart_version
+  wait       = true
+  set {
+    name  = "primary.resources.requests.cpu"
+    value = "100m"
+  }
+
   timeout    = var.helm_timeout_seconds
 
   values = [
@@ -56,6 +62,7 @@ resource "helm_release" "postgres_init" {
   repository = "https://mosip.github.io/mosip-helm"
   chart      = "postgres-init"
   version    = var.init_chart_version
+  wait       = true
   timeout    = var.helm_timeout_seconds
 
   values = [
@@ -138,3 +145,19 @@ resource "kubernetes_manifest" "postgres_virtualservice" {
 
   depends_on = [kubernetes_manifest.postgres_gateway]
 } 
+resource "kubernetes_limit_range" "default" {
+  metadata {
+    name      = "default-limits"
+    namespace = kubernetes_namespace.postgres.metadata[0].name
+  }
+  spec {
+    limit {
+      type = "Container"
+      default_request = {
+        cpu    = "100m"
+        memory = "256Mi"
+      }
+    }
+  }
+  depends_on = [kubernetes_namespace.postgres]
+}

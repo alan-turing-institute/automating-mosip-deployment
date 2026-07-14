@@ -140,10 +140,12 @@ resource "null_resource" "partner_onboarder_jobs_cleanup" {
 
 # Install partner-onboarder
 resource "helm_release" "partner_onboarder" {
-  name      = "partner-onboarder"
-  chart     = "mosip/partner-onboarder"
-  version   = var.helm_chart_version
-  namespace = kubernetes_namespace.partner_onboarder.metadata[0].name
+  name          = "partner-onboarder"
+  chart         = "mosip/partner-onboarder"
+  version       = var.helm_chart_version
+  namespace     = kubernetes_namespace.partner_onboarder.metadata[0].name
+  wait          = true
+  wait_for_jobs = true
 
   # Ensure immutable resources like Jobs are recreated on changes
   force_update = true
@@ -261,6 +263,16 @@ resource "helm_release" "partner_onboarder" {
     value = data.kubernetes_config_map.s3.data["s3-user-key"]
   }
 
+  set {
+    name  = "onboarding.secrets.s3.s3-user-secret"
+    value = data.kubernetes_secret.s3.data["s3-user-secret"]
+  }
+
+  set {
+    name  = "onboarding.variables.push_reports_to_s3"
+    value = tostring(var.push_reports_to_s3)
+  }
+
   # Insecure mode configuration
   set {
     name  = "onboarding.configmaps.onboarding.ENABLE_INSECURE"
@@ -355,3 +367,19 @@ resource "helm_release" "partner_onboarder" {
 
   timeout = var.helm_timeout_seconds
 } 
+resource "kubernetes_limit_range" "default" {
+  metadata {
+    name      = "default-limits"
+    namespace = kubernetes_namespace.partner_onboarder.metadata[0].name
+  }
+  spec {
+    limit {
+      type = "Container"
+      default_request = {
+        cpu    = "100m"
+        memory = "256Mi"
+      }
+    }
+  }
+  depends_on = [kubernetes_namespace.partner_onboarder]
+}

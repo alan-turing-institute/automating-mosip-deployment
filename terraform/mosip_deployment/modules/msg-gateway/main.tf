@@ -45,3 +45,20 @@ resource "kubernetes_secret" "msg_gateway" {
 
   depends_on = [kubernetes_namespace.msg_gateway]
 } 
+resource "kubernetes_limit_range" "default" {
+  count = var.msg_gateway_enabled ? 1 : 0
+  metadata {
+    name      = "default-limits"
+    namespace = kubernetes_namespace.msg_gateway[count.index].metadata[0].name
+  }
+  spec {
+    limit {
+      type = "Container"
+      default_request = {
+        cpu    = "100m"
+        memory = "256Mi"
+      }
+    }
+  }
+  depends_on = [kubernetes_namespace.msg_gateway]
+}
