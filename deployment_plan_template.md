@@ -178,10 +178,13 @@ In `terraform/aws/aws.tfvars`:
 When DNS automation is enabled, Route53 records include A records for `api`, `api-internal`, OBS hosts, and CNAMEs for MOSIP service hostnames (see previous MOSIP DNS table for the full list).
 
 #### Terraform apply
+Change directory `cd ~/automating-mosip-deployment/terraform/aws`
+
+Copy `.tmp` file `cp aws.tfvars.tmp aws.tfvars`
+
+Edit file `aws.tfvars` and change `ssh_key_name`
 
 ```bash
-cd ~/automating-mosip-deployment/terraform/aws
-cp aws.tfvars.tmp aws.tfvars # Min changes ssh_key_name.
 terraform init
 terraform plan -var-file=aws.tfvars
 terraform apply -var-file=aws.tfvars
@@ -315,9 +318,11 @@ Cluster nodes: Ubuntu 24.04 LTS per [official MOSIP docs](https://docs.mosip.io/
 | mosip-node | 6 | 12 | 32 GB | 128 GB each | Internal |
 
 
-### Certificates
+## Phase 2 — Certificates
 For AWS make sure your `.aws/credentials` are not expired.
+
 For manual DNS, you may need two TXT records with different values — both are allowed; do not remove the first before validation completes.
+
 
 ```sh
 # AWS route53
@@ -327,7 +332,7 @@ certbot -v certonly --dns-route53 --agree-tos --preferred-challenges=dns \
   -d *.{MOSIP_DOMAIN} -d {MOSIP_DOMAIN}
 
 # On Prem syntax
-# 
+#
 mkdir -p ~/cert/{config,work,logs}
 certbot -v certonly --manual --agree-tos --preferred-challenges=dns \
 --config-dir ~/cert/config --work-dir ~/cert/work --logs-dir ~/cert/logs \
@@ -354,26 +359,30 @@ Run all steps below **from the deployment node** after Phase 1 is complete and P
 
 ### Prepare Ansible inventory
 
-Edit inventory files under the repo with your IP addresses and domain. Examples and field names are in the `*.tmp` files alongside each inventory if you need a reference.
+**Examples and field names are in the `*.tmp` files, make sure you copy `.tmp` and do not edit the `.tmp` file directly.**
 
 #### WireGuard
 
-File: `ansible/wireguard/inventory/hosts.ini`
+Change directory `cd ~/automating-mosip-deployment/ansible/wireguard/inventory/`
+
+Make copy from .tmp file `cp hosts.ini.tmp hosts.ini`
+
+Edit File: `hosts.ini`
+
 
 ```sh
-cp hosts.ini.tmp hosts.ini
-
-vim hosts.ini
-
 [wireguard]
-wireguard-node ansible_host=<wg-bastion-private-ip> wireguard_endpoint=<wireguard-public-ip>
+wireguard-node ansible_host=<public_ip>  wireguard_endpoint=<public_ip>
 ```
 
 #### Infra (RKE2)
 
-Files: `ansible/infra_deployment/inventory/rancher.ini`, `group_vars/all.yml`
+Change directory `cd ~/automating-mosip-deployment/ansible/infra_deployment/inventory/`
 
-Set `mosip_domain`, `nginx_obs_public_domain_names`, and all `ansible_host` values.
+Make copy from .tmp file `cp rancher.ini.tmp rancher.ini`
+
+Edit File: `rancher.ini`
+
 
 **RKE2 inventory structure** (replace IPs):
 
@@ -391,14 +400,7 @@ vm1 ansible_host=<node1-private-ip>
 vm2 ansible_host=<node2-private-ip>
 vm3 ansible_host=<node3-private-ip>
 
-[rke2_agents]
-vm4 ansible_host=<node4-private-ip>
-vm5 ansible_host=<node5-private-ip>
-vm6 ansible_host=<node6-private-ip>
-
-[rke2_etcd]
-# empty = embedded etcd on servers
-
+...
 [mosip_obs]
 obs-node-1 ansible_host=<observation-node-private-ip>
 
@@ -411,9 +413,40 @@ nginx-obs-node-1 ansible_host=<obs-nginx-private-ip>
 
 Topology default: vm1 = primary control plane; vm2–vm3 = HA control plane; vm1–vm6 = worker agents.
 
-Set `rancher_hostname`, `kubeconfig_path`, and `installation_domain` in the Terraform tfvars under `terraform/obs_deployment/` and `terraform/mosip_deployment/` before the Terraform stages below.
+**RKE2 group_vars**
 
-### Update all nodes (optional but recommended)
+Change directory `group_vars/`
+
+Make copy from .tmp file `cp all.yml.tmp all.yml`
+
+Edit File: `all.yml`
+
+Mandatory changes: `mosip_domain`, `nginx_obs_public_domain_names`
+
+```sh
+mosip_domain: "turing-mosip.net"  # MOSIP Domain/Subdomain Root
+
+nginx_obs_public_domain_names: "rancher.turing-mosip.net" # Rancher DNS
+```
+
+### Prepare Terraform inventory
+#### Terraform OBS inventory
+
+Change directory `cd ~/automating-mosip-deployment/terraform/obs_deployment`
+
+Make from .tmp file `cp terraform.tfvars.tmp terraform.tfvars`
+
+Edit File: `terraform.tfvars` update rancher_hostname to match your DNS
+
+#### Terraform MOSIP inventory
+
+Change directory `cd ~/automating-mosip-deployment/terraform/mosip_deployment`
+
+Make from .tmp file `cp terraform.tfvars.tmp terraform.tfvars`
+
+Edit File: `terraform.tfvars` update `installation_name` and `installation_domain`
+
+### Update all nodes
 
 ```bash
 cd ~/automating-mosip-deployment/ansible/infra_deployment
@@ -460,8 +493,6 @@ In this guide's sequence, Main is deployed after OBS — so once you reach the M
 
 ### Observation node (RKE2 + Rancher stack)
 
-- In `group_vars/all.yml`: set `nginx_obs_public_domain_names`, `mosip_domain`
-
 - Run Ansible
 ```bash
 cd ~/automating-mosip-deployment/ansible/infra_deployment
@@ -479,7 +510,7 @@ terraform plan -var-file=terraform.tfvars
 terraform apply -var-file=terraform.tfvars
 ```
 
-**Verify:** Rancher UI loads; copy import URL from Rancher → **Import Existing → Generic** → paste into `rancher_import_url` in `group_vars/all.yml`.
+**Verify:** Rancher UI loads; copy import URL from Rancher → **Import Existing → Generic** → paste into `rancher_import_url` in `~/automating-mosip-deployment/ansible/infra_deployment/inventory/group_vars/all.yml`.
 
 ### Main cluster (RKE2 + Istio)
 
