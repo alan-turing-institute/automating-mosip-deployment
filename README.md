@@ -3,7 +3,8 @@
 ## What is This Repository?
 
 This repository contains automated tools and scripts that make deploying MOSIP (Modular Open Source Identity Platform) faster, easier, and more reliable. These tools automate the entire deployment process, allowing you to set up a complete MOSIP environment efficiently and consistently.
-Video tutorial: https://www.youtube.com/watch?v=6wMZWhszJ-k
+
+**Video tutorial: [https://www.youtube.com/watch?v=6wMZWhszJ-k](https://youtu.be/e7hvwMsatyA)**
 
 ## Why Was This Created?
 
